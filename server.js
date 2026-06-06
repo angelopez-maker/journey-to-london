@@ -3,7 +3,7 @@ const path = require('path');
 
 const app = express();
 app.use(express.json({ limit: '2mb' }));
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname)));
 
 // Proxy endpoint — keeps API key secure on the server
 app.post('/api/chat', async (req, res) => {
@@ -30,7 +30,7 @@ app.post('/api/chat', async (req, res) => {
 
 // Fallback: serve index.html for any other route
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 const PORT = process.env.PORT || 3000;
