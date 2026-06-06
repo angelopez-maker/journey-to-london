@@ -3,6 +3,7 @@ const path = require('path');
 
 const app = express();
 app.use(express.json({ limit: '2mb' }));
+app.get('/health', (req, res) => res.json({ apiKey: !!process.env.ANTHROPIC_API_KEY }));
 app.use(express.static(path.join(__dirname)));
 
 // Proxy endpoint — keeps API key secure on the server
