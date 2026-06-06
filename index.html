@@ -975,34 +975,21 @@ function runResources(){
 async function runTest(){
   showLoading('Preparing your test...');
   const topic=getTopic(),age=getAge(),level=getLevelDesc();
-  const prompt=`You are an English teacher at a Chilean bilingual school (7th grade level).
-Create a test about "${topic}" following EXACTLY this format used by the school:
+  const prompt=`You are an English teacher. Create a school-style test for a ${age}-year-old about "${topic}". Level: ${level}.
+The test follows this Chilean bilingual school format: Reading comprehension, Vocabulary (odd one out, word choice), Grammar (choose correct verb form, complete sentences), and Writing.
 
-Return JSON with this structure:
-{
-  "title": "Test title",
-  "reading": {
-    "text": "A short passage of 100-120 words related to the topic. Insert [1], [2], [3] markers where sentences were removed.",
-    "options": ["A) sentence...", "B) sentence...", "C) sentence...", "D) sentence...", "E) sentence...", "F) sentence...", "G) sentence...", "H) sentence..."],
-    "answers": [0, 2, 4, 1, 6]
-  },
-  "vocabulary": [
-    {"question": "She ___ (verb/option) to school every day.", "options": ["A) goes","B) go","C) is going","D) went"], "correct": 0, "explanation": "..."},
-    {"question": "Choose the odd one out:", "options": ["A) happy","B) sad","C) table","D) angry"], "correct": 2, "explanation": "..."},
-    {"question": "Choose the odd one out:", "options": ["A) run","B) swim","C) jump","D) pencil"], "correct": 3, "explanation": "..."}
-  ],
-  "grammar": [
-    {"question": "She ___ (work/is working) as a teacher right now.", "options": ["A) work","B) works","C) is working","D) worked"], "correct": 2, "explanation": "Present continuous for actions happening now"},
-    {"question": "I ___ (never/ever/just/already) seen that film before.", "options": ["A) never","B) ever","C) just","D) already"], "correct": 0, "explanation": "..."},
-    {"question": "Complete: They ___ (play) football when it started to rain.", "options": ["A) played","B) were playing","C) play","D) are playing"], "correct": 1, "explanation": "Past continuous for interrupted actions"}
-  ],
-  "writing_prompt": "Write a short paragraph (about 80-100 words) about: [relevant writing task related to the topic]",
-  "writing_tip": "Remember to use correct verb tenses and link your ideas with: first, then, finally, however, because."
-}
+Return ONLY this JSON (no extra text):
+{"title":"Unit Test: ${topic}","questions":[
+{"type":"Vocabulary","question":"Choose the correct option: She ___ to school every day.","options":["A) go","B) goes","C) is going","D) went"],"correct":1,"explanation":"Present simple uses 's' for he/she/it"},
+{"type":"Vocabulary","question":"Circle the odd one out: Which word does NOT belong?","options":["A) happy","B) angry","C) table","D) sad"],"correct":2,"explanation":"Table is a noun, the others are adjectives describing feelings"},
+{"type":"Grammar","question":"Choose the correct form: Look! The children ___ in the park right now.","options":["A) play","B) plays","C) are playing","D) played"],"correct":2,"explanation":"We use present continuous for actions happening right now"},
+{"type":"Grammar","question":"Complete the sentence: While I ___ TV, the phone rang.","options":["A) watch","B) watched","C) was watching","D) am watching"],"correct":2,"explanation":"Past continuous describes an action in progress when another happened"},
+{"type":"Reading","question":"Read: 'Tom usually walks to school, but today he is taking the bus because it is raining.' What is Tom doing TODAY?","options":["A) Walking to school","B) Taking the bus","C) Staying at home","D) Running to school"],"correct":1,"explanation":"'Today he is taking the bus' tells us what Tom is doing right now"}
+],"writing_prompt":"Write 4-5 sentences about your daily routine and what you are doing differently today. Use Present Simple and Present Continuous.","writing_tip":"Use: always, usually, every day (Present Simple) and right now, at the moment, today (Present Continuous)"}
 
-Make all questions appropriate for a 12-year-old at ${level} level. Return only valid JSON.`;
+Make ALL 5 questions about "${topic}". Return only valid JSON, no markdown.`;
   try{
-    const raw=await callClaude(prompt,2500);
+    const raw=await callClaude(prompt,1800);
     const d=parseJSON(raw);
     renderTest(d);
   }catch(e){showError(e.message);}
