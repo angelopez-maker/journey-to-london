@@ -539,7 +539,7 @@
       <button class="module-btn" data-module="reading" onclick="openModule('reading')"><div class="module-icon">📖</div><div class="module-name">Reading</div><div class="module-km">100 km</div></button>
       <button class="module-btn" data-module="listening" onclick="openModule('listening')"><div class="module-icon">🎧</div><div class="module-name">Listening</div><div class="module-km">100 km</div></button>
       <button class="module-btn" data-module="writing" onclick="openModule('writing')"><div class="module-icon">✏️</div><div class="module-name">Writing</div><div class="module-km">60–100 km</div></button>
-      <button class="module-btn" data-module="talking" onclick="openModule('talking')"><div class="module-icon">🎤</div><div class="module-name">Talking</div><div class="module-km">Coming soon</div></button>
+      <button class="module-btn" data-module="talking" onclick="openModule('talking')"><div class="module-icon">🎤</div><div class="module-name">Talking</div><div class="module-km">Up to 100 km</div></button>
       <button class="module-btn" data-module="playing" onclick="openModule('playing')"><div class="module-icon">🎮</div><div class="module-name">Playing</div><div class="module-km">20 km / ✓</div></button>
       <button class="module-btn" data-module="singing" onclick="openModule('singing')"><div class="module-icon">🎵</div><div class="module-name">Singing</div><div class="module-km">100 km</div></button>
       <button class="module-btn" data-module="watching" onclick="openModule('watching')"><div class="module-icon">🎬</div><div class="module-name">Watching</div><div class="module-km">100 km</div></button>
@@ -1141,6 +1141,7 @@ async function runTalking(){
         <div class="tutor-name">🎤 English Tutor</div>
         <div class="tutor-status" id="tutor-status">Getting ready...</div>
       </div>
+      <div style="text-align:right"><div style="font-family:'Orbitron',monospace;font-size:11px;color:var(--muted);letter-spacing:1px">POTENTIAL</div><div style="font-family:'Orbitron',monospace;font-size:18px;font-weight:700;color:var(--green)">+100 km</div><div style="font-family:'Rajdhani',sans-serif;font-size:11px;color:var(--muted)">on completion</div></div>
     </div>
     <div class="conv-log" id="conv-log"></div>
     <div class="transcript-live" id="transcript-live"></div>
@@ -1163,7 +1164,7 @@ async function runTalking(){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!SR){addMsg('tutor','Sorry, your browser does not support voice recognition. Please use Google Chrome! 🌐');setStatus('Browser not supported','');return;}
   recognition=new SR();
-  recognition.lang='en-US';recognition.continuous=false;recognition.interimResults=true;
+  recognition.lang='en-US';recognition.continuous=true;recognition.interimResults=true;recognition.maxAlternatives=1;
   recognition.onresult=e=>{
     let interim='',final='';
     for(let i=e.resultIndex;i<e.results.length;i++){
@@ -1174,15 +1175,8 @@ async function runTalking(){
     if(live)live.textContent=interim||final;
     if(final){window._userFinal=final;}
   };
-  recognition.onend=()=>{
-    if(window._userFinal){const t=window._userFinal;window._userFinal='';sendUserMessage(t);}
-    isListening=false;
-    const btn=document.getElementById('mic-btn');
-    if(btn){btn.classList.remove('active');}
-    const live=document.getElementById('transcript-live');if(live)live.textContent='';
-    if(!isTutorSpeaking)setStatus('Hold SPACE or button to speak','');
-  };
-  recognition.onerror=e=>{isListening=false;if(e.error!=='no-speech')setStatus('Mic error: '+e.error,'');};
+  // onend handled via continuous mode restart above
+  recognition.onerror=e=>{if(e.error==='no-speech'&&isListening){try{recognition.start();}catch(ex){}}else if(e.error!=='aborted'){isListening=false;setStatus('Mic error: '+e.error,'');}};  recognition.onend=e=>{if(isListening&&!isTutorSpeaking){try{recognition.start();}catch(ex){}}else if(!isListening&&window._userFinal){const t=window._userFinal;window._userFinal='';sendUserMessage(t);const live=document.getElementById('transcript-live');if(live)live.textContent='';}};_recEnd=true;
 
   // Tutor speaks first
   const opening=`Hi ${pName}! I'm your English tutor. Today we're going to talk about "${topic}". Are you ready? Let's start — tell me, what do you already know about this topic?`;
@@ -1208,7 +1202,18 @@ function startListening(){
 
 function stopListening(){
   if(!isListening)return;
+  isListening=false;
+  const btn=document.getElementById('mic-btn');if(btn)btn.classList.remove('active');
+  setStatus('Processing...','');
   try{recognition.stop();}catch(e){}
+  setTimeout(()=>{
+    if(window._userFinal){const t=window._userFinal;window._userFinal='';
+      const live=document.getElementById('transcript-live');if(live)live.textContent='';
+      sendUserMessage(t);
+    } else {
+      if(!isTutorSpeaking)setStatus('Hold SPACE or button to speak','');
+    }
+  },400);
 }
 
 function setStatus(msg,cls){
