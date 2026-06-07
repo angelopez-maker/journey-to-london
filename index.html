@@ -594,8 +594,7 @@ function updateTopbar(){
   document.getElementById('topbar-km').textContent=km.toLocaleString();
   const fill=document.getElementById('km-bar-fill');
   fill.style.width=Math.min((km/TOTAL_KM)*100,100)+'%';fill.className='km-bar-fill '+p;
-  document.querySelectorAll('.level-btn').forEach(b=>b.classList.remove('active'));
-  document.querySelector('.level-btn.'+lv).classList.add('active');
+  // level buttons removed from topbar - selection now via avatar thumbs
   // km dash
   const da=document.getElementById('km-dash-avatar');if(da)da.src=AVATARS[p][lv];
   const dn=document.getElementById('km-dash-name');if(dn){dn.textContent=p.charAt(0).toUpperCase()+p.slice(1);dn.className='km-dash-name '+p;}
