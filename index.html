@@ -1128,9 +1128,35 @@ let isTutorSpeaking=false;
 let isListening=false;
 let spaceHeld=false;
 
+// ══ SAFETY FILTER (Talking module) ══
+// Basic backstop list — the main protection is the tutor's system prompt below.
+// Covers: violence/weapons, sexual/romantic content, drugs/alcohol, self-harm, hate speech.
+const UNSAFE_KEYWORDS=[
+  'kill','murder','suicide','suicid','gun','weapon','knife','blood','matar','arma','pistola','cuchillo','sangre',
+  'sex','sexual','porn','nude','naked','sexo','desnud',
+  'drug','drugs','cocaine','marijuana','weed','alcohol','beer','wine','cigarette','droga','cigarro','cerveza',
+  'self-harm','self harm','cutting myself','autolesi',
+  'racist','nazi','racista'
+];
+function containsUnsafeContent(text){
+  if(!text)return false;
+  const t=text.toLowerCase();
+  return UNSAFE_KEYWORDS.some(k=>t.includes(k));
+}
+
 async function runTalking(){
   convHistory=[];isTutorSpeaking=false;isListening=false;
   const p=state.profile,lv=state.level,topic=getTopic(),age=getAge();
+
+  if(containsUnsafeContent(topic)){
+    document.getElementById('module-content-area').innerHTML=`<div class="content-card" style="text-align:center;padding:40px 20px">
+      <div style="font-size:48px;margin-bottom:12px">🎤</div>
+      <h2 style="margin-bottom:8px">Let's pick a different topic!</h2>
+      <p style="color:var(--muted)">That topic isn't a great fit for our English practice. Try something like Animals, Food &amp; Drinks, Travel, or Making Plans — or pick one of the suggestion chips on the topic screen. 😊</p>
+    </div>`;
+    return;
+  }
+
   const tutorAvatar=AVATARS[p].goat;
   const pName=p.charAt(0).toUpperCase()+p.slice(1);
 
@@ -1250,8 +1276,18 @@ function speakTutor(text,onDone){
 async function sendUserMessage(text){
   addMsg('user',text);
   convHistory.push({role:'user',content:text});
-  setStatus('⏳ Tutor thinking...','');
   const topic=getTopic(),age=getAge(),level=getLevelDesc();
+
+  // Backstop: redirect locally without calling the AI if the student says something off-limits
+  if(containsUnsafeContent(text)){
+    const redirect=`Let's keep talking about "${topic}" — that's much more interesting! So, what else can you tell me about it?`;
+    addMsg('tutor',redirect);
+    convHistory.push({role:'assistant',content:redirect});
+    speakTutor(redirect,()=>setStatus('Hold SPACE or button to speak',''));
+    return;
+  }
+
+  setStatus('⏳ Tutor thinking...','');
   const sysPrompt=`You are a friendly, relaxed male English tutor for a ${age}-year-old student. Topic: "${topic}". Level: ${level}.
 Rules:
 - Keep responses SHORT: 2-3 sentences max
@@ -1259,7 +1295,12 @@ Rules:
 - Gently correct grammar by naturally using the correct form in your reply (don't explicitly say "you made a mistake")
 - Be encouraging and warm
 - Use vocabulary appropriate for the level
-- Stay on topic: ${topic}`;
+- Stay on topic: ${topic}
+Content safety rules (this student is a child — these matter a lot):
+- NEVER discuss, explain, or engage with: violence or weapons, sexual or romantic content, drugs/alcohol/smoking, self-harm, hate speech or discrimination, or scary/disturbing content
+- Never ask for or repeat personal information (full name, address, school, phone, etc.)
+- If the student brings up any of these topics, do NOT repeat or elaborate on it — calmly and warmly steer the conversation back to "${topic}" with a new question, like a kind teacher gently changing the subject
+- Always keep the conversation safe, kind, and age-appropriate`;
   const fullPrompt=sysPrompt+'\n\nConversation:\n'+convHistory.slice(0,-1).map(m=>m.role+': '+m.content).join('\n')+'\n\nStudent: '+text+'\n\nTutor response (2-3 sentences + question):';
   try{
     const raw=await callClaude(fullPrompt,300);
