@@ -289,6 +289,7 @@
     color:var(--text);font-family:'Inter',sans-serif;font-size:15px;width:140px;outline:none;transition:all .2s;}
   .blank-input:focus{border-color:var(--blue);}
   .blank-input.correct{border-color:var(--green);background:rgba(16,185,129,.1);}
+  .vocab-gap{display:inline-block;border-bottom:2px dashed var(--border);min-width:70px;text-align:center;color:var(--muted);font-weight:700;}
   .blank-input.wrong{border-color:var(--red);background:rgba(239,68,68,.08);}
   textarea.writing-area{width:100%;min-height:120px;background:var(--card2);border:1px solid var(--border);
     border-radius:12px;padding:14px;color:var(--text);font-family:'Inter',sans-serif;font-size:15px;
@@ -874,13 +875,13 @@ Return JSON:
     ... 4 more
   ],
   "vocab_match":[
-    {"definition":"A short, clear definition of a word (e.g. 'A place full of trees is called a...')","options":["correct word","plausible but wrong word"],"correct":0,"explanation":"a brief sentence clarifying both words, e.g. 'A forest is a large area covered in trees, while a glacier is a huge mass of ice.'"},
-    ... 5 total — put the correct word in a random position (sometimes index 0, sometimes index 1, so it's not always the same spot)
+    {"sentence":"The village is in a ___ next to a river.","options":["valley","cliff"],"correct":0,"explanation":"a brief sentence explaining why that word fits the context AND what the other word means, e.g. 'A valley is low land between hills, which fits next to a river — a cliff is a steep rock face.'"},
+    ... 5 total — put the correct option in a random position (sometimes index 0, sometimes index 1, so it's not always the same spot)
   ],
   "writing_prompt":"A short writing task (2-3 sentences to write about the topic)",
   "writing_tip":"A helpful grammar or vocabulary tip"
 }
-Make the vocab_match definitions and word choices appropriate for the student's age and level, related to "${topic}" when possible. Return only valid JSON.`;
+For vocab_match: write ONE natural sentence per item with a single gap shown as "___", and TWO word/phrase options where only one fits the meaning of the sentence (the other should be a real word that would NOT make sense in that context — a contextual choice, not a random distractor). Keep sentences and vocabulary appropriate for the student's age and level, related to "${topic}" when possible. Return only valid JSON.`;
   try{
     const raw=await callClaude(prompt,1500);
     const d=parseJSON(raw);
@@ -894,12 +895,16 @@ function renderWriting(d){
     const parts=b.sentence.split('___');
     return `<div class="fill-blank-item">${parts[0]}<input class="blank-input" id="blank-${i}" placeholder="..." data-answer="${encodeURIComponent(b.answer)}" data-hint="${encodeURIComponent(b.hint||'')}">${parts[1]||''}</div>`;
   }).join('');
-  const vocabHtml=(d.vocab_match||[]).map((v,i)=>`<div class="quiz-question-card" id="vcard-${i}">
-    <div class="quiz-q-num">VOCABULARY · WORD ${i+1} · 20 KM</div>
-    <div class="quiz-q-text">${v.definition}</div>
-    <div class="quiz-options" style="display:flex;gap:12px;flex-wrap:wrap">${(v.options||[]).map((o,j)=>`<div class="quiz-option" style="flex:1;min-width:120px;text-align:center" onclick="answerVocab(${i},${j})">${o}</div>`).join('')}</div>
+  const vocabHtml=(d.vocab_match||[]).map((v,i)=>{
+    const parts=String(v.sentence||'').split('___');
+    const sentenceHtml=`${escapeHtml(parts[0]||'')}<span class="vocab-gap">______</span>${escapeHtml(parts[1]||'')}`;
+    return `<div class="quiz-question-card" id="vcard-${i}">
+    <div class="quiz-q-num">VOCABULARY · SENTENCE ${i+1} · 20 KM</div>
+    <div class="quiz-q-text">${sentenceHtml}</div>
+    <div class="quiz-options" style="display:flex;gap:12px;flex-wrap:wrap;margin-top:10px">${(v.options||[]).map((o,j)=>`<div class="quiz-option" style="flex:1;min-width:120px;text-align:center" onclick="answerVocab(${i},${j})">${escapeHtml(o)}</div>`).join('')}</div>
     <div class="quiz-feedback" id="vfb-${i}" style="display:none"></div>
-  </div>`).join('');
+  </div>`;
+  }).join('');
   let html=`<div class="content-card"><h2>✏️ ${d.title}</h2>
     <h3>Fill in the blanks — 20 km each</h3>
     <div class="fill-blank-wrap">${blanksHtml}</div>
@@ -915,8 +920,8 @@ function renderWriting(d){
     <div id="writing-feedback" style="margin-top:12px"></div>
   </div>
   <div class="content-card">
-    <h2>📚 Vocabulary — Pick the right word · 20 km each</h2>
-    <p style="color:var(--muted);margin-bottom:12px">Read the definition and choose the word it describes!</p>
+    <h2>📚 Vocabulary — Choose the correct option · 20 km each</h2>
+    <p style="color:var(--muted);margin-bottom:12px">Read each sentence and pick the word that fits the context!</p>
     <div class="quiz-wrap">${vocabHtml}</div>
   </div>`;
   document.getElementById('module-content-area').innerHTML=html;
