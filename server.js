@@ -1,46 +1,1115 @@
-const express = require('express');
-const path = require('path');
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Journey to London</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&family=Inter:wght@400;500;600&display=swap');
+  :root {
+    --bg:#0a0a1a;--bg2:#0f0f2a;--card:#12122a;--card2:#1a1a3a;--border:#2a2a5a;
+    --blue:#3b82f6;--blue2:#60a5fa;--gold:#f59e0b;--gold2:#fcd34d;
+    --green:#10b981;--purple:#8b5cf6;--red:#ef4444;--cyan:#06b6d4;
+    --pink:#ec4899;--orange:#f97316;
+    --text:#e2e8f0;--muted:#94a3b8;
+    --glow-blue:0 0 20px rgba(59,130,246,0.4);
+    --glow-gold:0 0 20px rgba(245,158,11,0.4);
+    --glow-green:0 0 20px rgba(16,185,129,0.4);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;overflow-x:hidden;}
+  #particles{position:fixed;inset:0;pointer-events:none;z-index:0;
+    background:radial-gradient(ellipse at 20% 50%,rgba(59,130,246,.06) 0%,transparent 50%),
+    radial-gradient(ellipse at 80% 20%,rgba(139,92,246,.06) 0%,transparent 50%),var(--bg);}
+  .screen{position:relative;z-index:1;display:none;min-height:100vh;}
+  .screen.active{display:flex;flex-direction:column;}
 
-const app = express();
-app.use(express.json({ limit: '2mb' }));
-app.get('/health', (req, res) => {
-  const key = process.env.ANTHROPIC_API_KEY || '';
-  res.json({ 
-    hasKey: !!key,
-    length: key.length,
-    starts: key.substring(0,10),
-    ends: key.slice(-4)
+  /* ── SELECT ── */
+  #screen-select{align-items:center;justify-content:center;padding:40px 20px;position:relative;}
+  .map-bg{position:absolute;inset:0;background:url('Map.png') center/cover no-repeat;opacity:0.08;pointer-events:none;z-index:0;}
+  #screen-select > *:not(.map-bg){position:relative;z-index:1;}
+  .select-header{text-align:center;margin-bottom:50px;}
+  .logo{font-family:'Orbitron',monospace;font-size:clamp(28px,5vw,52px);font-weight:900;
+    background:linear-gradient(135deg,var(--blue2),var(--gold2));-webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;background-clip:text;letter-spacing:4px;
+    filter:drop-shadow(0 0 20px rgba(59,130,246,.5));}
+  .logo-sub{font-family:'Rajdhani',sans-serif;font-size:18px;color:var(--muted);letter-spacing:6px;text-transform:uppercase;margin-top:8px;}
+  .distance-badge{display:inline-flex;align-items:center;gap:8px;
+    background:linear-gradient(135deg,rgba(245,158,11,.1),rgba(245,158,11,.05));
+    border:1px solid rgba(245,158,11,.3);border-radius:50px;padding:8px 20px;margin-top:16px;
+    font-family:'Rajdhani',sans-serif;font-size:15px;color:var(--gold2);letter-spacing:1px;}
+  .distance-badge span{font-weight:700;font-size:17px;}
+  .profiles-grid{display:flex;flex-direction:column;gap:20px;width:100%;max-width:840px;}
+  .profile-wrapper{display:flex;flex-direction:column;gap:8px;}
+  .profile-km-bar-wrap{display:flex;align-items:center;gap:10px;padding:0 4px;}
+  .profile-km-bar-bg{flex:1;height:10px;background:rgba(255,255,255,.08);border-radius:50px;overflow:hidden;}
+  .profile-km-bar-fill{height:100%;border-radius:50px;transition:width .8s cubic-bezier(.34,1.56,.64,1);}
+  .profile-km-bar-fill.rodrigo{background:linear-gradient(90deg,var(--blue),var(--blue2));}
+  .profile-km-bar-fill.fernando{background:linear-gradient(90deg,var(--gold),var(--gold2));}
+  .profile-km-bar-pct{font-family:'Orbitron',monospace;font-size:11px;font-weight:700;white-space:nowrap;}
+  .profile-card{background:var(--card);border:2px solid var(--border);border-radius:20px;
+    padding:24px 32px;width:100%;cursor:pointer;
+    transition:all .3s cubic-bezier(.34,1.56,.64,1);position:relative;overflow:hidden;
+    display:flex;align-items:center;gap:32px;text-align:left;}
+  .profile-card::before{content:'';position:absolute;inset:0;border-radius:24px;opacity:0;transition:opacity .3s;}
+  .profile-card.rodrigo::before{background:radial-gradient(ellipse at center top,rgba(59,130,246,.15),transparent 70%);}
+  .profile-card.fernando::before{background:radial-gradient(ellipse at center top,rgba(245,158,11,.15),transparent 70%);}
+  .profile-card:hover{transform:translateY(-8px) scale(1.02);}
+  .profile-card.rodrigo:hover{border-color:var(--blue);box-shadow:var(--glow-blue),0 20px 40px rgba(0,0,0,.4);}
+  .profile-card.rodrigo:hover::before{opacity:1;}
+  .profile-card.fernando:hover{border-color:var(--gold);box-shadow:var(--glow-gold),0 20px 40px rgba(0,0,0,.4);}
+  .profile-card.fernando:hover::before{opacity:1;}
+  .profile-avatar{width:240px;height:240px;object-fit:contain;flex-shrink:0;
+    filter:drop-shadow(0 8px 24px rgba(0,0,0,.6));transition:transform .3s;}
+  .profile-card:hover .profile-avatar{transform:scale(1.05) translateY(-4px);}
+  .profile-details{flex:1;display:flex;flex-direction:column;gap:12px;}
+  .profile-name{font-family:'Orbitron',monospace;font-size:26px;font-weight:700;}
+  .profile-card.rodrigo .profile-name{color:var(--blue2);}
+  .profile-card.fernando .profile-name{color:var(--gold2);}
+  .profile-info{font-size:14px;color:var(--muted);font-family:'Rajdhani',sans-serif;letter-spacing:1px;}
+  .profile-km{background:rgba(255,255,255,.05);border-radius:50px;padding:8px 16px;
+    font-family:'Rajdhani',sans-serif;font-size:14px;color:var(--muted);display:inline-block;}
+  .profile-km strong{font-size:18px;font-weight:700;}
+  .profile-card.rodrigo .profile-km strong{color:var(--blue2);}
+  .profile-card.fernando .profile-km strong{color:var(--gold2);}
+  .btn-select{padding:12px 24px;border:none;border-radius:12px;font-family:'Rajdhani',sans-serif;
+    font-size:16px;font-weight:700;letter-spacing:2px;cursor:pointer;transition:all .2s;
+    text-transform:uppercase;align-self:flex-start;}
+  .profile-card.rodrigo .btn-select{background:linear-gradient(135deg,var(--blue),#2563eb);color:white;box-shadow:0 4px 15px rgba(59,130,246,.3);}
+  .profile-card.rodrigo .btn-select:hover{box-shadow:0 6px 25px rgba(59,130,246,.5);transform:translateY(-2px);}
+  .profile-card.fernando .btn-select{background:linear-gradient(135deg,var(--gold),#d97706);color:#0a0a1a;box-shadow:0 4px 15px rgba(245,158,11,.3);}
+  .profile-card.fernando .btn-select:hover{box-shadow:0 6px 25px rgba(245,158,11,.5);transform:translateY(-2px);}
+
+  /* ── DASHBOARD HERO ── */
+  .dashboard-hero{display:flex;gap:16px;margin-bottom:20px;}
+  .hero-map-panel{flex:1.3;background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;min-height:200px;}
+  .hero-map-img{flex:1;object-fit:cover;width:100%;opacity:0.65;display:block;min-height:130px;}
+  .hero-km-section{padding:12px 16px 14px;background:rgba(0,0,0,0.4);}
+  .hero-km-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+  .hero-km-label{font-family:'Orbitron',monospace;font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;}
+  .hero-km-value{font-family:'Orbitron',monospace;font-size:13px;font-weight:700;}
+  .hero-km-value.rodrigo{color:var(--blue2);}
+  .hero-km-value.fernando{color:var(--gold2);}
+  .hero-km-bar-bg{height:18px;background:rgba(255,255,255,.08);border-radius:50px;overflow:visible;position:relative;}
+  .hero-km-bar-fill{height:100%;border-radius:50px;transition:width .8s cubic-bezier(.34,1.56,.64,1);position:relative;overflow:hidden;}
+  .hero-km-bar-fill::after{content:'';position:absolute;top:0;left:-100%;right:0;bottom:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent);animation:shimmer 2s infinite;}
+  .hero-km-bar-fill.rodrigo{background:linear-gradient(90deg,var(--blue),var(--blue2));}
+  .hero-km-bar-fill.fernando{background:linear-gradient(90deg,var(--gold),var(--gold2));}
+  .bus-icon{position:absolute;right:-16px;top:50%;transform:translateY(-50%);font-size:26px;transition:right .8s cubic-bezier(.34,1.56,.64,1);filter:drop-shadow(0 2px 6px rgba(0,0,0,.6));pointer-events:none;}
+
+  .hero-profile-panel{flex:1;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px 12px;display:flex;flex-direction:column;gap:10px;}
+  .hero-profile-title{font-family:'Orbitron',monospace;font-size:11px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;text-align:center;}
+  .profile-thumbs{display:flex;justify-content:space-around;align-items:flex-end;gap:4px;flex:1;}
+  .profile-thumb-wrap{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;transition:all .3s;padding:4px;}
+  .profile-thumb-img{width:75px;height:75px;object-fit:contain;transition:all .3s cubic-bezier(.34,1.56,.64,1);}
+  .profile-thumb-wrap.active .profile-thumb-img{transform:scale(1.25);filter:drop-shadow(0 0 14px var(--gold2));}
+  .profile-thumb-wrap.inactive .profile-thumb-img{opacity:0.3;filter:grayscale(50%);}
+  .profile-thumb-label{font-family:'Orbitron',monospace;font-size:9px;font-weight:700;letter-spacing:1px;text-align:center;transition:all .3s;}
+  .profile-thumb-wrap.normal-lv .profile-thumb-label{color:var(--green);}
+  .profile-thumb-wrap.pro-lv .profile-thumb-label{color:var(--blue2);}
+  .profile-thumb-wrap.goat-lv .profile-thumb-label{color:var(--purple);}
+  .profile-thumb-wrap.inactive .profile-thumb-label{color:var(--border);}
+  .hero-back-row{display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-bottom:4px;}
+
+  /* ── TOPBAR ── */
+  .topbar{background:rgba(10,10,26,.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);
+    padding:12px 24px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100;}
+  .topbar-avatar{width:56px;height:56px;object-fit:contain;filter:drop-shadow(0 2px 8px rgba(0,0,0,.5));}
+  .map-banner{width:100%;height:130px;object-fit:cover;object-position:center 40%;border-radius:16px;margin-bottom:20px;opacity:0.55;display:block;}
+  .km-dash-wrap{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;gap:16px;}
+  .km-dash-avatar{width:80px;height:80px;object-fit:contain;filter:drop-shadow(0 4px 12px rgba(0,0,0,.5));}
+  .km-dash-info{flex:1;}
+  .km-dash-name{font-family:'Orbitron',monospace;font-size:20px;font-weight:700;margin-bottom:8px;}
+  .km-dash-name.rodrigo{color:var(--blue2);}
+  .km-dash-name.fernando{color:var(--gold2);}
+  .km-dash-bar-bg{height:14px;background:rgba(255,255,255,.08);border-radius:50px;overflow:hidden;margin-bottom:6px;}
+  .km-dash-bar-fill{height:100%;border-radius:50px;transition:width .8s cubic-bezier(.34,1.56,.64,1);position:relative;overflow:hidden;}
+  .km-dash-bar-fill::after{content:'';position:absolute;top:0;left:-100%;right:0;bottom:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent);animation:shimmer 2s infinite;}
+  .km-dash-bar-fill.rodrigo{background:linear-gradient(90deg,var(--blue),var(--blue2));}
+  .km-dash-bar-fill.fernando{background:linear-gradient(90deg,var(--gold),var(--gold2));}
+  .km-dash-nums{font-family:'Rajdhani',sans-serif;font-size:14px;color:var(--muted);}
+  .km-dash-nums strong{font-size:20px;font-weight:700;color:var(--text);}
+  .topbar-info{flex:1;min-width:0;}
+  .topbar-name{font-family:'Orbitron',monospace;font-size:14px;font-weight:700;line-height:1.2;}
+  .topbar-name.rodrigo{color:var(--blue2);}
+  .topbar-name.fernando{color:var(--gold2);}
+  .km-bar-wrap{margin-top:4px;display:flex;align-items:center;gap:8px;}
+  .km-bar-bg{flex:1;height:8px;background:rgba(255,255,255,.1);border-radius:50px;overflow:hidden;max-width:300px;}
+  .km-bar-fill{height:100%;border-radius:50px;transition:width .6s cubic-bezier(.34,1.56,.64,1);position:relative;overflow:hidden;}
+  .km-bar-fill::after{content:'';position:absolute;top:0;left:-100%;right:0;bottom:0;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent);animation:shimmer 2s infinite;}
+  @keyframes shimmer{0%{left:-100%}100%{left:200%}}
+  .km-bar-fill.rodrigo{background:linear-gradient(90deg,var(--blue),var(--blue2));}
+  .km-bar-fill.fernando{background:linear-gradient(90deg,var(--gold),var(--gold2));}
+  .km-text{font-family:'Rajdhani',sans-serif;font-size:13px;color:var(--muted);white-space:nowrap;}
+  .km-text strong{font-size:15px;font-weight:700;color:var(--text);}
+  .topbar-right{display:flex;align-items:center;gap:12px;}
+  .level-selector{display:flex;gap:4px;}
+  .level-btn{padding:6px 12px;border:1px solid var(--border);border-radius:8px;background:transparent;
+    color:var(--muted);font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;
+    letter-spacing:1px;cursor:pointer;transition:all .2s;text-transform:uppercase;}
+  .level-btn.active.normal{background:rgba(16,185,129,.2);border-color:var(--green);color:var(--green);box-shadow:0 0 10px rgba(16,185,129,.2);}
+  .level-btn.active.pro{background:rgba(59,130,246,.2);border-color:var(--blue);color:var(--blue2);box-shadow:0 0 10px rgba(59,130,246,.2);}
+  .level-btn.active.goat{background:rgba(139,92,246,.2);border-color:var(--purple);color:var(--purple);box-shadow:0 0 10px rgba(139,92,246,.2);}
+  .level-btn:not(.active):hover{border-color:var(--text);color:var(--text);}
+  .btn-back{padding:6px 14px;border:1px solid var(--border);border-radius:8px;background:transparent;
+    color:var(--muted);font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:600;
+    cursor:pointer;transition:all .2s;letter-spacing:1px;}
+  .btn-back:hover{border-color:var(--text);color:var(--text);}
+
+  /* ── DASHBOARD ── */
+  #screen-dashboard{padding:0;flex-direction:column;}
+  .dashboard-content{flex:1;padding:24px;max-width:900px;width:100%;margin:0 auto;}
+  .topic-section{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:20px;}
+  .section-label{font-family:'Orbitron',monospace;font-size:11px;font-weight:700;letter-spacing:3px;
+    color:var(--muted);text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+  .section-label::before{content:'';display:inline-block;width:3px;height:14px;border-radius:2px;background:var(--blue);}
+  .topic-input-wrap{position:relative;}
+  #topic-input{width:100%;padding:14px 50px 14px 18px;background:var(--card2);border:1px solid var(--border);
+    border-radius:12px;color:var(--text);font-family:'Inter',sans-serif;font-size:16px;transition:all .2s;outline:none;}
+  #topic-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(59,130,246,.15);}
+  #topic-input::placeholder{color:var(--muted);}
+  .topic-clear{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;
+    color:var(--muted);cursor:pointer;font-size:18px;line-height:1;transition:color .2s;display:none;}
+  .topic-clear:hover{color:var(--text);}
+  .presets-toggle{margin-top:12px;display:flex;align-items:center;gap:8px;cursor:pointer;
+    width:fit-content;color:var(--muted);font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:600;
+    letter-spacing:1px;text-transform:uppercase;user-select:none;transition:color .2s;}
+  .presets-toggle:hover{color:var(--text);}
+  .presets-toggle-icon{font-size:11px;transition:transform .3s;}
+  .presets-toggle.open .presets-toggle-icon{transform:rotate(180deg);}
+  .presets-wrap{margin-top:10px;display:none;flex-wrap:wrap;gap:6px;}
+  .presets-wrap.open{display:flex;}
+  .preset-group-label{width:100%;font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:600;
+    letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-top:8px;margin-bottom:2px;}
+  .preset-group-label:first-child{margin-top:0;}
+  .preset-chip{padding:5px 12px;background:var(--card2);border:1px solid var(--border);border-radius:50px;
+    font-size:13px;color:var(--muted);cursor:pointer;transition:all .2s;font-family:'Inter',sans-serif;white-space:nowrap;}
+  .preset-chip:hover{border-color:var(--blue);color:var(--text);background:rgba(59,130,246,.1);}
+  .preset-chip.selected{border-color:var(--blue);color:var(--blue2);background:rgba(59,130,246,.15);}
+  .modules-label{font-family:'Orbitron',monospace;font-size:11px;font-weight:700;letter-spacing:3px;
+    color:var(--muted);text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+  .modules-label::before{content:'';display:inline-block;width:3px;height:14px;border-radius:2px;background:var(--gold);}
+  .modules-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;}
+  .module-btn{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px 16px;
+    cursor:pointer;transition:all .25s cubic-bezier(.34,1.56,.64,1);text-align:center;position:relative;
+    overflow:hidden;display:flex;flex-direction:column;align-items:center;gap:10px;}
+  .module-btn::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity .3s;border-radius:16px;}
+  .module-btn:hover{transform:translateY(-4px);}
+  .module-btn[data-module="learning"]{--mc:var(--blue);}
+  .module-btn[data-module="reading"]{--mc:var(--green);}
+  .module-btn[data-module="listening"]{--mc:var(--purple);}
+  .module-btn[data-module="writing"]{--mc:var(--gold);}
+  .module-btn[data-module="talking"]{--mc:var(--red);}
+  .module-btn[data-module="playing"]{--mc:var(--cyan);}
+  .module-btn[data-module="singing"]{--mc:var(--pink);}
+  .module-btn[data-module="watching"]{--mc:var(--orange);}
+  .module-btn[data-module="resources"]{--mc:var(--muted);}
+  .module-btn::before{background:rgba(from var(--mc) r g b / .08);}
+  .module-btn:hover::before{opacity:1;}
+  .module-btn:hover{border-color:var(--mc);}
+  .module-btn:hover .module-icon{transform:scale(1.15);}
+  .module-btn:hover .module-name{color:var(--mc);}
+  .module-icon{font-size:32px;line-height:1;transition:all .3s;}
+  .module-name{font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;letter-spacing:1px;
+    text-transform:uppercase;color:var(--text);transition:color .2s;}
+  .module-km{font-size:11px;color:var(--muted);font-family:'Rajdhani',sans-serif;letter-spacing:.5px;}
+  .test-btn{width:100%;padding:20px;background:linear-gradient(135deg,#7c3aed,#4f46e5,#3b82f6);
+    border:none;border-radius:16px;cursor:pointer;font-family:'Orbitron',monospace;font-size:18px;
+    font-weight:700;color:white;letter-spacing:3px;text-transform:uppercase;
+    transition:all .3s cubic-bezier(.34,1.56,.64,1);
+    box-shadow:0 4px 20px rgba(124,58,237,.4),0 0 40px rgba(124,58,237,.15);
+    position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:30px;}
+  .test-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.1),transparent);opacity:0;transition:opacity .2s;}
+  .test-btn:hover{transform:translateY(-3px) scale(1.01);box-shadow:0 8px 30px rgba(124,58,237,.6);}
+  .test-btn:hover::before{opacity:1;}
+  .test-icon{font-size:24px;}
+  .test-sub{font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:400;letter-spacing:2px;opacity:.7;display:block;}
+
+  /* ── MODULE SCREEN ── */
+  #screen-module{padding:0;flex-direction:column;}
+  .module-header{background:rgba(10,10,26,.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);
+    padding:14px 24px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100;}
+  .module-header-icon{font-size:28px;}
+  .module-header-info{flex:1;}
+  .module-header-title{font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:var(--text);}
+  .module-header-sub{font-family:'Rajdhani',sans-serif;font-size:13px;color:var(--muted);margin-top:2px;}
+  .module-content-area{flex:1;padding:24px;max-width:900px;width:100%;margin:0 auto;}
+
+  /* Loading */
+  .loading-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px;gap:20px;}
+  .loading-spinner{width:48px;height:48px;border:3px solid var(--border);border-top-color:var(--blue);
+    border-radius:50%;animation:spin .8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .loading-text{font-family:'Rajdhani',sans-serif;font-size:16px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;}
+
+  /* Content cards */
+  .content-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:16px;}
+  .content-card h2{font-family:'Orbitron',monospace;font-size:18px;font-weight:700;color:var(--blue2);margin-bottom:16px;}
+  .content-card h3{font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700;color:var(--gold2);margin-bottom:10px;letter-spacing:1px;text-transform:uppercase;}
+  .content-card p{font-size:15px;line-height:1.7;color:var(--text);margin-bottom:10px;}
+  .content-card ul{list-style:none;display:flex;flex-direction:column;gap:8px;margin-bottom:10px;}
+  .content-card ul li{font-size:15px;color:var(--text);padding-left:20px;position:relative;line-height:1.6;}
+  .content-card ul li::before{content:"→";position:absolute;left:0;color:var(--blue2);}
+  .example-box{background:var(--card2);border-left:3px solid var(--blue);border-radius:0 8px 8px 0;
+    padding:12px 16px;margin:8px 0;font-style:italic;color:var(--blue2);font-size:15px;}
+
+  /* Quiz */
+  .quiz-wrap{display:flex;flex-direction:column;gap:16px;}
+  .quiz-question-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;}
+  .quiz-q-num{font-family:'Orbitron',monospace;font-size:11px;color:var(--muted);letter-spacing:2px;margin-bottom:8px;}
+  .quiz-q-text{font-size:16px;font-weight:600;color:var(--text);margin-bottom:16px;line-height:1.5;}
+  .quiz-options{display:flex;flex-direction:column;gap:8px;}
+  .quiz-option{padding:12px 16px;background:var(--card2);border:1px solid var(--border);border-radius:10px;
+    cursor:pointer;transition:all .2s;font-size:14px;color:var(--text);text-align:left;}
+  .quiz-option:hover:not(.answered){border-color:var(--blue);background:rgba(59,130,246,.1);}
+  .quiz-option.correct{border-color:var(--green);background:rgba(16,185,129,.15);color:var(--green);}
+  .quiz-option.wrong{border-color:var(--red);background:rgba(239,68,68,.1);color:var(--red);}
+  .quiz-option.reveal{border-color:var(--green);background:rgba(16,185,129,.08);}
+  .quiz-feedback{margin-top:10px;font-size:13px;line-height:1.5;padding:10px 14px;border-radius:8px;}
+  .quiz-feedback.correct{background:rgba(16,185,129,.1);color:var(--green);}
+  .quiz-feedback.wrong{background:rgba(239,68,68,.08);color:#fca5a5;}
+
+  /* KM award */
+  .km-award{background:linear-gradient(135deg,rgba(16,185,129,.15),rgba(16,185,129,.05));
+    border:1px solid rgba(16,185,129,.3);border-radius:16px;padding:24px;text-align:center;margin-top:20px;}
+  .km-award-num{font-family:'Orbitron',monospace;font-size:48px;font-weight:900;color:var(--green);
+    filter:drop-shadow(0 0 20px rgba(16,185,129,.5));}
+  .km-award-label{font-family:'Rajdhani',sans-serif;font-size:16px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-top:4px;}
+  .km-award-btn{margin-top:16px;padding:12px 32px;background:var(--green);border:none;border-radius:12px;
+    color:#0a0a1a;font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700;letter-spacing:2px;
+    cursor:pointer;transition:all .2s;text-transform:uppercase;}
+  .km-award-btn:hover{transform:translateY(-2px);box-shadow:var(--glow-green);}
+
+  /* Writing */
+  .writing-prompt{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;font-size:15px;line-height:1.7;}
+  .fill-blank-wrap{display:flex;flex-direction:column;gap:10px;margin-bottom:16px;}
+  .fill-blank-item{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:15px;line-height:1.8;}
+  .blank-input{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:6px 12px;
+    color:var(--text);font-family:'Inter',sans-serif;font-size:15px;width:140px;outline:none;transition:all .2s;}
+  .blank-input:focus{border-color:var(--blue);}
+  .blank-input.correct{border-color:var(--green);background:rgba(16,185,129,.1);}
+  .blank-input.wrong{border-color:var(--red);background:rgba(239,68,68,.08);}
+  textarea.writing-area{width:100%;min-height:120px;background:var(--card2);border:1px solid var(--border);
+    border-radius:12px;padding:14px;color:var(--text);font-family:'Inter',sans-serif;font-size:15px;
+    line-height:1.7;outline:none;resize:vertical;transition:all .2s;}
+  textarea.writing-area:focus{border-color:var(--blue);}
+  .submit-btn{padding:12px 28px;border:none;border-radius:12px;font-family:'Rajdhani',sans-serif;
+    font-size:15px;font-weight:700;letter-spacing:2px;cursor:pointer;transition:all .2s;text-transform:uppercase;
+    background:linear-gradient(135deg,var(--blue),#2563eb);color:white;margin-top:12px;}
+  .submit-btn:hover{transform:translateY(-2px);box-shadow:var(--glow-blue);}
+  .submit-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+
+  /* Listening */
+  .listen-controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:20px;}
+  .listen-btn{padding:10px 20px;border:1px solid var(--purple);border-radius:10px;background:rgba(139,92,246,.1);
+    color:var(--purple);font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;
+    letter-spacing:1px;cursor:pointer;transition:all .2s;text-transform:uppercase;}
+  .listen-btn:hover{background:rgba(139,92,246,.2);}
+  .listen-btn.playing{background:rgba(139,92,246,.3);animation:pulse 1s infinite;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.7}}
+  .speed-selector{display:flex;gap:6px;}
+  .speed-btn{padding:6px 12px;border:1px solid var(--border);border-radius:8px;background:transparent;
+    color:var(--muted);font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;}
+  .speed-btn.active{border-color:var(--purple);color:var(--purple);background:rgba(139,92,246,.1);}
+
+  /* Singing/Watching cards */
+  .media-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:12px;}
+  .media-card-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px;}
+  .media-card-title{font-family:'Rajdhani',sans-serif;font-size:18px;font-weight:700;color:var(--text);}
+  .media-card-sub{font-size:13px;color:var(--muted);margin-top:2px;}
+  .media-card-level{padding:4px 10px;border-radius:50px;font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;flex-shrink:0;}
+  .media-card-level.easy{background:rgba(16,185,129,.2);color:var(--green);border:1px solid rgba(16,185,129,.3);}
+  .media-card-level.medium{background:rgba(59,130,246,.2);color:var(--blue2);border:1px solid rgba(59,130,246,.3);}
+  .media-card-level.hard{background:rgba(139,92,246,.2);color:var(--purple);border:1px solid rgba(139,92,246,.3);}
+  .media-card p{font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:12px;}
+  .lyrics-box{background:var(--card2);border-radius:10px;padding:14px;font-size:14px;line-height:1.9;
+    color:var(--text);border-left:3px solid var(--pink);margin-bottom:12px;white-space:pre-line;}
+  .quote-box{background:var(--card2);border-radius:10px;padding:14px;font-size:14px;line-height:1.7;
+    color:var(--text);border-left:3px solid var(--orange);margin-bottom:12px;font-style:italic;}
+  .yt-link{display:inline-flex;align-items:center;gap:6px;padding:8px 18px;background:#ff0000;
+    border:none;border-radius:8px;color:white;font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;
+    letter-spacing:1px;text-decoration:none;transition:all .2s;}
+  .yt-link:hover{background:#cc0000;transform:translateY(-1px);}
+
+  /* Resources */
+  .resource-table{width:100%;border-collapse:collapse;font-size:14px;margin-bottom:16px;}
+  .resource-table th{background:var(--card2);color:var(--blue2);font-family:'Rajdhani',sans-serif;
+    font-weight:700;letter-spacing:1px;padding:10px 14px;text-align:left;border:1px solid var(--border);}
+  .resource-table td{padding:8px 14px;border:1px solid var(--border);color:var(--text);}
+  .resource-table tr:nth-child(even) td{background:rgba(255,255,255,.02);}
+  .resource-table .irreg{color:var(--gold2);}
+
+  /* Toast */
+  .toast{position:fixed;top:80px;left:50%;transform:translateX(-50%) translateY(-100px);
+    background:linear-gradient(135deg,rgba(16,185,129,.95),rgba(5,150,105,.95));
+    border:1px solid var(--green);border-radius:14px;padding:14px 24px;
+    font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700;color:white;z-index:2000;
+    letter-spacing:1px;box-shadow:var(--glow-green),0 10px 30px rgba(0,0,0,.5);
+    transition:transform .4s cubic-bezier(.34,1.56,.64,1);text-align:center;}
+  .toast.show{transform:translateX(-50%) translateY(0);}
+
+  /* Error */
+  .error-box{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:12px;
+    padding:16px;color:#fca5a5;font-size:14px;line-height:1.6;margin-bottom:16px;}
+
+  ::-webkit-scrollbar{width:6px;}
+  ::-webkit-scrollbar-track{background:var(--bg);}
+  ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+</style>
+</head>
+<body>
+<div id="particles"></div>
+
+<!-- SCREEN 1: PROFILE SELECT -->
+<div id="screen-select" class="screen active">
+  <div class="map-bg"></div>
+  <div class="select-header">
+    <div class="logo">JOURNEY TO LONDON</div>
+    <div class="logo-sub">English Learning Adventure</div>
+    <div class="distance-badge">✈️ Santiago → London &nbsp;|&nbsp; <span>11,700 km</span> to go</div>
+  </div>
+  <div class="profiles-grid">
+    <div class="profile-wrapper" onclick="selectProfile('rodrigo')" style="cursor:pointer">
+      <div class="profile-km-bar-wrap">
+        <span style="font-family:'Orbitron',monospace;font-size:11px;font-weight:700;color:var(--blue2);white-space:nowrap">RODRIGO</span>
+        <div class="profile-km-bar-bg"><div class="profile-km-bar-fill rodrigo" id="rodrigo-bar-fill" style="width:0%"></div></div>
+        <span class="profile-km-bar-pct" id="rodrigo-bar-pct" style="color:var(--blue2)">0 km</span>
+      </div>
+      <div class="profile-card rodrigo">
+        <img src="Avatar/Rodrigo Classic.png" class="profile-avatar" id="rodrigo-select-avatar" alt="Rodrigo">
+        <div class="profile-details">
+          <div class="profile-name">RODRIGO</div>
+          <div class="profile-info">9 years old · 4th Grade</div>
+          <div class="profile-km"><strong id="rodrigo-km-display">0</strong> / 11,700 km</div>
+          <button class="btn-select" onclick="event.stopPropagation();selectProfile('rodrigo')">Play!</button>
+        </div>
+      </div>
+    </div>
+    <div class="profile-wrapper" onclick="selectProfile('fernando')" style="cursor:pointer">
+      <div class="profile-km-bar-wrap">
+        <span style="font-family:'Orbitron',monospace;font-size:11px;font-weight:700;color:var(--gold2);white-space:nowrap">FERNANDO</span>
+        <div class="profile-km-bar-bg"><div class="profile-km-bar-fill fernando" id="fernando-bar-fill" style="width:0%"></div></div>
+        <span class="profile-km-bar-pct" id="fernando-bar-pct" style="color:var(--gold2)">0 km</span>
+      </div>
+      <div class="profile-card fernando">
+        <img src="Avatar/Fernando Classic.png" class="profile-avatar" id="fernando-select-avatar" alt="Fernando">
+        <div class="profile-details">
+          <div class="profile-name">FERNANDO</div>
+          <div class="profile-info">12 years old · 7th Grade</div>
+          <div class="profile-km"><strong id="fernando-km-display">0</strong> / 11,700 km</div>
+          <button class="btn-select" onclick="event.stopPropagation();selectProfile('fernando')">Play!</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN 2: DASHBOARD -->
+<div id="screen-dashboard" class="screen">
+  <div class="topbar">
+    <img id="topbar-avatar" src="" class="topbar-avatar" alt="">
+    <div class="topbar-info">
+      <div class="topbar-name" id="topbar-name"></div>
+      <div class="km-bar-wrap">
+        <div class="km-bar-bg"><div class="km-bar-fill" id="km-bar-fill" style="width:0%"></div></div>
+        <div class="km-text"><strong id="topbar-km">0</strong> / 11,700 km</div>
+      </div>
+    </div>
+  </div>
+  <div class="dashboard-content">
+    <div class="dashboard-hero">
+      <!-- LEFT: Map + KM bar -->
+      <div class="hero-map-panel">
+        <img src="Map.png" class="hero-map-img" alt="Santiago to London">
+        <div class="hero-km-section">
+          <div class="hero-km-top">
+            <span class="hero-km-label">✈️ Santiago → London</span>
+            <span class="hero-km-value" id="hero-km-value">0 / 11,700 km</span>
+          </div>
+          <div class="hero-km-bar-bg">
+            <div class="hero-km-bar-fill" id="hero-km-bar-fill" style="width:0%">
+              <span class="bus-icon" id="bus-icon">🚌</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- RIGHT: Profile avatars -->
+      <div class="hero-profile-panel">
+        <div class="hero-profile-title" id="hero-profile-name">Select Level</div>
+        <div class="profile-thumbs">
+          <div class="profile-thumb-wrap normal-lv active" id="thumb-normal" onclick="setLevel('normal')">
+            <img src="" class="profile-thumb-img" id="thumb-img-normal" alt="Normal">
+            <div class="profile-thumb-label">NORMAL</div>
+          </div>
+          <div class="profile-thumb-wrap pro-lv inactive" id="thumb-pro" onclick="setLevel('pro')">
+            <img src="" class="profile-thumb-img" id="thumb-img-pro" alt="Pro">
+            <div class="profile-thumb-label">PRO</div>
+          </div>
+          <div class="profile-thumb-wrap goat-lv inactive" id="thumb-goat" onclick="setLevel('goat')">
+            <img src="" class="profile-thumb-img" id="thumb-img-goat" alt="GOAT">
+            <div class="profile-thumb-label">GOAT</div>
+          </div>
+        </div>
+        <button class="btn-back" onclick="goBack()" style="align-self:flex-end;margin-top:4px">← Switch</button>
+      </div>
+    </div>
+    <div class="topic-section">
+      <div class="section-label">What do you want to learn today?</div>
+      <div class="topic-input-wrap">
+        <input type="text" id="topic-input" placeholder="E.g. present continuous, colors, animals..." oninput="onTopicInput(this)">
+        <button class="topic-clear" id="topic-clear" onclick="clearTopic()">×</button>
+      </div>
+      <div class="presets-toggle" id="presets-toggle" onclick="togglePresets()">
+        <span class="presets-toggle-icon">▼</span> Browse topics
+      </div>
+      <div class="presets-wrap" id="presets-wrap">
+        <div class="preset-group-label">Grammar</div>
+        <span class="preset-chip" onclick="setTopic(this)">Present Simple</span>
+        <span class="preset-chip" onclick="setTopic(this)">Present Continuous</span>
+        <span class="preset-chip" onclick="setTopic(this)">Past Simple</span>
+        <span class="preset-chip" onclick="setTopic(this)">Past Continuous</span>
+        <span class="preset-chip" onclick="setTopic(this)">Future (Will)</span>
+        <span class="preset-chip" onclick="setTopic(this)">Future (Going To)</span>
+        <span class="preset-chip" onclick="setTopic(this)">Present Perfect</span>
+        <span class="preset-chip" onclick="setTopic(this)">Modal Verbs</span>
+        <span class="preset-chip" onclick="setTopic(this)">Comparatives</span>
+        <div class="preset-group-label">Vocabulary</div>
+        <span class="preset-chip" onclick="setTopic(this)">Colors</span>
+        <span class="preset-chip" onclick="setTopic(this)">Numbers</span>
+        <span class="preset-chip" onclick="setTopic(this)">Animals</span>
+        <span class="preset-chip" onclick="setTopic(this)">Food &amp; Drinks</span>
+        <span class="preset-chip" onclick="setTopic(this)">Family</span>
+        <span class="preset-chip" onclick="setTopic(this)">Body Parts</span>
+        <span class="preset-chip" onclick="setTopic(this)">Clothes</span>
+        <span class="preset-chip" onclick="setTopic(this)">Weather</span>
+        <div class="preset-group-label">Communication</div>
+        <span class="preset-chip" onclick="setTopic(this)">Greetings</span>
+        <span class="preset-chip" onclick="setTopic(this)">Giving Directions</span>
+        <span class="preset-chip" onclick="setTopic(this)">Shopping</span>
+        <span class="preset-chip" onclick="setTopic(this)">At the Restaurant</span>
+        <span class="preset-chip" onclick="setTopic(this)">Making Plans</span>
+        <div class="preset-group-label">PET Prep</div>
+        <span class="preset-chip" onclick="setTopic(this)">Reading Comprehension</span>
+        <span class="preset-chip" onclick="setTopic(this)">Letter Writing</span>
+        <span class="preset-chip" onclick="setTopic(this)">Listening Skills</span>
+        <span class="preset-chip" onclick="setTopic(this)">Speaking Test</span>
+      </div>
+    </div>
+    <div class="modules-label">Learning Modules</div>
+    <div class="modules-grid">
+      <button class="module-btn" data-module="learning" onclick="openModule('learning')"><div class="module-icon">📚</div><div class="module-name">Learning</div><div class="module-km">100 km</div></button>
+      <button class="module-btn" data-module="reading" onclick="openModule('reading')"><div class="module-icon">📖</div><div class="module-name">Reading</div><div class="module-km">100 km</div></button>
+      <button class="module-btn" data-module="listening" onclick="openModule('listening')"><div class="module-icon">🎧</div><div class="module-name">Listening</div><div class="module-km">100 km</div></button>
+      <button class="module-btn" data-module="writing" onclick="openModule('writing')"><div class="module-icon">✏️</div><div class="module-name">Writing</div><div class="module-km">60–100 km</div></button>
+      <button class="module-btn" data-module="talking" onclick="openModule('talking')"><div class="module-icon">🎤</div><div class="module-name">Talking</div><div class="module-km">Coming soon</div></button>
+      <button class="module-btn" data-module="playing" onclick="openModule('playing')"><div class="module-icon">🎮</div><div class="module-name">Playing</div><div class="module-km">20 km / ✓</div></button>
+      <button class="module-btn" data-module="singing" onclick="openModule('singing')"><div class="module-icon">🎵</div><div class="module-name">Singing</div><div class="module-km">100 km</div></button>
+      <button class="module-btn" data-module="watching" onclick="openModule('watching')"><div class="module-icon">🎬</div><div class="module-name">Watching</div><div class="module-km">100 km</div></button>
+      <button class="module-btn" data-module="resources" onclick="openModule('resources')"><div class="module-icon">📋</div><div class="module-name">Resources</div><div class="module-km">Reference</div></button>
+    </div>
+    <button class="test-btn" onclick="openModule('test')">
+      <span class="test-icon">🏆</span>
+      <div><div>TEST</div><span class="test-sub">Full Evaluation · Up to 200 km bonus</span></div>
+    </button>
+  </div>
+</div>
+
+<!-- SCREEN 3: MODULE -->
+<div id="screen-module" class="screen">
+  <div class="module-header">
+    <div class="module-header-icon" id="mod-icon"></div>
+    <div class="module-header-info">
+      <div class="module-header-title" id="mod-title"></div>
+      <div class="module-header-sub" id="mod-sub"></div>
+    </div>
+    <button class="btn-back" onclick="showScreen('screen-dashboard')">← Back</button>
+  </div>
+  <div class="module-content-area" id="module-content-area"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══ CONFIG ══
+const MODEL = 'claude-haiku-4-5-20251001';
+const TOTAL_KM = 11700;
+const MILESTONES = [500,1000,2500,5000,7500,10000,11700];
+
+const AVATARS = {
+  rodrigo:{normal:'Avatar/Rodrigo Classic.png',pro:'Avatar/Rodrigo Pro.png',goat:'Avatar/Rodrigo GOAT.png'},
+  fernando:{normal:'Avatar/Fernando Classic.png',pro:'Avatar/Fernando Pro.png',goat:'Avatar/Fernando GOAT.png'}
+};
+
+const MODULES = {
+  learning:{icon:'📚',name:'Learning'},reading:{icon:'📖',name:'Reading'},
+  listening:{icon:'🎧',name:'Listening'},writing:{icon:'✏️',name:'Writing'},
+  talking:{icon:'🎤',name:'Talking'},playing:{icon:'🎮',name:'Playing'},
+  singing:{icon:'🎵',name:'Singing'},watching:{icon:'🎬',name:'Watching'},
+  resources:{icon:'📋',name:'Resources'},test:{icon:'🏆',name:'Test'}
+};
+
+// ══ STATE ══
+const state = {
+  profile:null, level:'normal',
+  progress:JSON.parse(localStorage.getItem('jtl_progress')||'{"rodrigo":0,"fernando":0}'),
+  quizScore:0, quizAnswered:0
+};
+
+// ══ API ══
+async function callClaude(prompt, maxTokens=1500) {
+  const res = await fetch('/api/chat',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({model:MODEL,max_tokens:maxTokens,messages:[{role:'user',content:prompt}]})
   });
-});
-app.use(express.static(path.join(__dirname)));
+  if(!res.ok){const e=await res.json();throw new Error(e.error?.message||'API error');}
+  const data=await res.json();
+  return data.content[0].text;
+}
 
-// Proxy endpoint — keeps API key secure on the server
-app.post('/api/chat', async (req, res) => {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) {
-    return res.status(500).json({ error: { message: 'API key not configured on server.' } });
+function parseJSON(text){
+  try{
+    const m=text.match(/```json\s*([\s\S]*?)\s*```/);
+    return JSON.parse(m?m[1]:text);
+  }catch(e){
+    const m2=text.match(/\{[\s\S]*\}/);
+    if(m2)try{return JSON.parse(m2[0]);}catch(e2){}
+    throw new Error('Could not parse response');
   }
-  try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01'
-      },
-      body: JSON.stringify(req.body)
-    });
-    const data = await response.json();
-    res.status(response.status).json(data);
-  } catch (err) {
-    res.status(500).json({ error: { message: err.message } });
+}
+
+// ══ NAVIGATION ══
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0);}
+function selectProfile(name){state.profile=name;state.level='normal';showScreen('screen-dashboard');updateTopbar();}
+function goBack(){showScreen('screen-select');init();}
+function setLevel(lv){state.level=lv;updateTopbar();}
+
+// ══ TOPBAR ══
+function updateTopbar(){
+  const p=state.profile,lv=state.level,km=state.progress[p];
+  document.getElementById('topbar-avatar').src=AVATARS[p][lv];
+  const n=document.getElementById('topbar-name');
+  n.textContent=p.charAt(0).toUpperCase()+p.slice(1);n.className='topbar-name '+p;
+  document.getElementById('topbar-km').textContent=km.toLocaleString();
+  const fill=document.getElementById('km-bar-fill');
+  fill.style.width=Math.min((km/TOTAL_KM)*100,100)+'%';fill.className='km-bar-fill '+p;
+  document.querySelectorAll('.level-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector('.level-btn.'+lv).classList.add('active');
+  // km dash
+  const da=document.getElementById('km-dash-avatar');if(da)da.src=AVATARS[p][lv];
+  const dn=document.getElementById('km-dash-name');if(dn){dn.textContent=p.charAt(0).toUpperCase()+p.slice(1);dn.className='km-dash-name '+p;}
+  const dk=document.getElementById('km-dash-km');if(dk)dk.textContent=km.toLocaleString();
+  const df=document.getElementById('km-dash-bar-fill');if(df){df.style.width=Math.min((km/11700)*100,100)+'%';df.className='km-dash-bar-fill '+p;}
+}
+
+// ══ TOPIC ══
+function togglePresets(){
+  document.getElementById('presets-wrap').classList.toggle('open');
+  document.getElementById('presets-toggle').classList.toggle('open');
+}
+function onTopicInput(i){document.getElementById('topic-clear').style.display=i.value?'block':'none';document.querySelectorAll('.preset-chip').forEach(c=>c.classList.remove('selected'));}
+function clearTopic(){document.getElementById('topic-input').value='';document.getElementById('topic-clear').style.display='none';document.querySelectorAll('.preset-chip').forEach(c=>c.classList.remove('selected'));}
+function setTopic(chip){document.querySelectorAll('.preset-chip').forEach(c=>c.classList.remove('selected'));chip.classList.add('selected');document.getElementById('topic-input').value=chip.textContent;document.getElementById('topic-clear').style.display='block';}
+
+function getTopic(){return document.getElementById('topic-input').value.trim()||'General English';}
+function getAge(){return state.profile==='rodrigo'?9:12;}
+function getLevelDesc(){return {normal:'beginner A1-A2, keep it very simple and encouraging',pro:'intermediate B1, moderately challenging',goat:'advanced B2-C1, challenging like a native speaker'}[state.level];}
+
+// ══ KM ══
+function addKm(amount){
+  const p=state.profile,prev=state.progress[p];
+  state.progress[p]=Math.min(prev+amount,TOTAL_KM);
+  localStorage.setItem('jtl_progress',JSON.stringify(state.progress));
+  const crossed=MILESTONES.filter(m=>prev<m&&state.progress[p]>=m);
+  if(crossed.length) showToast('🎉 '+crossed[0].toLocaleString()+' km! '+(crossed[0]===TOTAL_KM?'YOU MADE IT TO LONDON! 🇬🇧':'Keep going!'));
+  updateTopbar();
+}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3500);}
+function showLoading(msg='Generating your lesson...'){
+  document.getElementById('module-content-area').innerHTML=`<div class="loading-wrap"><div class="loading-spinner"></div><div class="loading-text">${msg}</div></div>`;
+}
+function showError(msg){
+  document.getElementById('module-content-area').innerHTML=`<div class="error-box">⚠️ ${msg}<br><br>Make sure your API key is set correctly in the file.</div><button class="submit-btn" onclick="showScreen('screen-dashboard')">← Back to Dashboard</button>`;
+}
+
+// ══ OPEN MODULE ══
+function openModule(mod){
+  const m=MODULES[mod];
+  document.getElementById('mod-icon').textContent=m.icon;
+  document.getElementById('mod-title').textContent=m.name.toUpperCase();
+  document.getElementById('mod-sub').textContent=getTopic()+' · Level: '+state.level.toUpperCase();
+  showScreen('screen-module');
+  const handlers={learning:runLearning,reading:runReading,listening:runListening,
+    writing:runWriting,playing:runPlaying,singing:runSinging,watching:runWatching,
+    resources:runResources,test:runTest,talking:runTalking};
+  (handlers[mod]||runTalking)();
+}
+
+// ══ LEARNING ══
+async function runLearning(){
+  showLoading('Building your lesson...');
+  const topic=getTopic(),age=getAge(),level=getLevelDesc();
+  const prompt=`You are a fun English teacher for a ${age}-year-old child. Topic: "${topic}". Level: ${level}.
+Create a lesson in JSON format:
+{
+  "title": "lesson title",
+  "explanation": "clear 2-3 sentence explanation appropriate for the age",
+  "key_points": ["point 1","point 2","point 3"],
+  "examples": ["example sentence 1","example sentence 2","example sentence 3"],
+  "questions": [
+    {"question":"...","options":["A","B","C","D"],"correct":0,"explanation":"why this is correct"},
+    ... 5 questions total
+  ]
+}
+Make it engaging, use simple language, be encouraging. Return only valid JSON.`;
+  try{
+    const raw=await callClaude(prompt);
+    const d=parseJSON(raw);
+    renderLearning(d,topic);
+  }catch(e){showError(e.message);}
+}
+
+function renderLearning(d,topic){
+  state.quizScore=0;state.quizAnswered=0;
+  let html=`<div class="content-card"><h2>📚 ${d.title||topic}</h2>
+    <h3>What you need to know</h3><p>${d.explanation}</p>
+    <h3>Key Points</h3><ul>${(d.key_points||[]).map(p=>`<li>${p}</li>`).join('')}</ul>
+    <h3>Examples</h3>${(d.examples||[]).map(e=>`<div class="example-box">${e}</div>`).join('')}
+  </div>
+  <div class="content-card"><h2>🧠 Mini Quiz — 5 questions · 20 km each</h2>
+  <div class="quiz-wrap" id="quiz-wrap">${(d.questions||[]).map((q,i)=>renderQuestion(q,i)).join('')}</div></div>`;
+  document.getElementById('module-content-area').innerHTML=html;
+}
+
+function renderQuestion(q,i){
+  return `<div class="quiz-question-card" id="qcard-${i}">
+    <div class="quiz-q-num">QUESTION ${i+1} · 20 KM</div>
+    <div class="quiz-q-text">${q.question}</div>
+    <div class="quiz-options">${(q.options||[]).map((o,j)=>`<div class="quiz-option" onclick="answerQ(${i},${j},${q.correct},'${encodeURIComponent(q.explanation||'')}')">${String.fromCharCode(65+j)}. ${o}</div>`).join('')}</div>
+    <div class="quiz-feedback" id="qfb-${i}" style="display:none"></div>
+  </div>`;
+}
+
+function answerQ(qi,selected,correct,expEnc){
+  const card=document.getElementById('qcard-'+qi);
+  if(card.dataset.answered) return;
+  card.dataset.answered='1';
+  const opts=card.querySelectorAll('.quiz-option');
+  opts.forEach(o=>o.classList.add('answered'));
+  opts[correct].classList.add('correct');
+  const fb=document.getElementById('qfb-'+qi);
+  fb.style.display='block';
+  if(selected===correct){
+    opts[selected].classList.add('correct');
+    fb.className='quiz-feedback correct';
+    fb.innerHTML='✅ Correct! +20 km &nbsp;'+decodeURIComponent(expEnc);
+    addKm(20);showToast('+20 km! Great job! 🎯');
+  }else{
+    opts[selected].classList.add('wrong');
+    fb.className='quiz-feedback wrong';
+    fb.innerHTML='❌ Not quite. '+decodeURIComponent(expEnc);
   }
-});
+}
 
-// Fallback: serve index.html for any other route
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
+// ══ READING ══
+async function runReading(){
+  showLoading('Writing your reading passage...');
+  const topic=getTopic(),age=getAge(),level=getLevelDesc();
+  const prompt=`You are an English teacher. Create a reading exercise for a ${age}-year-old. Topic: "${topic}". Level: ${level}.
+Return JSON:
+{
+  "title": "passage title",
+  "passage": "150-200 word passage using the topic naturally",
+  "questions": [
+    {"question":"...","options":["A","B","C","D"],"correct":0,"explanation":"..."},
+    ... 5 questions
+  ]
+}
+Make the passage interesting and age-appropriate. Return only valid JSON.`;
+  try{
+    const raw=await callClaude(prompt,2000);
+    const d=parseJSON(raw);
+    renderReading(d);
+  }catch(e){showError(e.message);}
+}
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Journey to London running on port ${PORT}`));
+function renderReading(d){
+  state.quizScore=0;state.quizAnswered=0;
+  let html=`<div class="content-card"><h2>📖 ${d.title}</h2>
+    <p style="font-size:16px;line-height:1.9">${(d.passage||'').replace(/\n/g,'<br>')}</p></div>
+  <div class="content-card"><h2>💬 Comprehension — 5 questions · 20 km each</h2>
+  <div class="quiz-wrap">${(d.questions||[]).map((q,i)=>renderQuestion(q,i)).join('')}</div></div>`;
+  document.getElementById('module-content-area').innerHTML=html;
+}
+
+// ══ LISTENING ══
+async function runListening(){
+  showLoading('Creating your listening exercise...');
+  const topic=getTopic(),age=getAge(),level=getLevelDesc();
+  const prompt=`Create a listening exercise for a ${age}-year-old learning English. Topic: "${topic}". Level: ${level}.
+Return JSON:
+{
+  "title":"...",
+  "text":"A clear 100-120 word text to be read aloud. Use natural spoken English.",
+  "questions":[{"question":"...","options":["A","B","C","D"],"correct":0,"explanation":"..."},...5 questions]
+}
+Return only valid JSON.`;
+  try{
+    const raw=await callClaude(prompt,1500);
+    const d=parseJSON(raw);
+    renderListening(d);
+  }catch(e){showError(e.message);}
+}
+
+function renderListening(d){
+  let html=`<div class="content-card"><h2>🎧 ${d.title}</h2>
+    <p style="color:var(--muted);margin-bottom:16px">Listen to the text carefully, then answer the questions below.</p>
+    <div class="listen-controls">
+      <button class="listen-btn" id="play-btn" onclick="playText()">▶ Play</button>
+      <button class="listen-btn" onclick="playText(0.7)">🐢 Slow</button>
+      <button class="listen-btn" onclick="playText(1.3)">🐇 Fast</button>
+    </div>
+    <p style="color:var(--muted);font-size:13px">Tip: Try to answer WITHOUT reading the text first. The text will show after you answer all questions.</p>
+    <div id="text-reveal" style="display:none"><div class="writing-prompt" style="margin-top:12px">${d.text}</div></div>
+  </div>
+  <div class="content-card"><h2>🧠 Questions — 20 km each</h2>
+  <div class="quiz-wrap">${(d.questions||[]).map((q,i)=>renderQuestion(q,i)).join('')}</div></div>`;
+  document.getElementById('module-content-area').innerHTML=html;
+  window._listenText=d.text;
+  window._listenAnswered=0;
+  window._listenTotal=(d.questions||[]).length;
+}
+
+function playText(rate=1){
+  if(!window._listenText) return;
+  window.speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(window._listenText);
+  u.lang='en-GB';u.rate=rate;u.pitch=1;
+  window.speechSynthesis.speak(u);
+  const btn=document.getElementById('play-btn');
+  if(btn){btn.textContent='🔊 Playing...';btn.classList.add('playing');u.onend=()=>{btn.textContent='▶ Play again';btn.classList.remove('playing');};}
+}
+
+// ══ WRITING ══
+async function runWriting(){
+  showLoading('Preparing your writing exercise...');
+  const topic=getTopic(),age=getAge(),level=getLevelDesc();
+  const prompt=`Create a writing exercise for a ${age}-year-old. Topic: "${topic}". Level: ${level}.
+Return JSON:
+{
+  "title":"...",
+  "fill_blanks":[
+    {"sentence":"She ___ (go) to school every day.","blank_position":"...","answer":"goes","hint":"verb conjugation"},
+    ... 4 more
+  ],
+  "writing_prompt":"A short writing task (2-3 sentences to write about the topic)",
+  "writing_tip":"A helpful grammar or vocabulary tip"
+}
+Return only valid JSON.`;
+  try{
+    const raw=await callClaude(prompt,1500);
+    const d=parseJSON(raw);
+    renderWriting(d);
+  }catch(e){showError(e.message);}
+}
+
+function renderWriting(d){
+  const blanksHtml=(d.fill_blanks||[]).map((b,i)=>{
+    const parts=b.sentence.split('___');
+    return `<div class="fill-blank-item">${parts[0]}<input class="blank-input" id="blank-${i}" placeholder="..." data-answer="${encodeURIComponent(b.answer)}" data-hint="${encodeURIComponent(b.hint||'')}">${parts[1]||''}</div>`;
+  }).join('');
+  let html=`<div class="content-card"><h2>✏️ ${d.title}</h2>
+    <h3>Fill in the blanks — 20 km each</h3>
+    <div class="fill-blank-wrap">${blanksHtml}</div>
+    <button class="submit-btn" onclick="checkBlanks()">Check Answers</button>
+    <div id="blanks-feedback" style="margin-top:12px"></div>
+  </div>
+  <div class="content-card">
+    <h3>Writing Task</h3>
+    <div class="writing-prompt">${d.writing_prompt}</div>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:8px">💡 Tip: ${d.writing_tip||''}</p>
+    <textarea class="writing-area" id="writing-area" placeholder="Write your answer here..."></textarea>
+    <button class="submit-btn" id="writing-submit-btn" onclick="submitWriting()">Submit for Feedback</button>
+    <div id="writing-feedback" style="margin-top:12px"></div>
+  </div>`;
+  document.getElementById('module-content-area').innerHTML=html;
+}
+
+function checkBlanks(){
+  const inputs=document.querySelectorAll('.blank-input');
+  let correct=0;
+  inputs.forEach((inp,i)=>{
+    const answer=decodeURIComponent(inp.dataset.answer).toLowerCase().trim();
+    const given=inp.value.toLowerCase().trim();
+    if(given===answer){inp.classList.add('correct');correct++;}
+    else{inp.classList.add('wrong');}
+    inp.disabled=true;
+  });
+  const km=correct*20;
+  document.getElementById('blanks-feedback').innerHTML=`<div class="quiz-feedback ${correct===inputs.length?'correct':'wrong'}">${correct}/${inputs.length} correct · +${km} km earned</div>`;
+  if(km>0)addKm(km);
+}
+
+async function submitWriting(){
+  const text=document.getElementById('writing-area').value.trim();
+  if(!text){alert('Please write something first!');return;}
+  const btn=document.getElementById('writing-submit-btn');
+  btn.disabled=true;btn.textContent='Evaluating...';
+  const topic=getTopic(),age=getAge(),level=getLevelDesc();
+  const prompt=`You are a kind English teacher evaluating a ${age}-year-old student's writing. Topic: "${topic}". Level: ${level}.
+Student wrote: "${text}"
+Evaluate and return JSON:
+{"score":"perfect|good|regular|poor","km":100|80|60|0,"praise":"one encouraging sentence","corrections":["correction 1 if any","correction 2 if any"],"tip":"one improvement tip"}
+Be encouraging and kind. Return only valid JSON.`;
+  try{
+    const raw=await callClaude(prompt,500);
+    const d=parseJSON(raw);
+    const colors={perfect:'correct',good:'correct',regular:'wrong',poor:'wrong'};
+    document.getElementById('writing-feedback').innerHTML=`
+      <div class="quiz-feedback ${colors[d.score]||'wrong'}">
+        <strong>${d.praise}</strong><br>
+        ${d.corrections&&d.corrections.length?'Corrections: '+d.corrections.join(' | ')+'<br>':''}
+        💡 ${d.tip}
+      </div>
+      <div class="km-award" style="margin-top:12px">
+        <div class="km-award-num">+${d.km}</div>
+        <div class="km-award-label">km earned</div>
+      </div>`;
+    if(d.km>0)addKm(d.km);
+    btn.style.display='none';
+  }catch(e){btn.disabled=false;btn.textContent='Submit for Feedback';document.getElementById('writing-feedback').innerHTML=`<div class="error-box">${e.message}</div>`;}
+}
+
+// ══ PLAYING ══
+async function runPlaying(){
+  showLoading('Loading your game...');
+  const topic=getTopic(),age=getAge(),level=getLevelDesc();
+  const prompt=`Create 5 fun quiz questions for a ${age}-year-old learning English. Topic: "${topic}". Level: ${level}.
+Make them game-like and fun! Return JSON:
+{"title":"Fun Quiz Title","questions":[{"question":"...","options":["A","B","C","D"],"correct":0,"explanation":"fun explanation","emoji":"relevant emoji"},...5]}
+Return only valid JSON.`;
+  try{
+    const raw=await callClaude(prompt,1200);
+    const d=parseJSON(raw);
+    renderPlaying(d);
+  }catch(e){showError(e.message);}
+}
+
+function renderPlaying(d){
+  let html=`<div class="content-card"><h2>🎮 ${d.title}</h2>
+  <p style="color:var(--muted);margin-bottom:20px">5 questions · 20 km each · Total: 100 km possible</p>
+  <div class="quiz-wrap">${(d.questions||[]).map((q,i)=>`<div class="quiz-question-card" id="qcard-${i}">
+    <div class="quiz-q-num">${q.emoji||'🎯'} QUESTION ${i+1} · 20 KM</div>
+    <div class="quiz-q-text">${q.question}</div>
+    <div class="quiz-options">${(q.options||[]).map((o,j)=>`<div class="quiz-option" onclick="answerQ(${i},${j},${q.correct},'${encodeURIComponent(q.explanation||'')}')">${String.fromCharCode(65+j)}. ${o}</div>`).join('')}</div>
+    <div class="quiz-feedback" id="qfb-${i}" style="display:none"></div>
+  </div>`).join('')}</div></div>`;
+  document.getElementById('module-content-area').innerHTML=html;
+}
+
+// ══ SINGING ══
+async function runSinging(){
+  showLoading('Finding your perfect songs...');
+  const topic=getTopic(),level=getLevelDesc();
+  const prompt=`Suggest 3 songs to help a student learn English. Topic: "${topic}". Level: ${level}.
+For each song, include actual lyrics excerpt (4-8 lines) that relate to the topic.
+Return JSON:
+{"songs":[
+  {"title":"Song Title","artist":"Artist Name","difficulty":"easy|medium|hard","why":"why this song helps with the topic","lyrics_excerpt":"4-8 lines of actual lyrics","vocabulary":["word1 - meaning","word2 - meaning"],"youtube_search":"song title artist official"},
+  ...3 songs
+]}
+Return only valid JSON.`;
+  try{
+    const raw=await callClaude(prompt,2000);
+    const d=parseJSON(raw);
+    renderSinging(d);
+  }catch(e){showError(e.message);}
+}
+
+function renderSinging(d){
+  const songs=d.songs||[];
+  let html=`<div class="content-card"><h2>🎵 Songs for "${getTopic()}"</h2>
+  <p style="color:var(--muted);margin-bottom:4px">Listen carefully, follow the lyrics, and train your ear!</p></div>`;
+  songs.forEach(s=>{
+    const yt=encodeURIComponent(s.youtube_search||s.title+' '+s.artist);
+    html+=`<div class="media-card">
+      <div class="media-card-header">
+        <div><div class="media-card-title">🎵 ${s.title}</div><div class="media-card-sub">${s.artist}</div></div>
+        <div class="media-card-level ${s.difficulty}">${s.difficulty.toUpperCase()}</div>
+      </div>
+      <p>${s.why}</p>
+      <div class="lyrics-box">${(s.lyrics_excerpt||'').replace(/\n/g,'\n')}</div>
+      ${s.vocabulary&&s.vocabulary.length?`<p><strong>Vocabulary:</strong> ${s.vocabulary.join(' · ')}</p>`:''}
+      <a class="yt-link" href="https://www.youtube.com/results?search_query=${yt}" target="_blank">▶ YouTube</a>
+    </div>`;
+  });
+  html+=`<div class="km-award"><div class="km-award-num">+100</div><div class="km-award-label">km for completing Singing</div><button class="km-award-btn" onclick="addKm(100);showToast('🎵 +100 km! Great listening! 🎶');this.textContent='✓ Claimed!'">Claim km</button></div>`;
+  document.getElementById('module-content-area').innerHTML=html;
+}
+
+// ══ WATCHING ══
+async function runWatching(){
+  showLoading('Finding your perfect scenes...');
+  const topic=getTopic(),level=getLevelDesc();
+  const prompt=`Suggest 2 movie or TV show scenes to help a student learn English. Topic: "${topic}". Level: ${level}.
+Return JSON:
+{"scenes":[
+  {"title":"Movie/Show Title","scene_description":"which scene and why it's good","year":2010,"difficulty":"easy|medium|hard","quotes":["Famous quote 1 from the scene","Famous quote 2"],"vocabulary":["word - meaning"],"why":"why this helps with the topic","youtube_search":"movie title scene clip english"},
+  ...2 scenes
+]}
+Return only valid JSON.`;
+  try{
+    const raw=await callClaude(prompt,2000);
+    const d=parseJSON(raw);
+    renderWatching(d);
+  }catch(e){showError(e.message);}
+}
+
+function renderWatching(d){
+  const scenes=d.scenes||[];
+  let html=`<div class="content-card"><h2>🎬 Watch &amp; Learn — "${getTopic()}"</h2><p style="color:var(--muted)">Watch the scene, listen for the quotes, and learn naturally!</p></div>`;
+  scenes.forEach(s=>{
+    const yt=encodeURIComponent(s.youtube_search||s.title+' english scene');
+    html+=`<div class="media-card">
+      <div class="media-card-header">
+        <div><div class="media-card-title">🎬 ${s.title} <span style="color:var(--muted);font-size:14px">(${s.year||''})</span></div><div class="media-card-sub">${s.scene_description}</div></div>
+        <div class="media-card-level ${s.difficulty}">${s.difficulty.toUpperCase()}</div>
+      </div>
+      <p>${s.why}</p>
+      <div style="margin-bottom:10px"><strong style="color:var(--orange);font-family:'Rajdhani',sans-serif;letter-spacing:1px">FAMOUS QUOTES:</strong></div>
+      ${(s.quotes||[]).map(q=>`<div class="quote-box">"${q}"</div>`).join('')}
+      ${s.vocabulary&&s.vocabulary.length?`<p style="margin-bottom:12px"><strong>Vocabulary:</strong> ${s.vocabulary.join(' · ')}</p>`:''}
+      <a class="yt-link" href="https://www.youtube.com/results?search_query=${yt}" target="_blank">▶ YouTube</a>
+    </div>`;
+  });
+  html+=`<div class="km-award"><div class="km-award-num">+100</div><div class="km-award-label">km for completing Watching</div><button class="km-award-btn" onclick="addKm(100);showToast('🎬 +100 km! Keep watching! 🍿');this.textContent='✓ Claimed!'">Claim km</button></div>`;
+  document.getElementById('module-content-area').innerHTML=html;
+}
+
+// ══ RESOURCES ══
+function runResources(){
+  const html=`
+  <div class="content-card"><h2>📋 Grammar Reference</h2>
+  <h3>Personal Pronouns</h3>
+  <table class="resource-table"><tr><th>Subject</th><th>Object</th><th>Possessive</th><th>Reflexive</th></tr>
+  ${[['I','me','my / mine','myself'],['You','you','your / yours','yourself'],['He','him','his / his','himself'],['She','her','her / hers','herself'],['It','it','its / its','itself'],['We','us','our / ours','ourselves'],['They','them','their / theirs','themselves']].map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</table>
+  </div>
+
+  <div class="content-card"><h2>📋 Verb Tenses Summary</h2>
+  <table class="resource-table"><tr><th>Tense</th><th>Structure</th><th>Example</th></tr>
+  ${[
+    ['Present Simple','Subject + V(s/es)','She walks to school.'],
+    ['Present Continuous','Subject + am/is/are + V-ing','He is playing football.'],
+    ['Past Simple','Subject + V-ed / irregular','They went to London.'],
+    ['Past Continuous','Subject + was/were + V-ing','I was reading a book.'],
+    ['Future (Will)','Subject + will + V','It will rain tomorrow.'],
+    ['Future (Going To)','Subject + am/is/are + going to + V','We are going to travel.'],
+    ['Present Perfect','Subject + have/has + past participle','She has visited London.'],
+  ].map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</table>
+  </div>
+
+  <div class="content-card"><h2>📋 Irregular Verbs</h2>
+  <table class="resource-table"><tr><th>Base</th><th>Past Simple</th><th>Past Participle</th></tr>
+  ${[['be','was/were','been'],['go','went','gone'],['have','had','had'],['do','did','done'],['say','said','said'],['get','got','got'],['make','made','made'],['know','knew','known'],['take','took','taken'],['see','saw','seen'],['come','came','come'],['think','thought','thought'],['give','gave','given'],['find','found','found'],['tell','told','told'],['feel','felt','felt'],['become','became','become'],['leave','left','left'],['put','put','put'],['bring','brought','brought'],['begin','began','begun'],['write','wrote','written'],['run','ran','run'],['speak','spoke','spoken'],['read','read','read']].map(r=>`<tr class="irreg">${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</table>
+  </div>
+
+  <div class="content-card"><h2>📋 Modal Verbs</h2>
+  <table class="resource-table"><tr><th>Modal</th><th>Use</th><th>Example</th></tr>
+  ${[['can','ability / permission','I can swim. Can I go?'],['could','polite request / past ability','Could you help me? I could run fast.'],['must','obligation / certainty','You must study. It must be true.'],['should','advice','You should eat vegetables.'],['may','possibility / permission','It may rain. May I leave?'],['might','weak possibility','She might come later.'],['will','future / promise','I will call you.'],['would','conditional / polite','I would like a coffee.']].map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</table>
+  </div>`;
+  document.getElementById('module-content-area').innerHTML=html;
+}
+
+// ══ TEST ══
+async function runTest(){
+  showLoading('Preparing your test...');
+  const topic=getTopic(),age=getAge(),level=getLevelDesc();
+  const prompt=`You are an English teacher. Create a school-style test for a ${age}-year-old about "${topic}". Level: ${level}.
+The test follows this Chilean bilingual school format: Reading comprehension, Vocabulary (odd one out, word choice), Grammar (choose correct verb form, complete sentences), and Writing.
+
+Return ONLY this JSON (no extra text):
+{"title":"Unit Test: ${topic}","questions":[
+{"type":"Vocabulary","question":"Choose the correct option: She ___ to school every day.","options":["A) go","B) goes","C) is going","D) went"],"correct":1,"explanation":"Present simple uses 's' for he/she/it"},
+{"type":"Vocabulary","question":"Circle the odd one out: Which word does NOT belong?","options":["A) happy","B) angry","C) table","D) sad"],"correct":2,"explanation":"Table is a noun, the others are adjectives describing feelings"},
+{"type":"Grammar","question":"Choose the correct form: Look! The children ___ in the park right now.","options":["A) play","B) plays","C) are playing","D) played"],"correct":2,"explanation":"We use present continuous for actions happening right now"},
+{"type":"Grammar","question":"Complete the sentence: While I ___ TV, the phone rang.","options":["A) watch","B) watched","C) was watching","D) am watching"],"correct":2,"explanation":"Past continuous describes an action in progress when another happened"},
+{"type":"Reading","question":"Read: 'Tom usually walks to school, but today he is taking the bus because it is raining.' What is Tom doing TODAY?","options":["A) Walking to school","B) Taking the bus","C) Staying at home","D) Running to school"],"correct":1,"explanation":"'Today he is taking the bus' tells us what Tom is doing right now"}
+],"writing_prompt":"Write 4-5 sentences about your daily routine and what you are doing differently today. Use Present Simple and Present Continuous.","writing_tip":"Use: always, usually, every day (Present Simple) and right now, at the moment, today (Present Continuous)"}
+
+Make ALL 5 questions about "${topic}". Return only valid JSON, no markdown.`;
+  try{
+    const raw=await callClaude(prompt,1800);
+    const d=parseJSON(raw);
+    renderTest(d);
+  }catch(e){showError(e.message);}
+}
+
+function renderTest(d){
+  const bonusMap={5:200,4:150,3:100,2:0,1:0,0:0};
+  let html=`<div class="content-card"><h2>🏆 ${d.title}</h2>
+  <p style="color:var(--muted);margin-bottom:20px">5 questions · Bonus km based on your total score</p>
+  <div class="quiz-wrap" id="test-wrap">${(d.questions||[]).map((q,i)=>`<div class="quiz-question-card" id="qcard-${i}">
+    <div class="quiz-q-num">${(q.type||'question').toUpperCase()} · QUESTION ${i+1}</div>
+    <div class="quiz-q-text">${q.question}</div>
+    <div class="quiz-options">${(q.options||[]).map((o,j)=>`<div class="quiz-option" onclick="answerTestQ(${i},${j},${q.correct},'${encodeURIComponent(q.explanation||'')}')">${String.fromCharCode(65+j)}. ${o}</div>`).join('')}</div>
+    <div class="quiz-feedback" id="qfb-${i}" style="display:none"></div>
+  </div>`).join('')}</div>
+  <div id="test-result" style="display:none"></div></div>`;
+  document.getElementById('module-content-area').innerHTML=html;
+  window._testAnswers=0;window._testCorrect=0;window._testTotal=(d.questions||[]).length;
+}
+
+function answerTestQ(qi,selected,correct,expEnc){
+  const card=document.getElementById('qcard-'+qi);
+  if(card.dataset.answered) return;
+  card.dataset.answered='1';
+  const opts=card.querySelectorAll('.quiz-option');
+  opts.forEach(o=>o.classList.add('answered'));
+  opts[correct].classList.add('correct');
+  const fb=document.getElementById('qfb-'+qi);
+  fb.style.display='block';
+  if(selected===correct){opts[selected].classList.add('correct');fb.className='quiz-feedback correct';fb.innerHTML='✅ Correct! '+decodeURIComponent(expEnc);window._testCorrect++;}
+  else{opts[selected].classList.add('wrong');fb.className='quiz-feedback wrong';fb.innerHTML='❌ '+decodeURIComponent(expEnc);}
+  window._testAnswers++;
+  if(window._testAnswers===window._testTotal){
+    const c=window._testCorrect,t=window._testTotal;
+    const bonusMap={5:200,4:150,3:100,2:0,1:0,0:0};
+    const km=bonusMap[c]||0;
+    const res=document.getElementById('test-result');
+    res.style.display='block';
+    res.innerHTML=`<div class="km-award"><div class="km-award-num">${c}/${t}</div><div class="km-award-label">correct answers</div>
+      ${km>0?`<div class="km-award-num" style="font-size:32px;margin-top:8px">+${km} km BONUS</div><button class="km-award-btn" onclick="addKm(${km});showToast('🏆 Test complete! +${km} km bonus!');this.textContent='✓ Claimed!'">Claim Bonus</button>`:'<div class="km-award-label" style="margin-top:8px">Keep practicing! You\'ll get it!</div>'}</div>`;
+    if(km>0)setTimeout(()=>addKm(km),500);
+  }
+}
+
+// ══ TALKING (placeholder) ══
+function runTalking(){
+  document.getElementById('module-content-area').innerHTML=`
+  <div class="content-card" style="text-align:center;padding:48px 24px">
+    <div style="font-size:64px;margin-bottom:20px">🎤</div>
+    <h2 style="margin-bottom:12px">Talking — Coming Soon!</h2>
+    <p style="color:var(--muted);line-height:1.7;max-width:420px;margin:0 auto">
+      The Talking module will let you have a real conversation with your AI tutor in English — voice-to-voice!<br><br>
+      It will evaluate your pronunciation, grammar, vocabulary and fluency in real time.
+    </p>
+  </div>`;
+}
+
+// ══ INIT ══
+function init(){
+  const rKm=state.progress.rodrigo,fKm=state.progress.fernando;
+  document.getElementById('rodrigo-km-display').textContent=rKm.toLocaleString();
+  document.getElementById('fernando-km-display').textContent=fKm.toLocaleString();
+  document.getElementById('rodrigo-bar-fill').style.width=Math.min((rKm/11700)*100,100)+'%';
+  document.getElementById('rodrigo-bar-pct').textContent=rKm.toLocaleString()+' km';
+  document.getElementById('fernando-bar-fill').style.width=Math.min((fKm/11700)*100,100)+'%';
+  document.getElementById('fernando-bar-pct').textContent=fKm.toLocaleString()+' km';
+}
+function _init_orig(){
+}
+init();
+</script>
+</body>
+</html>
