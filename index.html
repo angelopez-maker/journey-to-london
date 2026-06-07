@@ -723,7 +723,7 @@ Create a lesson in JSON format:
   "key_points": ["point 1","point 2","point 3"],
   "examples": ["example sentence 1","example sentence 2","example sentence 3"],
   "questions": [
-    {"question":"...","options":["A","B","C","D"],"correct":0,"explanation":"why this is correct"},
+    {"question":"...","options":["A","B","C","D"],"correct":0,"explanation":"a short, clear sentence explaining WHY this is the correct answer — name the rule or concept (e.g. 'We use present perfect because...') so the student learns the underlying idea, not just the answer"},
     ... 5 questions total
   ]
 }
@@ -777,7 +777,8 @@ function answerQ(qi,selected){
   }else{
     opts[selected].classList.add('wrong');
     fb.className='quiz-feedback wrong';
-    fb.innerHTML='❌ Not quite. '+escapeHtml(explanation);
+    const correctText=opts[correct]?opts[correct].textContent:'';
+    fb.innerHTML='❌ Not quite — the correct answer is <strong>'+escapeHtml(correctText)+'</strong>. '+escapeHtml(explanation);
   }
 }
 
@@ -872,10 +873,14 @@ Return JSON:
     {"sentence":"She ___ (go) to school every day.","blank_position":"...","answer":"goes","hint":"verb conjugation"},
     ... 4 more
   ],
+  "vocab_match":[
+    {"definition":"A short, clear definition of a word (e.g. 'A place full of trees is called a...')","options":["correct word","plausible but wrong word"],"correct":0,"explanation":"a brief sentence clarifying both words, e.g. 'A forest is a large area covered in trees, while a glacier is a huge mass of ice.'"},
+    ... 5 total — put the correct word in a random position (sometimes index 0, sometimes index 1, so it's not always the same spot)
+  ],
   "writing_prompt":"A short writing task (2-3 sentences to write about the topic)",
   "writing_tip":"A helpful grammar or vocabulary tip"
 }
-Return only valid JSON.`;
+Make the vocab_match definitions and word choices appropriate for the student's age and level, related to "${topic}" when possible. Return only valid JSON.`;
   try{
     const raw=await callClaude(prompt,1500);
     const d=parseJSON(raw);
@@ -884,10 +889,17 @@ Return only valid JSON.`;
 }
 
 function renderWriting(d){
+  window._vocabMatch=d.vocab_match||[];
   const blanksHtml=(d.fill_blanks||[]).map((b,i)=>{
     const parts=b.sentence.split('___');
     return `<div class="fill-blank-item">${parts[0]}<input class="blank-input" id="blank-${i}" placeholder="..." data-answer="${encodeURIComponent(b.answer)}" data-hint="${encodeURIComponent(b.hint||'')}">${parts[1]||''}</div>`;
   }).join('');
+  const vocabHtml=(d.vocab_match||[]).map((v,i)=>`<div class="quiz-question-card" id="vcard-${i}">
+    <div class="quiz-q-num">VOCABULARY · WORD ${i+1} · 20 KM</div>
+    <div class="quiz-q-text">${v.definition}</div>
+    <div class="quiz-options" style="display:flex;gap:12px;flex-wrap:wrap">${(v.options||[]).map((o,j)=>`<div class="quiz-option" style="flex:1;min-width:120px;text-align:center" onclick="answerVocab(${i},${j})">${o}</div>`).join('')}</div>
+    <div class="quiz-feedback" id="vfb-${i}" style="display:none"></div>
+  </div>`).join('');
   let html=`<div class="content-card"><h2>✏️ ${d.title}</h2>
     <h3>Fill in the blanks — 20 km each</h3>
     <div class="fill-blank-wrap">${blanksHtml}</div>
@@ -901,8 +913,38 @@ function renderWriting(d){
     <textarea class="writing-area" id="writing-area" placeholder="Write your answer here..."></textarea>
     <button class="submit-btn" id="writing-submit-btn" onclick="submitWriting()">Submit for Feedback</button>
     <div id="writing-feedback" style="margin-top:12px"></div>
+  </div>
+  <div class="content-card">
+    <h2>📚 Vocabulary — Pick the right word · 20 km each</h2>
+    <p style="color:var(--muted);margin-bottom:12px">Read the definition and choose the word it describes!</p>
+    <div class="quiz-wrap">${vocabHtml}</div>
   </div>`;
   document.getElementById('module-content-area').innerHTML=html;
+}
+
+function answerVocab(qi,selected){
+  const card=document.getElementById('vcard-'+qi);
+  if(card.dataset.answered) return;
+  card.dataset.answered='1';
+  const v=(window._vocabMatch||[])[qi]||{};
+  const opts=card.querySelectorAll('.quiz-option');
+  const correct=normalizeCorrectIndex(v.correct,opts.length);
+  const explanation=v.explanation||'';
+  opts.forEach(o=>o.classList.add('answered'));
+  opts[correct].classList.add('correct');
+  const fb=document.getElementById('vfb-'+qi);
+  fb.style.display='block';
+  if(selected===correct){
+    opts[selected].classList.add('correct');
+    fb.className='quiz-feedback correct';
+    fb.innerHTML='✅ Correct! +20 km &nbsp;'+escapeHtml(explanation);
+    addKm(20);showToast('+20 km! Great vocabulary! 📚');
+  }else{
+    opts[selected].classList.add('wrong');
+    fb.className='quiz-feedback wrong';
+    const correctText=opts[correct]?opts[correct].textContent:'';
+    fb.innerHTML='❌ Not quite — the right word is <strong>'+escapeHtml(correctText)+'</strong>. '+escapeHtml(explanation);
+  }
 }
 
 function checkBlanks(){
@@ -912,7 +954,13 @@ function checkBlanks(){
     const answer=decodeURIComponent(inp.dataset.answer).toLowerCase().trim();
     const given=inp.value.toLowerCase().trim();
     if(given===answer){inp.classList.add('correct');correct++;}
-    else{inp.classList.add('wrong');}
+    else{
+      inp.classList.add('wrong');
+      const hint=document.createElement('span');
+      hint.style.cssText='font-size:12px;color:var(--gold2);background:rgba(245,200,66,.12);padding:2px 8px;border-radius:6px;white-space:nowrap';
+      hint.textContent='✓ correct answer: '+decodeURIComponent(inp.dataset.answer);
+      inp.insertAdjacentElement('afterend',hint);
+    }
     inp.disabled=true;
   });
   const km=correct*20;
@@ -956,7 +1004,7 @@ async function runPlaying(){
   const topic=getTopic(),age=getAge(),level=getLevelDesc();
   const prompt=`Create 5 fun quiz questions for a ${age}-year-old learning English. Topic: "${topic}". Level: ${level}.
 Make them game-like and fun! Return JSON:
-{"title":"Fun Quiz Title","questions":[{"question":"...","options":["A","B","C","D"],"correct":0,"explanation":"fun explanation","emoji":"relevant emoji"},...5]}
+{"title":"Fun Quiz Title","questions":[{"question":"...","options":["A","B","C","D"],"correct":0,"explanation":"a short, fun sentence explaining WHY this is the correct answer — name the rule or concept so the student understands it, not just memorizes it","emoji":"relevant emoji"},...5]}
 Return only valid JSON.`;
   try{
     const raw=await callClaude(prompt,1200);
@@ -1107,7 +1155,7 @@ Return ONLY this JSON (no extra text):
 {"type":"Reading","question":"Read: 'Tom usually walks to school, but today he is taking the bus because it is raining.' What is Tom doing TODAY?","options":["A) Walking to school","B) Taking the bus","C) Staying at home","D) Running to school"],"correct":1,"explanation":"'Today he is taking the bus' tells us what Tom is doing right now"}
 ],"writing_prompt":"Write 4-5 sentences about your daily routine and what you are doing differently today. Use Present Simple and Present Continuous.","writing_tip":"Use: always, usually, every day (Present Simple) and right now, at the moment, today (Present Continuous)"}
 
-Make ALL 5 questions about "${topic}". Return only valid JSON, no markdown.`;
+Make ALL 5 questions about "${topic}". For every "explanation", clearly state WHY the correct answer is correct — name the grammar rule or concept (e.g. "We use present continuous because the action is happening right now") so the student reinforces the underlying idea, especially for trickier GOAT-level questions. Return only valid JSON, no markdown.`;
   try{
     const raw=await callClaude(prompt,1800);
     const d=parseJSON(raw);
@@ -1151,7 +1199,11 @@ function answerTestQ(qi,selected){
   const fb=document.getElementById('qfb-'+qi);
   fb.style.display='block';
   if(selected===correct){opts[selected].classList.add('correct');fb.className='quiz-feedback correct';fb.innerHTML='✅ Correct! '+escapeHtml(explanation);window._testCorrect++;}
-  else{opts[selected].classList.add('wrong');fb.className='quiz-feedback wrong';fb.innerHTML='❌ '+escapeHtml(explanation);}
+  else{
+    opts[selected].classList.add('wrong');fb.className='quiz-feedback wrong';
+    const correctText=opts[correct]?stripOptionLabel(opts[correct].textContent.replace(/^[A-D]\.\s*/,'')):'';
+    fb.innerHTML='❌ The correct answer is <strong>'+escapeHtml(correctText)+'</strong>. '+escapeHtml(explanation);
+  }
   window._testAnswers++;
   if(window._testAnswers===window._testTotal){
     const c=window._testCorrect,t=window._testTotal;
