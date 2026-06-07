@@ -588,18 +588,19 @@ function setLevel(lv){state.level=lv;updateTopbar();}
 // ══ TOPBAR ══
 function updateTopbar(){
   const p=state.profile,lv=state.level,km=state.progress[p];
-  document.getElementById('topbar-avatar').src=AVATARS[p][lv];
-  const n=document.getElementById('topbar-name');
-  n.textContent=p.charAt(0).toUpperCase()+p.slice(1);n.className='topbar-name '+p;
-  document.getElementById('topbar-km').textContent=km.toLocaleString();
-  const fill=document.getElementById('km-bar-fill');
-  fill.style.width=Math.min((km/TOTAL_KM)*100,100)+'%';fill.className='km-bar-fill '+p;
-  // level buttons removed from topbar - selection now via avatar thumbs
-  // km dash
-  const da=document.getElementById('km-dash-avatar');if(da)da.src=AVATARS[p][lv];
-  const dn=document.getElementById('km-dash-name');if(dn){dn.textContent=p.charAt(0).toUpperCase()+p.slice(1);dn.className='km-dash-name '+p;}
-  const dk=document.getElementById('km-dash-km');if(dk)dk.textContent=km.toLocaleString();
-  const df=document.getElementById('km-dash-bar-fill');if(df){df.style.width=Math.min((km/11700)*100,100)+'%';df.className='km-dash-bar-fill '+p;}
+  const pct=Math.min((km/TOTAL_KM)*100,100);
+  const name=p.charAt(0).toUpperCase()+p.slice(1);
+  const ta=document.getElementById('topbar-avatar');if(ta)ta.src=AVATARS[p][lv];
+  const tn=document.getElementById('topbar-name');if(tn){tn.textContent=name;tn.className='topbar-name '+p;}
+  const tk=document.getElementById('topbar-km');if(tk)tk.textContent=km.toLocaleString();
+  const tf=document.getElementById('km-bar-fill');if(tf){tf.style.width=pct+'%';tf.className='km-bar-fill '+p;}
+  const hf=document.getElementById('hero-km-bar-fill');if(hf){hf.style.width=pct+'%';hf.className='hero-km-bar-fill '+p;}
+  const hv=document.getElementById('hero-km-value');if(hv){hv.textContent=km.toLocaleString()+' / 11,700 km';hv.className='hero-km-value '+p;}
+  const hn=document.getElementById('hero-profile-name');if(hn)hn.textContent=name+' — Choose your level';
+  ['normal','pro','goat'].forEach(k=>{
+    const img=document.getElementById('thumb-img-'+k);if(img)img.src=AVATARS[p][k];
+    const wrap=document.getElementById('thumb-'+k);if(wrap){wrap.classList.remove('active','inactive');wrap.classList.add(k===lv?'active':'inactive');}
+  });
 }
 
 // ══ TOPIC ══
