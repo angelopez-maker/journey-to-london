@@ -663,6 +663,34 @@ function addKm(amount){
   updateTopbar();
 }
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3500);}
+
+// Safely renders AI-generated text as HTML content (not as code/attributes), so quotes,
+// apostrophes, and other characters never break the page.
+function escapeHtml(text){
+  const d=document.createElement('div');
+  d.textContent=text==null?'':String(text);
+  return d.innerHTML;
+}
+
+// Normalizes whatever format the AI returned for "correct" into a safe 0-based index.
+// Handles numbers, letters ("A","B"...), numeric strings, and 1-based indices defensively.
+function normalizeCorrectIndex(correct,numOptions){
+  if(typeof correct==='number'&&Number.isInteger(correct)){
+    if(correct>=0&&correct<numOptions)return correct;
+    if(correct>=1&&correct<=numOptions)return correct-1;
+  }
+  if(typeof correct==='string'){
+    const t=correct.trim();
+    const letter=t.match(/^[A-Da-d]/);
+    if(letter){const idx=letter[0].toUpperCase().charCodeAt(0)-65;if(idx<numOptions)return idx;}
+    const n=parseInt(t,10);
+    if(!isNaN(n)){
+      if(n>=0&&n<numOptions)return n;
+      if(n>=1&&n<=numOptions)return n-1;
+    }
+  }
+  return 0;
+}
 function showLoading(msg='Generating your lesson...'){
   document.getElementById('module-content-area').innerHTML=`<div class="loading-wrap"><div class="loading-spinner"></div><div class="loading-text">${msg}</div></div>`;
 }
@@ -709,6 +737,7 @@ Make it engaging, use simple language, be encouraging. Return only valid JSON.`;
 
 function renderLearning(d,topic){
   state.quizScore=0;state.quizAnswered=0;
+  window._quizQuestions=d.questions||[];
   let html=`<div class="content-card"><h2>📚 ${d.title||topic}</h2>
     <h3>What you need to know</h3><p>${d.explanation}</p>
     <h3>Key Points</h3><ul>${(d.key_points||[]).map(p=>`<li>${p}</li>`).join('')}</ul>
@@ -723,16 +752,19 @@ function renderQuestion(q,i){
   return `<div class="quiz-question-card" id="qcard-${i}">
     <div class="quiz-q-num">QUESTION ${i+1} · 20 KM</div>
     <div class="quiz-q-text">${q.question}</div>
-    <div class="quiz-options">${(q.options||[]).map((o,j)=>`<div class="quiz-option" onclick="answerQ(${i},${j},${q.correct},'${encodeURIComponent(q.explanation||'')}')">${String.fromCharCode(65+j)}. ${o}</div>`).join('')}</div>
+    <div class="quiz-options">${(q.options||[]).map((o,j)=>`<div class="quiz-option" onclick="answerQ(${i},${j})">${String.fromCharCode(65+j)}. ${o}</div>`).join('')}</div>
     <div class="quiz-feedback" id="qfb-${i}" style="display:none"></div>
   </div>`;
 }
 
-function answerQ(qi,selected,correct,expEnc){
+function answerQ(qi,selected){
   const card=document.getElementById('qcard-'+qi);
   if(card.dataset.answered) return;
   card.dataset.answered='1';
+  const q=(window._quizQuestions||[])[qi]||{};
   const opts=card.querySelectorAll('.quiz-option');
+  const correct=normalizeCorrectIndex(q.correct,opts.length);
+  const explanation=q.explanation||'';
   opts.forEach(o=>o.classList.add('answered'));
   opts[correct].classList.add('correct');
   const fb=document.getElementById('qfb-'+qi);
@@ -740,12 +772,12 @@ function answerQ(qi,selected,correct,expEnc){
   if(selected===correct){
     opts[selected].classList.add('correct');
     fb.className='quiz-feedback correct';
-    fb.innerHTML='✅ Correct! +20 km &nbsp;'+decodeURIComponent(expEnc);
+    fb.innerHTML='✅ Correct! +20 km &nbsp;'+escapeHtml(explanation);
     addKm(20);showToast('+20 km! Great job! 🎯');
   }else{
     opts[selected].classList.add('wrong');
     fb.className='quiz-feedback wrong';
-    fb.innerHTML='❌ Not quite. '+decodeURIComponent(expEnc);
+    fb.innerHTML='❌ Not quite. '+escapeHtml(explanation);
   }
 }
 
@@ -934,12 +966,13 @@ Return only valid JSON.`;
 }
 
 function renderPlaying(d){
+  window._quizQuestions=d.questions||[];
   let html=`<div class="content-card"><h2>🎮 ${d.title}</h2>
   <p style="color:var(--muted);margin-bottom:20px">5 questions · 20 km each · Total: 100 km possible</p>
   <div class="quiz-wrap">${(d.questions||[]).map((q,i)=>`<div class="quiz-question-card" id="qcard-${i}">
     <div class="quiz-q-num">${q.emoji||'🎯'} QUESTION ${i+1} · 20 KM</div>
     <div class="quiz-q-text">${q.question}</div>
-    <div class="quiz-options">${(q.options||[]).map((o,j)=>`<div class="quiz-option" onclick="answerQ(${i},${j},${q.correct},'${encodeURIComponent(q.explanation||'')}')">${String.fromCharCode(65+j)}. ${o}</div>`).join('')}</div>
+    <div class="quiz-options">${(q.options||[]).map((o,j)=>`<div class="quiz-option" onclick="answerQ(${i},${j})">${String.fromCharCode(65+j)}. ${o}</div>`).join('')}</div>
     <div class="quiz-feedback" id="qfb-${i}" style="display:none"></div>
   </div>`).join('')}</div></div>`;
   document.getElementById('module-content-area').innerHTML=html;
@@ -981,7 +1014,7 @@ function renderSinging(d){
       <a class="yt-link" href="https://www.youtube.com/results?search_query=${yt}" target="_blank">▶ YouTube</a>
     </div>`;
   });
-  html+=`<div class="km-award"><div class="km-award-num">+100</div><div class="km-award-label">km for completing Singing</div><button class="km-award-btn" onclick="addKm(100);showToast('🎵 +100 km! Great listening! 🎶');this.textContent='✓ Claimed!'">Claim km</button></div>`;
+  html+=`<div class="km-award"><div class="km-award-num">🎶</div><div class="km-award-label">Enjoy the songs and train your ear!</div></div>`;
   document.getElementById('module-content-area').innerHTML=html;
 }
 
@@ -1020,7 +1053,7 @@ function renderWatching(d){
       <a class="yt-link" href="https://www.youtube.com/results?search_query=${yt}" target="_blank">▶ YouTube</a>
     </div>`;
   });
-  html+=`<div class="km-award"><div class="km-award-num">+100</div><div class="km-award-label">km for completing Watching</div><button class="km-award-btn" onclick="addKm(100);showToast('🎬 +100 km! Keep watching! 🍿');this.textContent='✓ Claimed!'">Claim km</button></div>`;
+  html+=`<div class="km-award"><div class="km-award-num">🍿</div><div class="km-award-label">Watch, listen, and pick up new phrases!</div></div>`;
   document.getElementById('module-content-area').innerHTML=html;
 }
 
@@ -1083,13 +1116,14 @@ Make ALL 5 questions about "${topic}". Return only valid JSON, no markdown.`;
 }
 
 function renderTest(d){
+  window._testQuestions=d.questions||[];
   const bonusMap={5:200,4:150,3:100,2:0,1:0,0:0};
   let html=`<div class="content-card"><h2>🏆 ${d.title}</h2>
   <p style="color:var(--muted);margin-bottom:20px">5 questions · Bonus km based on your total score</p>
   <div class="quiz-wrap" id="test-wrap">${(d.questions||[]).map((q,i)=>`<div class="quiz-question-card" id="qcard-${i}">
     <div class="quiz-q-num">${(q.type||'question').toUpperCase()} · QUESTION ${i+1}</div>
     <div class="quiz-q-text">${q.question}</div>
-    <div class="quiz-options">${(q.options||[]).map((o,j)=>`<div class="quiz-option" onclick="answerTestQ(${i},${j},${q.correct},'${encodeURIComponent(q.explanation||'')}')">${String.fromCharCode(65+j)}. ${o}</div>`).join('')}</div>
+    <div class="quiz-options">${(q.options||[]).map((o,j)=>`<div class="quiz-option" onclick="answerTestQ(${i},${j})">${String.fromCharCode(65+j)}. ${stripOptionLabel(o)}</div>`).join('')}</div>
     <div class="quiz-feedback" id="qfb-${i}" style="display:none"></div>
   </div>`).join('')}</div>
   <div id="test-result" style="display:none"></div></div>`;
@@ -1097,17 +1131,27 @@ function renderTest(d){
   window._testAnswers=0;window._testCorrect=0;window._testTotal=(d.questions||[]).length;
 }
 
-function answerTestQ(qi,selected,correct,expEnc){
+// The Test prompt's example options already include "A) ", "B) " prefixes (matching the school's
+// format), and the renderer adds its own letter — this strips a leading "A) "/"A." if present
+// so options don't show double letters like "A. A) go".
+function stripOptionLabel(text){
+  return String(text==null?'':text).replace(/^\s*[A-Da-d][\.\)]\s*/,'');
+}
+
+function answerTestQ(qi,selected){
   const card=document.getElementById('qcard-'+qi);
   if(card.dataset.answered) return;
   card.dataset.answered='1';
+  const q=(window._testQuestions||[])[qi]||{};
   const opts=card.querySelectorAll('.quiz-option');
+  const correct=normalizeCorrectIndex(q.correct,opts.length);
+  const explanation=q.explanation||'';
   opts.forEach(o=>o.classList.add('answered'));
   opts[correct].classList.add('correct');
   const fb=document.getElementById('qfb-'+qi);
   fb.style.display='block';
-  if(selected===correct){opts[selected].classList.add('correct');fb.className='quiz-feedback correct';fb.innerHTML='✅ Correct! '+decodeURIComponent(expEnc);window._testCorrect++;}
-  else{opts[selected].classList.add('wrong');fb.className='quiz-feedback wrong';fb.innerHTML='❌ '+decodeURIComponent(expEnc);}
+  if(selected===correct){opts[selected].classList.add('correct');fb.className='quiz-feedback correct';fb.innerHTML='✅ Correct! '+escapeHtml(explanation);window._testCorrect++;}
+  else{opts[selected].classList.add('wrong');fb.className='quiz-feedback wrong';fb.innerHTML='❌ '+escapeHtml(explanation);}
   window._testAnswers++;
   if(window._testAnswers===window._testTotal){
     const c=window._testCorrect,t=window._testTotal;
