@@ -470,6 +470,7 @@
               <span class="bus-icon" id="bus-icon">🚌</span>
             </div>
           </div>
+          <div id="prestige-badges" style="font-size:20px;margin-top:6px;letter-spacing:2px;min-height:24px"></div>
         </div>
       </div>
       <!-- RIGHT: Profile avatars -->
@@ -532,7 +533,27 @@
         <span class="preset-chip" onclick="setTopic(this)">Letter Writing</span>
         <span class="preset-chip" onclick="setTopic(this)">Listening Skills</span>
         <span class="preset-chip" onclick="setTopic(this)">Speaking Test</span>
+        <div class="preset-group-label">📚 Cambridge Movers Units</div>
+        <span class="preset-chip" onclick="setTopic(this)">A Favourite Toy Shop</span>
+        <span class="preset-chip" onclick="setTopic(this)">The Party</span>
+        <span class="preset-chip" onclick="setTopic(this)">At the Doctor's</span>
+        <span class="preset-chip" onclick="setTopic(this)">Uncle Charlie's Hotel</span>
+        <span class="preset-chip" onclick="setTopic(this)">From the Countryside to the Jungle</span>
+        <span class="preset-chip" onclick="setTopic(this)">The Weather</span>
+        <span class="preset-chip" onclick="setTopic(this)">Our Town</span>
+        <span class="preset-chip" onclick="setTopic(this)">Dreaming of Holidays</span>
       </div>
+    </div>
+    <div class="topic-section" style="margin-top:12px">
+      <div class="section-label">⚔️ Grammar Duel <span style="color:var(--muted);font-size:12px;font-weight:400">— optional, for Learning · Writing · Test</span></div>
+      <select id="grammar-duel-select" style="width:100%;padding:12px 14px;background:var(--card2);border:1px solid var(--border);border-radius:12px;color:var(--text);font-family:'Inter',sans-serif;font-size:14px;cursor:pointer;outline:none;">
+        <option value="none">🌍 No duel — free topic</option>
+        <option value="pres_simple_cont">Present Simple ⚔️ Present Continuous</option>
+        <option value="past_simple_cont">Past Simple ⚔️ Past Continuous</option>
+        <option value="stative_verbs">⚔️ Stative Verbs — NO -ing!</option>
+        <option value="perf_simple_cont">Present Perfect Simple ⚔️ Continuous</option>
+        <option value="comparative_superlative">Comparative ⚔️ Superlative</option>
+      </select>
     </div>
     <div class="modules-label">Learning Modules</div>
     <div class="modules-grid">
@@ -544,6 +565,7 @@
       <button class="module-btn" data-module="playing" onclick="openModule('playing')"><div class="module-icon">🎮</div><div class="module-name">Playing</div><div class="module-km">20 km / ✓</div></button>
       <button class="module-btn" data-module="singing" onclick="openModule('singing')"><div class="module-icon">🎵</div><div class="module-name">Singing</div><div class="module-km">100 km</div></button>
       <button class="module-btn" data-module="watching" onclick="openModule('watching')"><div class="module-icon">🎬</div><div class="module-name">Watching</div><div class="module-km">100 km</div></button>
+      <button class="module-btn" data-module="spelling" onclick="openModule('spelling')"><div class="module-icon">🔤</div><div class="module-name">Spelling</div><div class="module-km">15 km / ✓</div></button>
       <button class="module-btn" data-module="resources" onclick="openModule('resources')"><div class="module-icon">📋</div><div class="module-name">Resources</div><div class="module-km">Reference</div></button>
     </div>
     <button class="test-btn" onclick="openModule('test')">
@@ -584,13 +606,30 @@ const MODULES = {
   listening:{icon:'🎧',name:'Listening'},writing:{icon:'✏️',name:'Writing'},
   talking:{icon:'🎤',name:'Talking'},playing:{icon:'🎮',name:'Playing'},
   singing:{icon:'🎵',name:'Singing'},watching:{icon:'🎬',name:'Watching'},
+  spelling:{icon:'🔤',name:'Spelling'},
   resources:{icon:'📋',name:'Resources'},test:{icon:'🏆',name:'Test'}
 };
+
+// ══ GRAMMAR DUELS ══
+const GRAMMAR_DUELS = [
+  {id:'none', label:'🌍 No duel — free topic'},
+  {id:'pres_simple_cont', label:'Present Simple ⚔️ Present Continuous',
+   focus:'GRAMMAR DUEL: Every question MUST test the contrast between Present Simple (habits/facts: "She works every day") vs Present Continuous (right now/temporary: "She is working now"). Include stative verbs (know, think, understand, want, seem, etc.) that NEVER take -ing.'},
+  {id:'past_simple_cont', label:'Past Simple ⚔️ Past Continuous',
+   focus:'GRAMMAR DUEL: Every question MUST test Past Simple (completed action: "She arrived at 8") vs Past Continuous (action in progress when another happened: "She was cooking when he called").'},
+  {id:'stative_verbs', label:'⚔️ Stative Verbs — NO -ing!',
+   focus:'GRAMMAR DUEL: Every question MUST focus on stative verbs that NEVER use -ing (know, think, understand, believe, want, need, prefer, love, hate, seem, appear, cost, belong, contain). Show the wrong -ing form vs the correct simple form.'},
+  {id:'perf_simple_cont', label:'Present Perfect Simple ⚔️ Continuous',
+   focus:'GRAMMAR DUEL: Every question MUST test Present Perfect Simple (completed result: "I have written 3 emails") vs Present Perfect Continuous (ongoing process/duration: "I have been writing for two hours").'},
+  {id:'comparative_superlative', label:'Comparative ⚔️ Superlative',
+   focus:'GRAMMAR DUEL: Every question MUST test Comparative (two things: "faster than", "more beautiful than", "better than") vs Superlative (the extreme: "the fastest", "the most beautiful", "the best").'},
+];
 
 // ══ STATE ══
 const state = {
   profile:null, level:'normal',
   progress:JSON.parse(localStorage.getItem('jtl_progress')||'{"rodrigo":0,"fernando":0}'),
+  prestige:JSON.parse(localStorage.getItem('jtl_prestige')||'{"rodrigo":{"stars":0,"trophies":0,"bens":0},"fernando":{"stars":0,"trophies":0,"bens":0}}'),
   quizScore:0, quizAnswered:0
 };
 
@@ -635,6 +674,10 @@ function updateTopbar(){
   const hf=document.getElementById('hero-km-bar-fill');if(hf){hf.style.width=pct+'%';hf.className='hero-km-bar-fill '+p;}
   const hv=document.getElementById('hero-km-value');if(hv){hv.textContent=km.toLocaleString()+' / 11,700 km';hv.className='hero-km-value '+p;}
   const hn=document.getElementById('hero-profile-name');if(hn)hn.textContent=name+' — Choose your level';
+  // Prestige badges
+  const pr=state.prestige[p];
+  const badges=(pr.bens>0?'🗼'.repeat(pr.bens)+' ':'')+(pr.trophies>0?'🏆'.repeat(pr.trophies)+' ':'')+(pr.stars>0?'⭐'.repeat(pr.stars):'');
+  const pb=document.getElementById('prestige-badges');if(pb)pb.textContent=badges;
   ['normal','pro','goat'].forEach(k=>{
     const img=document.getElementById('thumb-img-'+k);if(img)img.src=AVATARS[p][k];
     const wrap=document.getElementById('thumb-'+k);if(wrap){wrap.classList.remove('active','inactive');wrap.classList.add(k===lv?'active':'inactive');}
@@ -651,17 +694,43 @@ function clearTopic(){document.getElementById('topic-input').value='';document.g
 function setTopic(chip){document.querySelectorAll('.preset-chip').forEach(c=>c.classList.remove('selected'));chip.classList.add('selected');document.getElementById('topic-input').value=chip.textContent;document.getElementById('topic-clear').style.display='block';}
 
 function getTopic(){return document.getElementById('topic-input').value.trim()||'General English';}
+function getDuel(){const sel=document.getElementById('grammar-duel-select');if(!sel||sel.value==='none')return null;return GRAMMAR_DUELS.find(d=>d.id===sel.value)||null;}
 function getAge(){return state.profile==='rodrigo'?9:12;}
 function getLevelDesc(){return {normal:'beginner A1-A2, keep it very simple and encouraging',pro:'intermediate B1, moderately challenging',goat:'advanced B2-C1, challenging like a native speaker'}[state.level];}
 
-// ══ KM ══
+// ══ KM + PRESTIGE ══
 function addKm(amount){
   const p=state.profile,prev=state.progress[p];
-  state.progress[p]=Math.min(prev+amount,TOTAL_KM);
+  const newKm=prev+amount;
+  if(newKm>=TOTAL_KM){
+    // Journey complete! Reset km and award prestige
+    state.progress[p]=0;
+    const pr=state.prestige[p];
+    pr.stars++;
+    if(pr.stars>=5){pr.stars=0;pr.trophies++;
+      if(pr.trophies>=5){pr.trophies=0;pr.bens++;showJourneyComplete('ben');}
+      else showJourneyComplete('trophy');
+    } else showJourneyComplete('star');
+    localStorage.setItem('jtl_prestige',JSON.stringify(state.prestige));
+  } else {
+    state.progress[p]=newKm;
+    const crossed=MILESTONES.filter(m=>prev<m&&state.progress[p]>=m);
+    if(crossed.length) showToast('🎉 '+crossed[0].toLocaleString()+' km! Keep going!');
+  }
   localStorage.setItem('jtl_progress',JSON.stringify(state.progress));
-  const crossed=MILESTONES.filter(m=>prev<m&&state.progress[p]>=m);
-  if(crossed.length) showToast('🎉 '+crossed[0].toLocaleString()+' km! '+(crossed[0]===TOTAL_KM?'YOU MADE IT TO LONDON! 🇬🇧':'Keep going!'));
   updateTopbar();
+}
+function showJourneyComplete(type){
+  const msgs={
+    star:'⭐ YOU MADE IT TO LONDON! Journey complete! 🇬🇧',
+    trophy:'🏆 TROPHY UNLOCKED! 5 journeys done! Incredible!',
+    ben:'🗼 GOLDEN BIG BEN! You are a LEGEND!'
+  };
+  const t=document.getElementById('toast');
+  t.textContent=msgs[type]||msgs.star;
+  t.style.background=type==='ben'?'linear-gradient(135deg,#f59e0b,#d97706)':type==='trophy'?'linear-gradient(135deg,#8b5cf6,#7c3aed)':'linear-gradient(135deg,#10b981,#059669)';
+  t.classList.add('show');
+  setTimeout(()=>{t.classList.remove('show');t.style.background='';},5000);
 }
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3500);}
 
@@ -708,15 +777,132 @@ function openModule(mod){
   showScreen('screen-module');
   const handlers={learning:runLearning,reading:runReading,listening:runListening,
     writing:runWriting,playing:runPlaying,singing:runSinging,watching:runWatching,
-    resources:runResources,test:runTest,talking:runTalking};
+    spelling:runSpelling,resources:runResources,test:runTest,talking:runTalking};
   (handlers[mod]||runTalking)();
+}
+
+// ══ SPELLING ══
+async function runSpelling(){
+  showLoading('Preparing your spelling quiz...');
+  const topic=getTopic(),age=getAge(),level=getLevelDesc();
+  const prompt=`You are an English spelling coach for a ${age}-year-old. Topic: "${topic}". Level: ${level}.
+Generate 10 spelling words from the Cambridge A1 Movers vocabulary related to this topic.
+Return ONLY this JSON:
+{
+  "title":"Spelling Quiz: ${topic}",
+  "words":[
+    {"word":"kangaroo","sentence":"I saw a ___ jumping at the zoo.","definition":"a large animal from Australia that jumps"},
+    {"word":"dolphin","sentence":"The ___ swam fast in the ocean.","definition":"a smart sea animal that can jump"},
+    ...10 words total
+  ]
+}
+Rules: use ONLY real Cambridge A1 Movers level vocabulary. Sentence must use ___ for the blank. Words should be common, useful, and appropriate for the age. Return only valid JSON.`;
+  try{
+    const raw=await callClaude(prompt,1200);
+    const d=parseJSON(raw);
+    renderSpelling(d);
+  }catch(e){showError(e.message);}
+}
+
+function renderSpelling(d){
+  window._spellingWords=d.words||[];
+  window._spellingIdx=0;
+  window._spellingScore=0;
+  showSpellingWord();
+}
+
+function showSpellingWord(){
+  const words=window._spellingWords||[];
+  const i=window._spellingIdx||0;
+  if(i>=words.length){
+    // All done — show summary
+    const score=window._spellingScore;
+    const total=words.length;
+    const km=score*15;
+    document.getElementById('module-content-area').innerHTML=`
+      <div class="content-card" style="text-align:center">
+        <div style="font-size:48px;margin-bottom:12px">${score===total?'🏆':score>=total*0.7?'⭐':'💪'}</div>
+        <h2>Spelling Complete!</h2>
+        <p style="font-size:22px;font-weight:700;margin:12px 0">${score} / ${total} correct</p>
+        <p style="color:var(--muted)">+${km} km earned</p>
+        <button class="submit-btn" style="margin-top:20px" onclick="runSpelling()">Try Again 🔄</button>
+      </div>`;
+    addKm(km);
+    showToast(`🔤 Spelling done! +${km} km!`);
+    return;
+  }
+  const w=words[i];
+  const sentenceHtml=escapeHtml(w.sentence).replace('___','<span class="vocab-gap" style="min-width:100px">______</span>');
+  document.getElementById('module-content-area').innerHTML=`
+    <div class="content-card">
+      <div class="quiz-q-num">WORD ${i+1} OF ${words.length} · 15 KM EACH</div>
+      <div style="margin:16px 0;text-align:center">
+        <button class="submit-btn" id="spell-play-btn" onclick="speakSpellingWord()" style="font-size:18px;padding:12px 28px">🔊 Hear the word</button>
+      </div>
+      <div class="quiz-q-text" style="font-size:15px;color:var(--muted);margin-bottom:20px">${sentenceHtml}</div>
+      <p style="color:var(--muted);font-size:13px;margin-bottom:8px">💡 ${escapeHtml(w.definition||'')}</p>
+      <div style="display:flex;gap:12px;align-items:center">
+        <input type="text" id="spell-input" class="blank-input" style="flex:1;width:auto;font-size:18px;padding:12px 16px" placeholder="Type the word..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" onkeydown="if(event.key==='Enter')checkSpelling()">
+        <button class="submit-btn" onclick="checkSpelling()" style="padding:12px 20px">Check ✓</button>
+      </div>
+      <div id="spell-feedback" style="margin-top:16px;display:none"></div>
+    </div>`;
+  // Auto-speak on load
+  setTimeout(()=>speakSpellingWord(),400);
+  document.getElementById('spell-input').focus();
+}
+
+function speakSpellingWord(){
+  const w=(window._spellingWords||[])[window._spellingIdx||0];
+  if(!w)return;
+  window.speechSynthesis.cancel();
+  // Speak word, pause, then sentence with word
+  const u1=new SpeechSynthesisUtterance(w.word);
+  u1.lang='en-GB';u1.rate=0.85;u1.pitch=1;
+  const sentence=w.sentence.replace('___',w.word);
+  const u2=new SpeechSynthesisUtterance(sentence);
+  u2.lang='en-GB';u2.rate=0.9;u2.pitch=1;
+  const uPause=new SpeechSynthesisUtterance('...');
+  uPause.lang='en-GB';uPause.rate=0.1;uPause.volume=0;
+  const btn=document.getElementById('spell-play-btn');
+  if(btn){btn.textContent='🔊 Listening...';u2.onend=()=>{if(btn)btn.textContent='🔊 Hear again';};}
+  window.speechSynthesis.speak(u1);
+  window.speechSynthesis.speak(uPause);
+  window.speechSynthesis.speak(u2);
+}
+
+function checkSpelling(){
+  const words=window._spellingWords||[];
+  const i=window._spellingIdx||0;
+  const w=words[i];
+  if(!w)return;
+  const input=document.getElementById('spell-input');
+  const given=(input?input.value:'').trim().toLowerCase();
+  const correct=w.word.toLowerCase();
+  const fb=document.getElementById('spell-feedback');
+  const isCorrect=given===correct;
+  if(isCorrect) window._spellingScore=(window._spellingScore||0)+1;
+  if(fb){
+    fb.style.display='block';
+    fb.className='quiz-feedback '+(isCorrect?'correct':'wrong');
+    fb.innerHTML=isCorrect
+      ?`✅ Correct! <strong>${escapeHtml(w.word)}</strong> — +15 km`
+      :`❌ The correct spelling is <strong>${escapeHtml(w.word)}</strong>. You wrote: "${escapeHtml(given)}"`;
+  }
+  if(input)input.disabled=true;
+  // Auto-advance after 2 seconds
+  setTimeout(()=>{
+    window._spellingIdx=(window._spellingIdx||0)+1;
+    showSpellingWord();
+  },2000);
 }
 
 // ══ LEARNING ══
 async function runLearning(){
   showLoading('Building your lesson...');
-  const topic=getTopic(),age=getAge(),level=getLevelDesc();
-  const prompt=`You are a fun English teacher for a ${age}-year-old child. Topic: "${topic}". Level: ${level}.
+  const topic=getTopic(),age=getAge(),level=getLevelDesc(),duel=getDuel();
+  const duelNote=duel?`\n${duel.focus}\nThe topic "${topic}" is secondary — use it only for context/examples.`:'';
+  const prompt=`You are a fun English teacher for a ${age}-year-old child. Topic: "${topic}". Level: ${level}.${duelNote}
 Create a lesson in JSON format:
 {
   "title": "lesson title",
@@ -865,8 +1051,9 @@ function playText(rate=1){
 // ══ WRITING ══
 async function runWriting(){
   showLoading('Preparing your writing exercise...');
-  const topic=getTopic(),age=getAge(),level=getLevelDesc();
-  const prompt=`Create a writing exercise for a ${age}-year-old. Topic: "${topic}". Level: ${level}.
+  const topic=getTopic(),age=getAge(),level=getLevelDesc(),duel=getDuel();
+  const duelNote=duel?`\n${duel.focus}\nUse "${topic}" only as context for sentences — the grammar contrast is what matters.`:'';
+  const prompt=`Create a writing exercise for a ${age}-year-old. Topic: "${topic}". Level: ${level}.${duelNote}
 Return JSON:
 {
   "title":"...",
@@ -1147,8 +1334,9 @@ function runResources(){
 // ══ TEST ══
 async function runTest(){
   showLoading('Preparing your test...');
-  const topic=getTopic(),age=getAge(),level=getLevelDesc();
-  const prompt=`You are an English teacher. Create a school-style test for a ${age}-year-old about "${topic}". Level: ${level}.
+  const topic=getTopic(),age=getAge(),level=getLevelDesc(),duel=getDuel();
+  const duelNote=duel?`\n${duel.focus}\nAll 5 questions MUST test this grammar contrast specifically. Use "${topic}" only for sentence context.`:'';
+  const prompt=`You are an English teacher. Create a school-style test for a ${age}-year-old about "${topic}". Level: ${level}.${duelNote}
 The test follows this Chilean bilingual school format: Reading comprehension, Vocabulary (odd one out, word choice), Grammar (choose correct verb form, complete sentences), and Writing.
 
 Return ONLY this JSON (no extra text):
