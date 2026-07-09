@@ -784,7 +784,7 @@ function getUnitContext(){
   const [bookKey,unitId]=unitSel.value.split('|');
   const book=CURRICULUM[bookKey];if(!book)return null;
   const unit=book.units.find(u=>String(u.id)===unitId);if(!unit)return null;
-  return {bookName:book.name.replace(/📘|📗/g,'').trim(),unitName:unit.name,topic:unit.topic,bookKey};
+  return {bookName:book.name.replace(/📘|📗/g,'').trim(),unitName:unit.name,topic:unit.topic,bookKey,vocab:unit.vocab||''};
 }
 function getDuel(){const sel=document.getElementById('grammar-duel-select');if(!sel||sel.value==='none')return null;return GRAMMAR_DUELS.find(d=>d.id===sel.value)||null;}
 
