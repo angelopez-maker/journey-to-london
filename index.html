@@ -553,6 +553,19 @@
         <option value="stative_verbs">⚔️ Stative Verbs — NO -ing!</option>
         <option value="perf_simple_cont">Present Perfect Simple ⚔️ Continuous</option>
         <option value="comparative_superlative">Comparative ⚔️ Superlative</option>
+        <option value="will_going_to">Will ⚔️ Going to</option>
+        <option value="zero_first_cond">Zero ⚔️ First Conditional</option>
+      </select>
+    </div>
+    <div class="topic-section" style="margin-top:12px">
+      <div class="section-label">📚 Curriculum <span style="color:var(--muted);font-size:12px;font-weight:400">— load topic + duel from your textbook</span></div>
+      <select id="curriculum-book-select" onchange="onCurriculumBookChange()" style="width:100%;padding:12px 14px;background:var(--card2);border:1px solid var(--border);border-radius:12px;color:var(--text);font-family:'Inter',sans-serif;font-size:14px;cursor:pointer;outline:none;margin-bottom:8px;">
+        <option value="">— Select a book —</option>
+        <option value="NCUB1">📘 New Close Up B1</option>
+        <option value="CAM_MOVERS">📗 Cambridge A1 Movers</option>
+      </select>
+      <select id="curriculum-unit-select" onchange="onCurriculumUnitChange()" style="width:100%;padding:12px 14px;background:var(--card2);border:1px solid var(--border);border-radius:12px;color:var(--text);font-family:'Inter',sans-serif;font-size:14px;cursor:pointer;outline:none;display:none;">
+        <option value="">— Select a unit —</option>
       </select>
     </div>
     <div class="modules-label">Learning Modules</div>
@@ -623,7 +636,45 @@ const GRAMMAR_DUELS = [
    focus:'GRAMMAR DUEL: Every question MUST test Present Perfect Simple (completed result: "I have written 3 emails") vs Present Perfect Continuous (ongoing process/duration: "I have been writing for two hours").'},
   {id:'comparative_superlative', label:'Comparative ⚔️ Superlative',
    focus:'GRAMMAR DUEL: Every question MUST test Comparative (two things: "faster than", "more beautiful than", "better than") vs Superlative (the extreme: "the fastest", "the most beautiful", "the best").'},
+  {id:'will_going_to', label:'Will ⚔️ Going to',
+   focus:'GRAMMAR DUEL: Every question MUST test WILL (spontaneous decisions, promises, predictions without evidence: "I\'ll call you later") vs GOING TO (planned intentions, predictions with visible evidence: "Look at those clouds — it\'s going to rain"). Make it clear which context calls for which form.'},
+  {id:'zero_first_cond', label:'Zero ⚔️ First Conditional',
+   focus:'GRAMMAR DUEL: Every question MUST test Zero Conditional (general truths/habits: "If you heat water to 100°C, it boils") vs First Conditional (real future possibility: "If it rains tomorrow, I will stay home"). Include unless as an alternative to if not.'},
 ];
+
+// ══ CURRICULUM ══
+const CURRICULUM = {
+  'NCUB1':{
+    name:'📘 New Close Up B1',
+    units:[
+      {id:1, name:'Unit 1 — Perfect for the job',      topic:'jobs and personal qualities',          grammar:'pres_simple_cont'},
+      {id:2, name:'Unit 2 — Delicious!',               topic:'food and cooking',                     grammar:'past_simple_cont'},
+      {id:3, name:"Unit 3 — It's natural",             topic:'nature and climate change',             grammar:'perf_simple_cont'},
+      {id:4, name:"Unit 4 — That's the fashion",       topic:'clothes and materials',                grammar:'none'},
+      {id:5, name:'Unit 5 — Where we live',            topic:'housing and household objects',         grammar:'will_going_to'},
+      {id:6, name:'Unit 6 — Go for it!',               topic:'sports and equipment',                  grammar:'zero_first_cond'},
+      {id:7, name:'Unit 7 — Have a great trip!',       topic:'travel and holidays',                   grammar:'none'},
+      {id:8, name:'Unit 8 — My own time',              topic:'free-time activities and hobbies',      grammar:'none'},
+      {id:9, name:'Unit 9 — Digital world',            topic:'computers and technology',              grammar:'none'},
+      {id:10,name:'Unit 10 — Show time!',              topic:'film TV and entertainment',             grammar:'none'},
+      {id:11,name:'Unit 11 — Life lessons',            topic:'education and learning',                grammar:'none'},
+      {id:12,name:'Unit 12 — Body and mind',           topic:'body parts health and fitness',         grammar:'comparative_superlative'},
+    ]
+  },
+  'CAM_MOVERS':{
+    name:'📗 Cambridge A1 Movers',
+    units:[
+      {id:1, name:'Unit 1 — A Favourite Toy Shop',            topic:'A Favourite Toy Shop',                  grammar:'none'},
+      {id:2, name:'Unit 2 — The Party',                       topic:'The Party',                             grammar:'none'},
+      {id:3, name:"Unit 3 — At the Doctor's",                 topic:"At the Doctor's",                       grammar:'none'},
+      {id:4, name:"Unit 4 — Uncle Charlie's Hotel",           topic:"Uncle Charlie's Hotel",                 grammar:'none'},
+      {id:5, name:'Unit 5 — From the Countryside to the Jungle', topic:'From the Countryside to the Jungle', grammar:'none'},
+      {id:6, name:'Unit 6 — The Weather',                     topic:'The Weather',                           grammar:'none'},
+      {id:7, name:'Unit 7 — Our Town',                        topic:'Our Town',                              grammar:'none'},
+      {id:8, name:'Unit 8 — Dreaming of Holidays',            topic:'Dreaming of Holidays',                  grammar:'none'},
+    ]
+  }
+};
 
 // ══ STATE ══
 const state = {
@@ -658,7 +709,13 @@ function parseJSON(text){
 
 // ══ NAVIGATION ══
 function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0);}
-function selectProfile(name){state.profile=name;state.level='normal';showScreen('screen-dashboard');updateTopbar();}
+const PROFILE_BOOK={rodrigo:'CAM_MOVERS',fernando:'NCUB1'};
+function selectProfile(name){
+  state.profile=name;state.level='normal';showScreen('screen-dashboard');updateTopbar();
+  // Auto-load this profile's curriculum book
+  const bookSel=document.getElementById('curriculum-book-select');
+  if(bookSel){bookSel.value=PROFILE_BOOK[name]||'';onCurriculumBookChange();}
+}
 function goBack(){showScreen('screen-select');init();}
 function setLevel(lv){state.level=lv;updateTopbar();}
 
@@ -695,6 +752,44 @@ function setTopic(chip){document.querySelectorAll('.preset-chip').forEach(c=>c.c
 
 function getTopic(){return document.getElementById('topic-input').value.trim()||'General English';}
 function getDuel(){const sel=document.getElementById('grammar-duel-select');if(!sel||sel.value==='none')return null;return GRAMMAR_DUELS.find(d=>d.id===sel.value)||null;}
+
+function onCurriculumBookChange(){
+  const bookSel=document.getElementById('curriculum-book-select');
+  const unitSel=document.getElementById('curriculum-unit-select');
+  const bookKey=bookSel.value;
+  unitSel.innerHTML='<option value="">— Select a unit —</option>';
+  if(!bookKey){unitSel.style.display='none';return;}
+  const book=CURRICULUM[bookKey];
+  if(!book){unitSel.style.display='none';return;}
+  book.units.forEach(u=>{
+    const opt=document.createElement('option');
+    opt.value=bookKey+'|'+u.id;
+    opt.textContent=u.name;
+    unitSel.appendChild(opt);
+  });
+  unitSel.style.display='block';
+}
+
+function onCurriculumUnitChange(){
+  const unitSel=document.getElementById('curriculum-unit-select');
+  const val=unitSel.value;
+  if(!val)return;
+  const [bookKey,unitId]=val.split('|');
+  const book=CURRICULUM[bookKey];
+  if(!book)return;
+  const unit=book.units.find(u=>String(u.id)===unitId);
+  if(!unit)return;
+  // Set topic
+  const topicInput=document.getElementById('topic-input');
+  if(topicInput){topicInput.value=unit.topic;document.getElementById('topic-clear').style.display='block';}
+  // Deselect chips
+  document.querySelectorAll('.preset-chip').forEach(c=>c.classList.remove('selected'));
+  // Set grammar duel
+  const duelSel=document.getElementById('grammar-duel-select');
+  if(duelSel){duelSel.value=unit.grammar||'none';}
+  showToast('📚 '+unit.name+' loaded!');
+}
+
 function getAge(){return state.profile==='rodrigo'?9:12;}
 function getLevelDesc(){return {normal:'beginner A1-A2, keep it very simple and encouraging',pro:'intermediate B1, moderately challenging',goat:'advanced B2-C1, challenging like a native speaker'}[state.level];}
 
@@ -785,8 +880,13 @@ function openModule(mod){
 async function runSpelling(){
   showLoading('Preparing your spelling quiz...');
   const topic=getTopic(),age=getAge(),level=getLevelDesc();
+  const isRodrigo=state.profile==='rodrigo';
+  const vocabGuide=isRodrigo
+    ?'Use ONLY real Cambridge A1 Movers level vocabulary — simple, concrete, common words a 9-year-old would know.'
+    :'Use New Close Up B1 / Cambridge B1 level vocabulary — topic-specific words a 12-year-old studying B1 English would encounter in their textbook.';
   const prompt=`You are an English spelling coach for a ${age}-year-old. Topic: "${topic}". Level: ${level}.
-Generate 10 spelling words from the Cambridge A1 Movers vocabulary related to this topic.
+Generate 10 spelling words related to this topic.
+${vocabGuide}
 Return ONLY this JSON:
 {
   "title":"Spelling Quiz: ${topic}",
@@ -796,7 +896,7 @@ Return ONLY this JSON:
     ...10 words total
   ]
 }
-Rules: use ONLY real Cambridge A1 Movers level vocabulary. Sentence must use ___ for the blank. Words should be common, useful, and appropriate for the age. Return only valid JSON.`;
+Rules: Sentence must use ___ for the blank. Words should be useful and appropriate for the age and level. Return only valid JSON.`;
   try{
     const raw=await callClaude(prompt,1200);
     const d=parseJSON(raw);
