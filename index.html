@@ -712,9 +712,16 @@ function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classL
 const PROFILE_BOOK={rodrigo:'CAM_MOVERS',fernando:'NCUB1'};
 function selectProfile(name){
   state.profile=name;state.level='normal';showScreen('screen-dashboard');updateTopbar();
-  // Auto-load this profile's curriculum book
+  // Auto-load this profile's curriculum book + last used unit
   const bookSel=document.getElementById('curriculum-book-select');
-  if(bookSel){bookSel.value=PROFILE_BOOK[name]||'';onCurriculumBookChange();}
+  if(bookSel){
+    bookSel.value=PROFILE_BOOK[name]||'';
+    onCurriculumBookChange();
+    // Restore last unit for this profile
+    const lastUnit=localStorage.getItem('jtl_unit_'+name);
+    const unitSel=document.getElementById('curriculum-unit-select');
+    if(lastUnit&&unitSel){unitSel.value=lastUnit;onCurriculumUnitChange(true);}
+  }
 }
 function goBack(){showScreen('screen-select');init();}
 function setLevel(lv){state.level=lv;updateTopbar();}
@@ -751,6 +758,14 @@ function clearTopic(){document.getElementById('topic-input').value='';document.g
 function setTopic(chip){document.querySelectorAll('.preset-chip').forEach(c=>c.classList.remove('selected'));chip.classList.add('selected');document.getElementById('topic-input').value=chip.textContent;document.getElementById('topic-clear').style.display='block';}
 
 function getTopic(){return document.getElementById('topic-input').value.trim()||'General English';}
+function getUnitContext(){
+  const unitSel=document.getElementById('curriculum-unit-select');
+  if(!unitSel||!unitSel.value)return null;
+  const [bookKey,unitId]=unitSel.value.split('|');
+  const book=CURRICULUM[bookKey];if(!book)return null;
+  const unit=book.units.find(u=>String(u.id)===unitId);if(!unit)return null;
+  return {bookName:book.name.replace(/📘|📗/g,'').trim(),unitName:unit.name,topic:unit.topic,bookKey};
+}
 function getDuel(){const sel=document.getElementById('grammar-duel-select');if(!sel||sel.value==='none')return null;return GRAMMAR_DUELS.find(d=>d.id===sel.value)||null;}
 
 function onCurriculumBookChange(){
@@ -770,7 +785,7 @@ function onCurriculumBookChange(){
   unitSel.style.display='block';
 }
 
-function onCurriculumUnitChange(){
+function onCurriculumUnitChange(silent=false){
   const unitSel=document.getElementById('curriculum-unit-select');
   const val=unitSel.value;
   if(!val)return;
@@ -787,7 +802,9 @@ function onCurriculumUnitChange(){
   // Set grammar duel
   const duelSel=document.getElementById('grammar-duel-select');
   if(duelSel){duelSel.value=unit.grammar||'none';}
-  showToast('📚 '+unit.name+' loaded!');
+  // Save last unit for this profile
+  if(state.profile)localStorage.setItem('jtl_unit_'+state.profile,val);
+  if(!silent)showToast('📚 '+unit.name+' loaded!');
 }
 
 function getAge(){return state.profile==='rodrigo'?9:12;}
@@ -881,10 +898,15 @@ async function runSpelling(){
   showLoading('Preparing your spelling quiz...');
   const topic=getTopic(),age=getAge(),level=getLevelDesc();
   const isRodrigo=state.profile==='rodrigo';
+  const unitCtx=getUnitContext();
+  let unitNote='';
+  if(unitCtx){
+    unitNote=`\nCURRICULUM UNIT: "${unitCtx.unitName}" from ${unitCtx.bookName}. You MUST use vocabulary that belongs SPECIFICALLY to this unit. Do NOT use generic or unrelated words — every word must be directly tied to the theme "${unitCtx.topic}".`;
+  }
   const vocabGuide=isRodrigo
-    ?'Use ONLY real Cambridge A1 Movers level vocabulary — simple, concrete, common words a 9-year-old would know.'
+    ?'Use Cambridge A1 Movers level vocabulary — simple, concrete words a 9-year-old would know.'
     :'Use New Close Up B1 / Cambridge B1 level vocabulary — topic-specific words a 12-year-old studying B1 English would encounter in their textbook.';
-  const prompt=`You are an English spelling coach for a ${age}-year-old. Topic: "${topic}". Level: ${level}.
+  const prompt=`You are an English spelling coach for a ${age}-year-old. Topic: "${topic}". Level: ${level}.${unitNote}
 Generate 10 spelling words related to this topic.
 ${vocabGuide}
 Return ONLY this JSON:
@@ -896,7 +918,7 @@ Return ONLY this JSON:
     ...10 words total
   ]
 }
-Rules: Sentence must use ___ for the blank. Words should be useful and appropriate for the age and level. Return only valid JSON.`;
+Rules: Sentence must use ___ for the blank. Words must be directly related to the topic. Return only valid JSON.`;
   try{
     const raw=await callClaude(prompt,1200);
     const d=parseJSON(raw);
@@ -1002,7 +1024,9 @@ async function runLearning(){
   showLoading('Building your lesson...');
   const topic=getTopic(),age=getAge(),level=getLevelDesc(),duel=getDuel();
   const duelNote=duel?`\n${duel.focus}\nThe topic "${topic}" is secondary — use it only for context/examples.`:'';
-  const prompt=`You are a fun English teacher for a ${age}-year-old child. Topic: "${topic}". Level: ${level}.${duelNote}
+  const unitCtx=getUnitContext();
+  const unitNote=unitCtx?`\nCURRICULUM: This lesson is for "${unitCtx.unitName}" from ${unitCtx.bookName}. Ground all vocabulary and examples in the theme "${unitCtx.topic}".`:'';
+  const prompt=`You are a fun English teacher for a ${age}-year-old child. Topic: "${topic}". Level: ${level}.${unitNote}${duelNote}
 Create a lesson in JSON format:
 {
   "title": "lesson title",
