@@ -918,24 +918,17 @@ async function runSpelling(){
   showLoading('Preparing your spelling quiz...');
   const topic=getTopic(),age=getAge();
   const unitCtx=getUnitContext();
-  // If unit has vocab, WE pick the words — Claude only writes sentences & definitions
+  // If unit has vocab, WE control the words — Claude only fills sentence & definition
   if(unitCtx&&unitCtx.vocab){
     const allWords=unitCtx.vocab.split(',').map(w=>w.trim()).filter(Boolean);
-    // Shuffle and pick 10
     const shuffled=allWords.sort(()=>Math.random()-0.5).slice(0,10);
-    const wordList=shuffled.join(', ');
+    // Build the JSON skeleton with locked words — Claude cannot change them
+    const skeleton=JSON.stringify(shuffled.map(w=>({word:w,sentence:'',definition:''})),null,2);
     const prompt=`You are an English spelling coach for a ${age}-year-old. Unit: "${unitCtx.unitName}".
-For each of these EXACT words, write a short sentence using ___ for the blank, and a simple definition.
-Words: ${wordList}
-Return ONLY this JSON:
-{
-  "title":"Spelling Quiz: ${unitCtx.unitName}",
-  "words":[
-    {"word":"toy","sentence":"She put the ___ on the shelf.","definition":"an object children play with"},
-    ...one entry per word, same order as the list
-  ]
-}
-Rules: use EXACTLY the words given, in the same order. Sentence uses ___ for the blank. Return only valid JSON.`;
+Complete the JSON below. For each entry, fill ONLY "sentence" (use ___ where the word goes) and "definition" (simple, age-appropriate). Do NOT change the "word" values.
+${skeleton}
+Return the completed JSON array inside this wrapper — no extra text:
+{"title":"Spelling Quiz: ${unitCtx.unitName}","words":<your completed array here>}`;
     try{
       const raw=await callClaude(prompt,1200);
       const d=parseJSON(raw);
