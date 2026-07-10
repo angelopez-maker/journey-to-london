@@ -919,21 +919,34 @@ async function runSpelling(){
   showLoading('Preparing your spelling quiz...');
   const topic=getTopic(),age=getAge();
   const unitCtx=state.currentUnit||getUnitContext();
-  // If unit has vocab, WE control the words — Claude only fills sentence & definition
+  // If unit has vocab, WE own the words — Claude only returns sentences+definitions
   if(unitCtx&&unitCtx.vocab){
     const allWords=unitCtx.vocab.split(',').map(w=>w.trim()).filter(Boolean);
-    const shuffled=allWords.sort(()=>Math.random()-0.5).slice(0,10);
-    // Build the JSON skeleton with locked words — Claude cannot change them
-    const skeleton=JSON.stringify(shuffled.map(w=>({word:w,sentence:'',definition:''})),null,2);
-    const prompt=`You are an English spelling coach for a ${age}-year-old. Unit: "${unitCtx.unitName}".
-Complete the JSON below. For each entry, fill ONLY "sentence" (use ___ where the word goes) and "definition" (simple, age-appropriate). Do NOT change the "word" values.
-${skeleton}
-Return the completed JSON array inside this wrapper — no extra text:
-{"title":"Spelling Quiz: ${unitCtx.unitName}","words":<your completed array here>}`;
+    const chosen=allWords.sort(()=>Math.random()-0.5).slice(0,10);
+    const prompt=`You are an English spelling coach for a ${age}-year-old studying "${unitCtx.unitName}".
+For each word in this list, write:
+1. A short sentence using ___ where the word goes
+2. A simple definition (max 6 words)
+
+Words (in order): ${chosen.join(', ')}
+
+Return ONLY a JSON array with exactly ${chosen.length} items — one per word in the same order:
+[
+  {"sentence":"The ___ sits on the shelf.","definition":"a soft toy bear"},
+  {"sentence":"I love to ___ stickers.","definition":"to gather things you like"},
+  ...
+]
+No "word" field. No extra text. Valid JSON only.`;
     try{
       const raw=await callClaude(prompt,1200);
-      const d=parseJSON(raw);
-      renderSpelling(d);
+      // Claude returns [{sentence, definition}] — we zip with our chosen words
+      const items=parseJSON(raw);
+      const words=chosen.map((w,i)=>({
+        word:w,
+        sentence:(items[i]&&items[i].sentence)||`Spell the word ___.`,
+        definition:(items[i]&&items[i].definition)||''
+      }));
+      renderSpelling({title:`Spelling Quiz: ${unitCtx.unitName}`,words});
     }catch(e){showError(e.message);}
     return;
   }
