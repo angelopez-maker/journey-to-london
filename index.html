@@ -701,7 +701,7 @@ const state = {
   profile:null, level:'normal',
   progress:JSON.parse(localStorage.getItem('jtl_progress')||'{"rodrigo":0,"fernando":0}'),
   prestige:JSON.parse(localStorage.getItem('jtl_prestige')||'{"rodrigo":{"stars":0,"trophies":0,"bens":0},"fernando":{"stars":0,"trophies":0,"bens":0}}'),
-  quizScore:0, quizAnswered:0
+  quizScore:0, quizAnswered:0, currentUnit:null
 };
 
 // ══ API ══
@@ -822,7 +822,8 @@ function onCurriculumUnitChange(silent=false){
   // Set grammar duel
   const duelSel=document.getElementById('grammar-duel-select');
   if(duelSel){duelSel.value=unit.grammar||'none';}
-  // Save last unit for this profile
+  // Save unit in state and localStorage — available from any screen
+  state.currentUnit={bookKey,unitName:unit.name,topic:unit.topic,vocab:unit.vocab||''};
   if(state.profile)localStorage.setItem('jtl_unit_'+state.profile,val);
   if(!silent)showToast('📚 '+unit.name+' loaded!');
 }
@@ -917,7 +918,7 @@ function openModule(mod){
 async function runSpelling(){
   showLoading('Preparing your spelling quiz...');
   const topic=getTopic(),age=getAge();
-  const unitCtx=getUnitContext();
+  const unitCtx=state.currentUnit||getUnitContext();
   // If unit has vocab, WE control the words — Claude only fills sentence & definition
   if(unitCtx&&unitCtx.vocab){
     const allWords=unitCtx.vocab.split(',').map(w=>w.trim()).filter(Boolean);
