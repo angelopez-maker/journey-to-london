@@ -1067,9 +1067,16 @@ function getBestVoice(){
   return _cachedVoice;
 }
 // Reset cache and pre-warm when voices load (Chrome/iOS loads async)
-if(window.speechSynthesis.onvoiceschanged!==undefined){
-  window.speechSynthesis.onvoiceschanged=()=>{_cachedVoice=null;getBestVoice();};
-}
+window.speechSynthesis.onvoiceschanged=()=>{_cachedVoice=null;getBestVoice();};
+// iOS Safari: force voice load on first user interaction
+document.addEventListener('click',function _voiceInit(){
+  document.removeEventListener('click',_voiceInit);
+  window.speechSynthesis.getVoices();
+  // Warm up with a silent utterance so iOS unlocks the audio context
+  const u=new SpeechSynthesisUtterance('');u.volume=0;
+  window.speechSynthesis.speak(u);
+  setTimeout(()=>{_cachedVoice=null;getBestVoice();},300);
+},{once:true});
 
 function speak(text,rate=0.9,lang='en-GB'){
   window.speechSynthesis.cancel();
@@ -2712,22 +2719,38 @@ function renderPETSection(s,d){
     html+=`</div><button class="submit-btn" style="width:100%;margin-top:12px" onclick="checkPETTF()">Check ✓</button>`;
 
   // ── Reading Part 5: Multiple Choice Cloze ──
-  } else if(s.id==='rp5'&&(d.items||d.gaps)){
-    const gaps=d.items||d.gaps||[];
-    if(d.passage||d.text)html+=`<div class="writing-prompt" style="font-size:15px;line-height:1.8;margin-bottom:16px">${d.passage||d.text}</div>`;
-    html+=gaps.map((it,i)=>`
-      <div class="writing-prompt" style="margin-bottom:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-        <span style="font-family:'Orbitron',monospace;font-size:11px;color:${col}">${i+1}</span>
-        <span style="font-size:14px;flex:1">${it.context||it.sentence||''}</span>
-        <div style="display:flex;gap:6px;flex-wrap:wrap">
+  } else if(s.id==='rp5'){
+    // Handles both {items/gaps} and {text + questions} formats
+    const passage=d.passage||d.text||'';
+    const gaps=d.items||d.gaps||d.questions||[];
+    if(passage){
+      // Show passage with gap numbers highlighted
+      const passageFormatted=passage.replace(/\((\d+)\)\s*____?/g,
+        (_,n)=>`<span style="font-family:'Orbitron',monospace;font-size:12px;color:${col};
+          background:rgba(59,130,246,.12);border-radius:4px;padding:2px 6px">(${n})</span>`);
+      html+=`<div class="writing-prompt" style="font-size:15px;line-height:2;margin-bottom:16px">${passageFormatted}</div>`;
+    }
+    html+=gaps.map((it,i)=>{
+      const num=it.number!==undefined?it.number:i;
+      return `<div class="writing-prompt" style="margin-bottom:10px">
+        <div style="display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap">
+          <span style="font-family:'Orbitron',monospace;font-size:12px;color:${col};
+            background:rgba(59,130,246,.12);border-radius:4px;padding:2px 8px;white-space:nowrap">(${num})</span>
+          ${it.context||it.sentence?`<span style="font-size:14px;flex:1">${it.context||it.sentence}</span>`:''}
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;padding-left:4px">
           ${(it.options||[]).map((opt,j)=>{
             const letter=String.fromCharCode(65+j);
-            return `<label style="cursor:pointer;padding:4px 10px;border-radius:6px;border:1px solid var(--border)">
-              <input type="radio" name="rp5_q${i}" value="${letter}" style="accent-color:${col}"> ${opt}</label>`;
+            // Options may come as "A: word" or just "word"
+            const display=opt.replace(/^[A-D]:\s*/,'');
+            return `<label style="cursor:pointer;padding:6px 14px;border-radius:8px;border:1px solid var(--border);font-size:14px">
+              <input type="radio" name="rp5_q${i}" value="${letter}" style="accent-color:${col}">
+              <strong style="color:${col}">${letter}</strong> ${display}</label>`;
           }).join('')}
         </div>
-        <div id="rp5_fb${i}" style="font-size:12px;min-width:20px"></div>
-      </div>`).join('');
+        <div id="rp5_fb${i}" style="font-size:12px;margin-top:4px;min-height:16px"></div>
+      </div>`;
+    }).join('');
     html+=`<button class="submit-btn" style="width:100%;margin-top:8px" onclick="checkPETMC('rp5')">Check ✓</button>`;
 
   // ── Writing Part 1: Sentence Transformations ──
