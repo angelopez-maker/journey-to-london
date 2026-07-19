@@ -157,6 +157,22 @@
     cursor:pointer;transition:all .2s;letter-spacing:1px;}
   .btn-back:hover{border-color:var(--text);color:var(--text);}
 
+  /* ── MINI MOCK COUNTDOWN ── */
+  .mock-countdown{display:flex;align-items:center;gap:12px;background:linear-gradient(90deg,rgba(251,191,36,.12),rgba(251,191,36,.04));
+    border:1px solid rgba(251,191,36,.4);border-radius:14px;padding:12px 18px;margin-bottom:16px;animation:pulse-border 2s infinite;}
+  .mock-countdown.urgent{background:linear-gradient(90deg,rgba(239,68,68,.15),rgba(239,68,68,.05));border-color:rgba(239,68,68,.5);}
+  .mock-countdown.done{background:linear-gradient(90deg,rgba(34,197,94,.12),rgba(34,197,94,.04));border-color:rgba(34,197,94,.4);}
+  .mock-cd-icon{font-size:26px;flex-shrink:0;}
+  .mock-cd-text{flex:1;}
+  .mock-cd-title{font-family:'Orbitron',monospace;font-size:11px;font-weight:700;letter-spacing:2px;color:var(--gold2);margin-bottom:2px;}
+  .mock-countdown.urgent .mock-cd-title{color:#f87171;}
+  .mock-countdown.done .mock-cd-title{color:#4ade80;}
+  .mock-cd-sub{font-size:13px;color:var(--muted);}
+  .mock-cd-days{font-family:'Orbitron',monospace;font-size:22px;font-weight:900;color:var(--gold2);flex-shrink:0;}
+  .mock-countdown.urgent .mock-cd-days{color:#f87171;}
+  .mock-countdown.done .mock-cd-days{color:#4ade80;}
+  @keyframes pulse-border{0%,100%{box-shadow:0 0 0 0 rgba(251,191,36,.2);}50%{box-shadow:0 0 0 4px rgba(251,191,36,.05);}}
+
   /* ── DASHBOARD ── */
   #screen-dashboard{padding:0;flex-direction:column;}
   .dashboard-content{flex:1;padding:24px;max-width:900px;width:100%;margin:0 auto;}
@@ -204,6 +220,9 @@
   .module-btn[data-module="playing"]{--mc:var(--cyan);}
   .module-btn[data-module="singing"]{--mc:var(--pink);}
   .module-btn[data-module="watching"]{--mc:var(--orange);}
+  .module-btn[data-module="movers"]{--mc:#a78bfa;}
+  .module-btn[data-module="vocabmatch"]{--mc:var(--cyan);}
+  .module-btn[data-module="pronunciation"]{--mc:var(--pink);}
   .module-btn[data-module="resources"]{--mc:var(--muted);}
   .module-btn::before{background:rgba(from var(--mc) r g b / .08);}
   .module-btn:hover::before{opacity:1;}
@@ -448,7 +467,10 @@
   <div class="topbar">
     <img id="topbar-avatar" src="" class="topbar-avatar" alt="">
     <div class="topbar-info">
-      <div class="topbar-name" id="topbar-name"></div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="topbar-name" id="topbar-name"></div>
+        <div id="topbar-streak" style="font-family:'Orbitron',monospace;font-size:11px;font-weight:700;color:var(--gold2);letter-spacing:1px;display:none"></div>
+      </div>
       <div class="km-bar-wrap">
         <div class="km-bar-bg"><div class="km-bar-fill" id="km-bar-fill" style="width:0%"></div></div>
         <div class="km-text"><strong id="topbar-km">0</strong> / 11,700 km</div>
@@ -493,6 +515,16 @@
         <button class="btn-back" onclick="goBack()" style="align-self:flex-end;margin-top:4px">← Switch</button>
       </div>
     </div>
+    <!-- Mini mock countdown — Rodrigo only -->
+    <div id="mini-mock-countdown" class="mock-countdown" style="display:none">
+      <div class="mock-cd-icon" id="mock-cd-icon">📝</div>
+      <div class="mock-cd-text">
+        <div class="mock-cd-title" id="mock-cd-title">MINI MOCK</div>
+        <div class="mock-cd-sub" id="mock-cd-sub">Cambridge A1 Movers</div>
+      </div>
+      <div class="mock-cd-days" id="mock-cd-days"></div>
+    </div>
+
     <div class="topic-section">
       <div class="section-label">What do you want to learn today?</div>
       <div class="topic-input-wrap">
@@ -563,6 +595,7 @@
         <option value="">— Select a book —</option>
         <option value="NCUB1">📘 New Close Up B1</option>
         <option value="CAM_MOVERS">📗 Cambridge A1 Movers</option>
+        <option value="LEARNING_LANDS_4">📒 Learning Lands Level 4</option>
       </select>
       <select id="curriculum-unit-select" onchange="onCurriculumUnitChange()" style="width:100%;padding:12px 14px;background:var(--card2);border:1px solid var(--border);border-radius:12px;color:var(--text);font-family:'Inter',sans-serif;font-size:14px;cursor:pointer;outline:none;display:none;">
         <option value="">— Select a unit —</option>
@@ -579,6 +612,9 @@
       <button class="module-btn" data-module="singing" onclick="openModule('singing')"><div class="module-icon">🎵</div><div class="module-name">Singing</div><div class="module-km">100 km</div></button>
       <button class="module-btn" data-module="watching" onclick="openModule('watching')"><div class="module-icon">🎬</div><div class="module-name">Watching</div><div class="module-km">100 km</div></button>
       <button class="module-btn" data-module="spelling" onclick="openModule('spelling')"><div class="module-icon">🔤</div><div class="module-name">Spelling</div><div class="module-km">15 km / ✓</div></button>
+      <button class="module-btn" data-module="movers" id="btn-movers" onclick="openModule('movers')" style="display:none"><div class="module-icon">🎓</div><div class="module-name">Movers Exam</div><div class="module-km">50 km / part</div></button>
+      <button class="module-btn" data-module="vocabmatch" id="btn-vocabmatch" onclick="openModule('vocabmatch')" style="display:none"><div class="module-icon">🔗</div><div class="module-name">Vocab Match</div><div class="module-km">20 km / pair</div></button>
+      <button class="module-btn" data-module="pronunciation" onclick="openModule('pronunciation')"><div class="module-icon">🗣️</div><div class="module-name">Pronunciation</div><div class="module-km">15 km / word</div></button>
       <button class="module-btn" data-module="resources" onclick="openModule('resources')"><div class="module-icon">📋</div><div class="module-name">Resources</div><div class="module-km">Reference</div></button>
     </div>
     <button class="test-btn" onclick="openModule('test')">
@@ -620,6 +656,9 @@ const MODULES = {
   talking:{icon:'🎤',name:'Talking'},playing:{icon:'🎮',name:'Playing'},
   singing:{icon:'🎵',name:'Singing'},watching:{icon:'🎬',name:'Watching'},
   spelling:{icon:'🔤',name:'Spelling'},
+  movers:{icon:'🎓',name:'Movers Exam'},
+  vocabmatch:{icon:'🔗',name:'Vocab Match'},
+  pronunciation:{icon:'🗣️',name:'Pronunciation'},
   resources:{icon:'📋',name:'Resources'},test:{icon:'🏆',name:'Test'}
 };
 
@@ -673,6 +712,29 @@ const CURRICULUM = {
        vocab:'muscle, flexibility, strength, meditation, nutrition, symptom, treatment, prescription, therapy, wellbeing, posture, immune, recovery, stamina, digest'},
     ]
   },
+  'LEARNING_LANDS_4':{
+    name:'📒 Learning Lands Level 4',
+    units:[
+      {id:1, name:'Unit 1 — Good food!',         topic:'food and cooking verbs',          grammar:'none',
+       vocab:'add, mix, boil, weigh, taste, fry, peel, chop, burn, stir, pour, roll out'},
+      {id:2, name:'Unit 2 — Get well soon!',      topic:'health and illness',              grammar:'none',
+       vocab:'flu, headache, sore throat, dizzy, temperature, sick, stomach ache, cold, broken arm, earache, cough, cut'},
+      {id:3, name:'Unit 3 — Out in space',        topic:'space and planets',               grammar:'comparative_superlative',
+       vocab:'moon, stars, rocket, planets, Mercury, Venus, Earth, Mars, Saturn, Uranus, Jupiter, Neptune'},
+      {id:4, name:'Unit 4 — At the seaside',      topic:'sea animals and features',        grammar:'past_simple_cont',
+       vocab:'seagull, turtle, seal, feathers, skeleton, starfish, shell, scales, fin, octopus, crab, claws'},
+      {id:5, name:'Unit 5 — Working together',    topic:'jobs and workplaces',             grammar:'none',
+       vocab:'laboratory, studio, scientist, fire station, garage, police station, firefighter, mechanic, bakery, police officer, baker, photographer, brave, patient, organised, creative, strong, friendly'},
+      {id:6, name:'Unit 6 — We love water!',      topic:'weather and water',               grammar:'zero_first_cond',
+       vocab:'lightning, rainbow, thunder, raindrops, tap, bucket, umbrella, wellies, mud, hole, puddle, watering can'},
+      {id:7, name:'Unit 7 — Stories from the past', topic:'ancient objects and history',   grammar:'none',
+       vocab:'basket, shield, bowl, needle, axe, ring, pot, coins, bracelet, spear, necklace, knife'},
+      {id:8, name:'Unit 8 — Our future',          topic:'technology and energy',           grammar:'will_going_to',
+       vocab:'solar power, wind power, skyscraper, internet, satellite, drone, wi-fi, electric car, electricity, smartphone, screen, app'},
+      {id:9, name:'Unit 9 — What a great year!',  topic:'achievements and experiences',    grammar:'perf_simple_cont',
+       vocab:'win a prize, be on TV, bake a cake, go to the theatre, score a goal, see a dolphin, do karate, go to a concert, make a video, write a song, play an instrument, meet a famous person'},
+    ]
+  },
   'CAM_MOVERS':{
     name:'📗 Cambridge A1 Movers',
     units:[
@@ -701,8 +763,28 @@ const state = {
   profile:null, level:'normal',
   progress:JSON.parse(localStorage.getItem('jtl_progress')||'{"rodrigo":0,"fernando":0}'),
   prestige:JSON.parse(localStorage.getItem('jtl_prestige')||'{"rodrigo":{"stars":0,"trophies":0,"bens":0},"fernando":{"stars":0,"trophies":0,"bens":0}}'),
+  streak:JSON.parse(localStorage.getItem('jtl_streak')||'{"rodrigo":{"count":0,"lastDate":""},"fernando":{"count":0,"lastDate":""}}'),
   quizScore:0, quizAnswered:0, currentUnit:null
 };
+
+// ══ STREAK ══
+function getTodayStr(){return new Date().toISOString().slice(0,10);}
+function updateStreak(profile){
+  const today=getTodayStr();
+  const s=state.streak[profile];
+  const yesterday=new Date();yesterday.setDate(yesterday.getDate()-1);
+  const yStr=yesterday.toISOString().slice(0,10);
+  if(s.lastDate===today)return; // already counted today
+  if(s.lastDate===yStr){s.count++;}       // consecutive day
+  else if(s.lastDate!==today){s.count=1;} // broke streak or first time
+  s.lastDate=today;
+  localStorage.setItem('jtl_streak',JSON.stringify(state.streak));
+  // Bonus km for streaks: 10km per day, +50km milestone every 7 days
+  const bonus=s.count%7===0?60:10;
+  addKm(bonus);
+  showToast(`🔥 Day ${s.count} streak! +${bonus} km bonus!`);
+}
+function getStreak(profile){return state.streak[profile]?.count||0;}
 
 // ══ API ══
 async function callClaude(prompt, maxTokens=1500) {
@@ -731,7 +813,9 @@ function parseJSON(text){
 function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0);}
 const PROFILE_BOOK={rodrigo:'CAM_MOVERS',fernando:'NCUB1'};
 function selectProfile(name){
-  state.profile=name;state.level='normal';showScreen('screen-dashboard');updateTopbar();
+  state.profile=name;state.level='normal';showScreen('screen-dashboard');
+  updateStreak(name);
+  updateTopbar();
   // Auto-load this profile's curriculum book + last used unit
   const bookSel=document.getElementById('curriculum-book-select');
   if(bookSel){
@@ -766,6 +850,64 @@ function updateTopbar(){
     const img=document.getElementById('thumb-img-'+k);if(img)img.src=AVATARS[p][k];
     const wrap=document.getElementById('thumb-'+k);if(wrap){wrap.classList.remove('active','inactive');wrap.classList.add(k===lv?'active':'inactive');}
   });
+  // Streak badge
+  const sc=getStreak(p);
+  const streakEl=document.getElementById('topbar-streak');
+  if(streakEl){
+    if(sc>=2){streakEl.style.display='';streakEl.textContent='🔥 '+sc+' days';}
+    else{streakEl.style.display='none';}
+  }
+  // Rodrigo-only modules
+  const btnMovers=document.getElementById('btn-movers');
+  if(btnMovers)btnMovers.style.display=p==='rodrigo'?'':'none';
+  const btnVocab=document.getElementById('btn-vocabmatch');
+  if(btnVocab)btnVocab.style.display=p==='rodrigo'?'':'none';
+  // Mini mock countdown (Rodrigo only)
+  updateMockCountdown(p);
+}
+
+const MINI_MOCKS=[
+  {date:'2026-07-21', label:'R&W Part 6', desc:'Reading & Writing — Part 6'},
+  {date:'2026-07-28', label:'R&W Part 5', desc:'Reading & Writing — Part 5'},
+  {date:'2026-08-04', label:'Listening Part 1', desc:'Listening — Part 1'},
+  {date:'2026-08-11', label:'Listening Part 2', desc:'Listening — Part 2'},
+  {date:'2026-08-18', label:'Full Mock Exam',   desc:'Cambridge A1 Movers — Full Exam'},
+];
+
+function updateMockCountdown(profile){
+  const el=document.getElementById('mini-mock-countdown');
+  if(!el)return;
+  if(profile!=='rodrigo'){el.style.display='none';return;}
+  const today=new Date();today.setHours(0,0,0,0);
+  // Find next upcoming mock (or current week's)
+  let next=null;
+  for(const m of MINI_MOCKS){
+    const d=new Date(m.date+'T00:00:00');
+    if(d>=today){next=m;break;}
+  }
+  if(!next){el.style.display='none';return;}
+  const target=new Date(next.date+'T00:00:00');
+  const diff=Math.ceil((target-today)/(1000*60*60*24));
+  el.style.display='flex';
+  const titleEl=document.getElementById('mock-cd-title');
+  const subEl=document.getElementById('mock-cd-sub');
+  const daysEl=document.getElementById('mock-cd-days');
+  const iconEl=document.getElementById('mock-cd-icon');
+  titleEl.textContent='MINI MOCK — '+next.label;
+  subEl.textContent=next.desc;
+  el.classList.remove('urgent','done');
+  if(diff===0){
+    el.classList.add('urgent');
+    daysEl.textContent='HOY';
+    iconEl.textContent='🚨';
+  } else if(diff<=2){
+    el.classList.add('urgent');
+    daysEl.textContent=diff+(diff===1?' día':' días');
+    iconEl.textContent='⚠️';
+  } else {
+    daysEl.textContent=diff+' días';
+    iconEl.textContent='📝';
+  }
 }
 
 // ══ TOPIC ══
@@ -910,7 +1052,8 @@ function openModule(mod){
   showScreen('screen-module');
   const handlers={learning:runLearning,reading:runReading,listening:runListening,
     writing:runWriting,playing:runPlaying,singing:runSinging,watching:runWatching,
-    spelling:runSpelling,resources:runResources,test:runTest,talking:runTalking};
+    spelling:runSpelling,movers:runMovers,vocabmatch:runVocabMatch,
+    pronunciation:runPronunciation,resources:runResources,test:runTest,talking:runTalking};
   (handlers[mod]||runTalking)();
 }
 
@@ -1466,6 +1609,552 @@ function renderWatching(d){
   });
   html+=`<div class="km-award"><div class="km-award-num">🍿</div><div class="km-award-label">Watch, listen, and pick up new phrases!</div></div>`;
   document.getElementById('module-content-area').innerHTML=html;
+}
+
+// ══ PRONUNCIATION ══
+function runPronunciation(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){
+    document.getElementById('module-content-area').innerHTML=`<div class="content-card" style="text-align:center;padding:40px">
+      <div style="font-size:48px;margin-bottom:12px">🎤</div>
+      <h2>Browser not supported</h2>
+      <p style="color:var(--muted)">Please use Google Chrome for the Pronunciation module.</p>
+    </div>`;
+    return;
+  }
+
+  const unitCtx=state.currentUnit||getUnitContext();
+  let words=[];
+  if(unitCtx&&unitCtx.vocab){
+    words=unitCtx.vocab.split(',').map(w=>w.trim()).filter(Boolean).sort(()=>Math.random()-0.5).slice(0,5);
+  } else {
+    // Fallback: common Movers words
+    words=['seagull','starfish','lightning','rainbow','satellite','bakery','laboratory','bracelet','telescope','volcano'].sort(()=>Math.random()-0.5).slice(0,5);
+  }
+
+  window._pronWords=words;
+  window._pronIdx=0;
+  window._pronScore=0;
+  window._pronAttempts=0;
+  window._pronRec=null;
+  window._pronListening=false;
+
+  if(!document.getElementById('pron-css')){
+    const s=document.createElement('style');s.id='pron-css';
+    s.textContent=`
+      .pron-card{background:var(--card);border:2px solid var(--border);border-radius:20px;padding:32px;text-align:center;max-width:500px;margin:0 auto;}
+      .pron-word{font-family:'Orbitron',monospace;font-size:36px;font-weight:900;color:var(--text);margin:16px 0;}
+      .pron-hint{font-size:13px;color:var(--muted);margin-bottom:24px;}
+      .pron-progress{font-family:'Orbitron',monospace;font-size:11px;color:var(--muted);letter-spacing:2px;margin-bottom:20px;}
+      .pron-mic-btn{width:80px;height:80px;border-radius:50%;border:3px solid var(--pink);background:rgba(236,72,153,.1);
+        font-size:32px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;}
+      .pron-mic-btn.recording{border-color:#f87171;background:rgba(239,68,68,.2);animation:pron-pulse 1s infinite;}
+      .pron-mic-btn.success{border-color:#4ade80;background:rgba(34,197,94,.2);}
+      .pron-mic-btn.fail{border-color:#f87171;background:rgba(239,68,68,.2);}
+      @keyframes pron-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08);}}
+      .pron-status{font-size:14px;color:var(--muted);min-height:24px;margin-bottom:8px;}
+      .pron-transcript{font-size:15px;font-style:italic;color:var(--cyan);min-height:22px;margin-bottom:16px;}
+      .pron-feedback{font-size:15px;font-weight:600;min-height:22px;margin-bottom:20px;}
+      .pron-hint-btn{background:transparent;border:1px solid var(--border);border-radius:8px;padding:6px 14px;
+        color:var(--muted);font-size:12px;cursor:pointer;margin-right:8px;}
+      .pron-hint-btn:hover{border-color:var(--pink);color:var(--pink);}
+    `;
+    document.head.appendChild(s);
+  }
+
+  renderPronWord();
+}
+
+function renderPronWord(){
+  const words=window._pronWords;
+  const idx=window._pronIdx;
+  if(idx>=words.length){
+    // Done
+    const km=window._pronScore*15;
+    addKm(km);
+    document.getElementById('module-content-area').innerHTML=`
+      <div class="pron-card">
+        <div style="font-size:48px;margin-bottom:12px">${km>=60?'🏆':km>=30?'⭐':'💪'}</div>
+        <h2 style="font-family:'Orbitron',monospace;font-size:18px">Pronunciation Done!</h2>
+        <p style="color:var(--gold2);font-family:'Orbitron',monospace;font-size:22px;margin:12px 0">+${km} km</p>
+        <p style="color:var(--muted)">${window._pronScore} / ${words.length} words correct</p>
+        <button class="submit-btn" style="margin-top:20px;width:100%" onclick="runPronunciation()">Try again 🔄</button>
+      </div>`;
+    showToast(`🗣️ Pronunciation: ${window._pronScore}/${words.length} — +${km} km!`);
+    return;
+  }
+
+  const word=words[idx];
+  window._pronAttempts=0;
+
+  document.getElementById('module-content-area').innerHTML=`
+    <div class="pron-card">
+      <div class="pron-progress">WORD ${idx+1} OF ${words.length} &nbsp;·&nbsp; ${window._pronScore} correct</div>
+      <div style="font-size:13px;color:var(--muted)">Listen, then repeat the word:</div>
+      <div class="pron-word" id="pron-word-display">${word}</div>
+      <div class="pron-hint">Press 🔊 to hear it, then hold the mic button (or SPACE) to say it</div>
+      <div class="pron-status" id="pron-status">Press 🔊 first to hear the word</div>
+      <div class="pron-transcript" id="pron-transcript"></div>
+      <div class="pron-feedback" id="pron-feedback"></div>
+      <button class="pron-mic-btn" id="pron-mic-btn"
+        onmousedown="pronStartRec()" onmouseup="pronStopRec()"
+        ontouchstart="pronStartRec()" ontouchend="pronStopRec()">🎤</button>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:16px">Hold to speak · Release to check</div>
+      <div>
+        <button class="pron-hint-btn" onclick="pronSpeak()">🔊 Hear word</button>
+        <button class="pron-hint-btn" onclick="pronSkip()">Skip →</button>
+      </div>
+    </div>`;
+
+  // Keyboard
+  document.addEventListener('keydown',pronKeyDown);
+  document.addEventListener('keyup',pronKeyUp);
+
+  // Auto-play the word
+  setTimeout(()=>pronSpeak(),400);
+  pronSetupRec();
+}
+
+function pronSpeak(){
+  const word=window._pronWords[window._pronIdx];
+  window.speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(word);
+  u.lang='en-US';u.rate=0.85;
+  const voices=window.speechSynthesis.getVoices();
+  const en=voices.find(v=>v.lang.startsWith('en')&&v.name.includes('Samantha'))||voices.find(v=>v.lang.startsWith('en'));
+  if(en)u.voice=en;
+  window.speechSynthesis.speak(u);
+  document.getElementById('pron-status').textContent='Now hold the mic (or SPACE) and repeat!';
+}
+
+function pronSetupRec(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  const rec=new SR();
+  rec.lang='en-US';rec.continuous=false;rec.interimResults=true;rec.maxAlternatives=3;
+  rec.onresult=e=>{
+    let interim='',final='';
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      if(e.results[i].isFinal){
+        // Check all alternatives
+        for(let j=0;j<e.results[i].length;j++)final+=e.results[i][j].transcript+' ';
+      } else interim+=e.results[i][0].transcript;
+    }
+    const t=document.getElementById('pron-transcript');
+    if(t)t.textContent='"'+(interim||final.trim())+'"';
+    if(final)window._pronLastFinal=final.trim();
+  };
+  rec.onerror=e=>{if(e.error!=='aborted'){document.getElementById('pron-status').textContent='Mic error: '+e.error+'. Try again.';}};
+  rec.onend=()=>{
+    if(window._pronListening){window._pronListening=false;pronCheckResult();}
+    const btn=document.getElementById('pron-mic-btn');
+    if(btn)btn.classList.remove('recording');
+  };
+  window._pronRec=rec;
+  window._pronLastFinal='';
+}
+
+function pronKeyDown(e){if(e.code==='Space'&&!e.repeat){e.preventDefault();pronStartRec();}}
+function pronKeyUp(e){if(e.code==='Space'){e.preventDefault();pronStopRec();}}
+
+function pronStartRec(){
+  if(window._pronListening)return;
+  window._pronListening=true;
+  window._pronLastFinal='';
+  const btn=document.getElementById('pron-mic-btn');
+  if(btn){btn.classList.remove('success','fail');btn.classList.add('recording');}
+  const s=document.getElementById('pron-status');if(s)s.textContent='🎤 Listening... speak now!';
+  try{window._pronRec.start();}catch(e){}
+}
+
+function pronStopRec(){
+  if(!window._pronListening)return;
+  try{window._pronRec.stop();}catch(e){}
+}
+
+function pronCheckResult(){
+  document.removeEventListener('keydown',pronKeyDown);
+  document.removeEventListener('keyup',pronKeyUp);
+
+  const target=window._pronWords[window._pronIdx].toLowerCase().trim();
+  const said=(window._pronLastFinal||'').toLowerCase();
+  // Check if any word in what they said matches the target (handles extra words, partial matches)
+  const saidWords=said.split(/\s+/);
+  const match=saidWords.some(w=>w===target)||said.includes(target);
+
+  window._pronAttempts++;
+  const btn=document.getElementById('pron-mic-btn');
+  const fb=document.getElementById('pron-feedback');
+  const st=document.getElementById('pron-status');
+
+  if(match){
+    if(btn)btn.classList.add('success');
+    if(fb)fb.innerHTML=`<span style="color:#4ade80">✅ Great pronunciation! +15 km</span>`;
+    if(st)st.textContent='';
+    window._pronScore++;
+    window._pronIdx++;
+    setTimeout(()=>{
+      document.removeEventListener('keydown',pronKeyDown);
+      document.removeEventListener('keyup',pronKeyUp);
+      renderPronWord();
+    },1200);
+  } else if(window._pronAttempts>=3){
+    if(btn)btn.classList.add('fail');
+    if(fb)fb.innerHTML=`<span style="color:#f87171">The word is: <strong>${window._pronWords[window._pronIdx]}</strong></span>`;
+    if(st)st.textContent='Moving on...';
+    window._pronIdx++;
+    setTimeout(()=>{
+      document.removeEventListener('keydown',pronKeyDown);
+      document.removeEventListener('keyup',pronKeyUp);
+      renderPronWord();
+    },2000);
+  } else {
+    if(btn)btn.classList.add('fail');
+    if(fb)fb.innerHTML=`<span style="color:#f87171">I heard: "${said||'nothing'}" — try again! (${3-window._pronAttempts} left)</span>`;
+    if(st)st.textContent='Hold the mic and try again';
+    setTimeout(()=>{
+      if(btn){btn.classList.remove('fail');}
+      document.addEventListener('keydown',pronKeyDown);
+      document.addEventListener('keyup',pronKeyUp);
+      pronSetupRec(); // fresh recognition instance
+    },1000);
+  }
+}
+
+function pronSkip(){
+  document.removeEventListener('keydown',pronKeyDown);
+  document.removeEventListener('keyup',pronKeyUp);
+  try{if(window._pronRec)window._pronRec.abort();}catch(e){}
+  window._pronIdx++;
+  renderPronWord();
+}
+
+// ══ VOCAB MATCH ══
+async function runVocabMatch(){
+  showLoading('Preparing vocab match...');
+  const unitCtx=state.currentUnit||getUnitContext();
+  let prompt='';
+
+  if(unitCtx&&unitCtx.vocab){
+    const allWords=unitCtx.vocab.split(',').map(w=>w.trim()).filter(Boolean);
+    const chosen=allWords.sort(()=>Math.random()-0.5).slice(0,5);
+    prompt=`Translate these English words to Spanish for a 9-year-old Chilean child.
+Words: ${chosen.join(', ')}
+Return ONLY this JSON (no markdown):
+{"pairs":[{"en":"word","es":"traducción"},...]}`;
+    try{
+      const raw=await callClaude(prompt,400);
+      const d=parseJSON(raw);
+      renderVocabMatch(d.pairs,unitCtx.unitName);
+    }catch(e){showError('Could not load vocabulary. '+e.message);}
+  } else {
+    const topic=getTopic();
+    prompt=`Generate 5 English-Spanish vocabulary pairs for a 9-year-old studying "${topic}".
+Use simple, concrete A1 words a Chilean child would know in Spanish.
+Return ONLY this JSON (no markdown):
+{"pairs":[{"en":"word","es":"traducción"},{"en":"word","es":"traducción"},{"en":"word","es":"traducción"},{"en":"word","es":"traducción"},{"en":"word","es":"traducción"}]}`;
+    try{
+      const raw=await callClaude(prompt,400);
+      const d=parseJSON(raw);
+      renderVocabMatch(d.pairs,topic);
+    }catch(e){showError('Could not load vocabulary. '+e.message);}
+  }
+}
+
+function renderVocabMatch(pairs,title){
+  window._vmPairs=pairs;
+  window._vmSelected={col:null,idx:null};
+  window._vmMatched=new Set();
+  window._vmScore=0;
+
+  const shuffledEs=[...pairs].sort(()=>Math.random()-0.5);
+
+  if(!document.getElementById('vm-css')){
+    const s=document.createElement('style');s.id='vm-css';
+    s.textContent=`
+      .vm-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:560px;margin:0 auto;}
+      .vm-col{display:flex;flex-direction:column;gap:8px;}
+      .vm-card{background:var(--card);border:2px solid var(--border);border-radius:12px;
+        padding:14px 18px;font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:600;
+        color:var(--text);cursor:pointer;transition:all .2s;text-align:center;min-height:50px;
+        display:flex;align-items:center;justify-content:center;}
+      .vm-card:hover{border-color:var(--cyan);color:var(--cyan);}
+      .vm-card.selected{border-color:var(--cyan);background:rgba(6,182,212,.15);color:var(--cyan);transform:scale(1.03);}
+      .vm-card.matched{border-color:#4ade80;background:rgba(34,197,94,.15);color:#4ade80;cursor:default;opacity:.7;}
+      .vm-card.wrong{border-color:#f87171;background:rgba(239,68,68,.15);animation:shake .3s ease;}
+      @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+    `;
+    document.head.appendChild(s);
+  }
+
+  const area=document.getElementById('module-content-area');
+  area.innerHTML=`
+    <div style="max-width:620px;margin:0 auto">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <span style="font-family:'Orbitron',monospace;font-size:11px;color:var(--cyan);letter-spacing:2px">VOCAB MATCH — ${title||''}
+        </span>
+        <span id="vm-score-label" style="font-family:'Orbitron',monospace;font-size:13px;color:var(--gold2)">0 / 5</span>
+      </div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Click an English word, then its Spanish translation to match them.</p>
+      <div class="vm-grid">
+        <div class="vm-col" id="vm-col-en">
+          ${pairs.map((p,i)=>`<div class="vm-card" data-col="en" data-idx="${i}" onclick="vmSelect('en',${i})">${p.en}</div>`).join('')}
+        </div>
+        <div class="vm-col" id="vm-col-es">
+          ${shuffledEs.map((p,i)=>`<div class="vm-card" data-col="es" data-idx="${i}" data-en="${p.en}" onclick="vmSelect('es',${i})">${p.es}</div>`).join('')}
+        </div>
+      </div>
+      <div id="vm-result" style="margin-top:20px"></div>
+    </div>`;
+  // Store shuffled order for checking
+  window._vmShuffledEs=shuffledEs;
+}
+
+function vmSelect(col,idx){
+  const sel=window._vmSelected;
+  const el=document.querySelector(`.vm-card[data-col="${col}"][data-idx="${idx}"]`);
+  if(!el||el.classList.contains('matched'))return;
+
+  if(sel.col===col){
+    // Same column — switch selection
+    document.querySelectorAll('.vm-card.selected').forEach(e=>e.classList.remove('selected'));
+    el.classList.add('selected');
+    window._vmSelected={col,idx};
+    return;
+  }
+
+  if(sel.col===null){
+    el.classList.add('selected');
+    window._vmSelected={col,idx};
+    return;
+  }
+
+  // We have one from each column — check match
+  const enIdx=col==='en'?idx:sel.idx;
+  const esIdx=col==='es'?idx:sel.idx;
+  const enEl=document.querySelector(`.vm-card[data-col="en"][data-idx="${enIdx}"]`);
+  const esEl=document.querySelector(`.vm-card[data-col="es"][data-idx="${esIdx}"]`);
+  const enWord=window._vmPairs[enIdx].en;
+  const esWord=window._vmShuffledEs[esIdx].en; // the English key behind the Spanish card
+
+  document.querySelectorAll('.vm-card.selected').forEach(e=>e.classList.remove('selected'));
+  window._vmSelected={col:null,idx:null};
+
+  if(enWord===esWord){
+    // Correct!
+    enEl.classList.add('matched');esEl.classList.add('matched');
+    window._vmMatched.add(enIdx);
+    window._vmScore++;
+    addKm(20);
+    showToast(`✅ +20 km — "${enWord}" = "${esEl.textContent}"`);
+    document.getElementById('vm-score-label').textContent=window._vmScore+' / 5';
+    if(window._vmScore===5){
+      setTimeout(()=>{
+        document.getElementById('vm-result').innerHTML=`
+          <div class="result-box" style="border-color:#4ade80;background:rgba(34,197,94,.1)">
+            🏆 Perfect match! 5/5 — +100 km total!
+          </div>
+          <button class="submit-btn" style="margin-top:12px;width:100%" onclick="runVocabMatch()">New round 🔄</button>`;
+      },500);
+    }
+  } else {
+    // Wrong
+    enEl.classList.add('wrong');esEl.classList.add('wrong');
+    setTimeout(()=>{enEl.classList.remove('wrong');esEl.classList.remove('wrong');},500);
+  }
+}
+
+// ══ MOVERS EXAM ══
+function runMovers(){
+  const area=document.getElementById('module-content-area');
+  area.innerHTML=`
+    <div style="max-width:680px;margin:0 auto">
+      <h2 style="font-family:'Orbitron',monospace;font-size:16px;color:var(--text);margin-bottom:8px">🎓 Cambridge A1 Movers</h2>
+      <p style="color:var(--muted);font-size:13px;margin-bottom:20px">Choose a part to practise:</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <button class="module-btn" style="--mc:#a78bfa;text-align:left;padding:18px" onclick="runMoversRW6()">
+          <div style="font-size:24px;margin-bottom:6px">📝</div>
+          <div style="font-family:'Rajdhani',sans-serif;font-weight:700;font-size:15px;color:#a78bfa">R&amp;W Part 6</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:4px">Complete the story — word box</div>
+          <div style="font-size:11px;color:var(--gold2);margin-top:6px">⚠️ MINI MOCK THIS WEEK</div>
+        </button>
+        <button class="module-btn" style="--mc:var(--muted);text-align:left;padding:18px;opacity:.45;cursor:not-allowed">
+          <div style="font-size:24px;margin-bottom:6px">🔒</div>
+          <div style="font-family:'Rajdhani',sans-serif;font-weight:700;font-size:15px;color:var(--muted)">R&amp;W Part 5</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:4px">Coming soon</div>
+        </button>
+        <button class="module-btn" style="--mc:var(--muted);text-align:left;padding:18px;opacity:.45;cursor:not-allowed">
+          <div style="font-size:24px;margin-bottom:6px">🔒</div>
+          <div style="font-family:'Rajdhani',sans-serif;font-weight:700;font-size:15px;color:var(--muted)">Listening Part 1</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:4px">Coming soon</div>
+        </button>
+        <button class="module-btn" style="--mc:var(--muted);text-align:left;padding:18px;opacity:.45;cursor:not-allowed">
+          <div style="font-size:24px;margin-bottom:6px">🔒</div>
+          <div style="font-family:'Rajdhani',sans-serif;font-weight:700;font-size:15px;color:var(--muted)">Full Mock Exam</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:4px">Coming soon</div>
+        </button>
+      </div>
+    </div>`;
+}
+
+async function runMoversRW6(){
+  showLoading('Preparing your Part 6 story...');
+  const unitCtx=state.currentUnit||getUnitContext();
+  let topicHint='';
+  if(unitCtx){
+    topicHint=`The story should relate to the topic "${unitCtx.unitName}" (${unitCtx.topic}).
+Prefer vocabulary from this list where natural: ${unitCtx.vocab}.`;
+  } else {
+    topicHint='Use everyday A1 topics (food, animals, family, school, weather, body, clothes).';
+  }
+
+  const prompt=`You are creating a Cambridge A1 Movers Reading & Writing Part 6 exercise for a 9-year-old Spanish-speaking child.
+
+TASK FORMAT: A short story (8-10 sentences) with exactly 8 numbered gaps [(1) through (8)]. Below the story is a word box with 10 words: the 8 correct answers plus 2 distractors. Students choose words from the box to fill each gap.
+
+RULES:
+- Each gap takes exactly ONE word.
+- Every word in the box is used at most once; 2 words are not used.
+- Vocabulary must be A1 Movers level (simple, concrete, familiar).
+- Gaps test common words (verbs, nouns, adjectives, prepositions), NOT tricky grammar.
+- Story must be fun and engaging for a child.
+- ${topicHint}
+
+Return ONLY this JSON (no markdown, no explanation):
+{
+  "title": "Story title",
+  "story": "Story text where each gap appears as [GAP1], [GAP2], ... [GAP8]",
+  "wordBox": ["word1","word2","word3","word4","word5","word6","word7","word8","word9","word10"],
+  "answers": {"GAP1":"word","GAP2":"word","GAP3":"word","GAP4":"word","GAP5":"word","GAP6":"word","GAP7":"word","GAP8":"word"}
+}`;
+
+  try {
+    const raw=await callClaude(prompt,1200);
+    const d=parseJSON(raw);
+    renderMoversRW6(d);
+  } catch(e){showError('Could not generate exercise. '+e.message);}
+}
+
+function renderMoversRW6(d){
+  // Shuffle word box
+  const box=[...d.wordBox].sort(()=>Math.random()-0.5);
+  window._moversAnswers=d.answers;
+  window._moversUserAnswers={};
+  window._moversSelected=null; // currently "held" word
+
+  // Build story HTML — replace [GAP1]…[GAP8] with clickable blank buttons
+  let storyHtml=d.story;
+  for(let i=1;i<=8;i++){
+    storyHtml=storyHtml.replace(`[GAP${i}]`,
+      `<button class="movers-blank" id="mblank-GAP${i}" data-gap="GAP${i}" onclick="moversPlaceWord('GAP${i}')">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</button>`);
+  }
+
+  const area=document.getElementById('module-content-area');
+  area.innerHTML=`
+    <div style="max-width:660px;margin:0 auto">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+        <span style="font-family:'Orbitron',monospace;font-size:11px;color:#a78bfa;letter-spacing:2px">R&W PART 6</span>
+        <span style="font-size:11px;color:var(--muted)">— Complete the story</span>
+      </div>
+
+      <div class="writing-prompt" style="font-size:16px;line-height:2.2;letter-spacing:.2px">
+        <strong style="display:block;margin-bottom:10px;font-family:'Rajdhani',sans-serif;font-size:18px">${d.title}</strong>
+        ${storyHtml}
+      </div>
+
+      <div style="background:var(--card);border:2px dashed rgba(167,139,250,.4);border-radius:14px;padding:16px;margin-bottom:20px">
+        <div style="font-family:'Orbitron',monospace;font-size:10px;color:#a78bfa;letter-spacing:2px;margin-bottom:10px">WORD BOX — click a word, then click a blank</div>
+        <div id="movers-wordbox" style="display:flex;flex-wrap:wrap;gap:8px">
+          ${box.map(w=>`<button class="movers-word" id="mword-${w.replace(/\s/g,'_')}" data-word="${w}" onclick="moversSelectWord(this)">${w}</button>`).join('')}
+        </div>
+      </div>
+
+      <button class="submit-btn" onclick="checkMoversRW6()" style="width:100%">Check my answers ✓</button>
+      <div id="movers-feedback" style="margin-top:16px"></div>
+    </div>`;
+
+  // Inject CSS if not present
+  if(!document.getElementById('movers-css')){
+    const s=document.createElement('style');s.id='movers-css';
+    s.textContent=`
+      .movers-blank{background:rgba(167,139,250,.1);border:2px solid rgba(167,139,250,.5);border-radius:8px;
+        min-width:80px;padding:4px 10px;font-size:15px;font-family:'Rajdhani',sans-serif;font-weight:700;
+        color:var(--text);cursor:pointer;transition:all .2s;display:inline-block;vertical-align:middle;margin:0 3px;}
+      .movers-blank.filled{background:rgba(167,139,250,.25);border-color:#a78bfa;color:#a78bfa;}
+      .movers-blank.selected-target{border-color:var(--gold2);background:rgba(251,191,36,.15);}
+      .movers-blank.correct{background:rgba(34,197,94,.2);border-color:#4ade80;color:#4ade80;}
+      .movers-blank.wrong{background:rgba(239,68,68,.2);border-color:#f87171;color:#f87171;}
+      .movers-word{background:var(--card2);border:1px solid var(--border);border-radius:8px;
+        padding:7px 14px;font-size:14px;font-family:'Rajdhani',sans-serif;font-weight:600;
+        color:var(--text);cursor:pointer;transition:all .2s;}
+      .movers-word:hover{border-color:#a78bfa;color:#a78bfa;}
+      .movers-word.selected{background:rgba(167,139,250,.25);border-color:#a78bfa;color:#a78bfa;transform:scale(1.05);}
+      .movers-word.used{opacity:.3;pointer-events:none;}
+    `;
+    document.head.appendChild(s);
+  }
+}
+
+function moversSelectWord(btn){
+  // Deselect previous
+  document.querySelectorAll('.movers-word.selected').forEach(b=>b.classList.remove('selected'));
+  if(window._moversSelected===btn.dataset.word){
+    window._moversSelected=null;return;
+  }
+  btn.classList.add('selected');
+  window._moversSelected=btn.dataset.word;
+}
+
+function moversPlaceWord(gap){
+  const word=window._moversSelected;
+  if(!word)return;
+  const blank=document.getElementById('mblank-'+gap);
+  if(!blank)return;
+
+  // If blank already had a word, return it to box
+  const prev=window._moversUserAnswers[gap];
+  if(prev){
+    const prevBtn=document.getElementById('mword-'+prev.replace(/\s/g,'_'));
+    if(prevBtn){prevBtn.classList.remove('used');}
+  }
+
+  // Place word
+  window._moversUserAnswers[gap]=word;
+  blank.textContent=word;
+  blank.classList.add('filled');
+
+  // Mark word as used
+  const wordBtn=document.getElementById('mword-'+word.replace(/\s/g,'_'));
+  if(wordBtn){wordBtn.classList.remove('selected');wordBtn.classList.add('used');}
+  window._moversSelected=null;
+}
+
+function checkMoversRW6(){
+  const answers=window._moversAnswers;
+  const userAnswers=window._moversUserAnswers;
+  let correct=0;
+  const total=Object.keys(answers).length;
+
+  for(const gap of Object.keys(answers)){
+    const blank=document.getElementById('mblank-'+gap);
+    if(!blank)continue;
+    const userWord=(userAnswers[gap]||'').toLowerCase().trim();
+    const correctWord=(answers[gap]||'').toLowerCase().trim();
+    blank.classList.remove('correct','wrong');
+    if(userWord===correctWord){correct++;blank.classList.add('correct');}
+    else{blank.classList.add('wrong');blank.title='✓ '+answers[gap];}
+  }
+
+  const pct=Math.round((correct/total)*100);
+  const km=correct*6; // 6 km per correct answer, max 48
+  addKm(km);
+
+  const fb=document.getElementById('movers-feedback');
+  let msg='';
+  if(correct===total){msg=`<div class="result-box" style="border-color:#4ade80;background:rgba(34,197,94,.1)">🏆 Perfect score! ${correct}/${total} correct — +${km} km!</div>`;}
+  else if(pct>=70){msg=`<div class="result-box" style="border-color:var(--gold2);background:rgba(251,191,36,.1)">⭐ Well done! ${correct}/${total} correct — +${km} km! Hover wrong answers to see the correct word.</div>`;}
+  else{msg=`<div class="result-box" style="border-color:var(--red);background:rgba(239,68,68,.1)">💪 Keep practising! ${correct}/${total} correct — +${km} km. Hover wrong answers to see the correct word.</div>`;}
+  fb.innerHTML=msg+`<button class="submit-btn" style="margin-top:12px;width:100%" onclick="runMoversRW6()">New story 🔄</button>`;
+  showToast(`📝 Movers Part 6: ${correct}/${total} — +${km} km!`);
 }
 
 // ══ RESOURCES ══
