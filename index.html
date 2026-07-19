@@ -819,10 +819,11 @@ function updateStreak(profile){
   s.lastDate=today;
   localStorage.setItem('jtl_streak',JSON.stringify(state.streak));
   syncScoresToServer(profile);
-  // Bonus km for streaks: 10km per day, +50km milestone every 7 days
+  // Daily streak bonus: 10 km/day, +50 km every 7 days
   const bonus=s.count%7===0?60:10;
-  addKm(bonus);
-  showToast(`🔥 Day ${s.count} streak! +${bonus} km bonus!`);
+  addKm(bonus,true); // skipStreakBonus=true to avoid double-counting
+  const streakMsg=s.count>=5?`🔥 Day ${s.count}! Streak bonus active (+10 km/activity)!`:`🔥 Day ${s.count} streak! +${bonus} km!`;
+  showToast(streakMsg);
 }
 function getStreak(profile){return state.streak[profile]?.count||0;}
 
@@ -1043,7 +1044,7 @@ async function showProgressDashboard(){
 // ══ TTS VOICE ══
 // Priority: high-quality neural voices > en-GB > en-US > any English
 const VOICE_PRIORITY=[
-  'Samantha','Karen','Daniel','Moira',           // macOS premium
+  'Samantha','Karen','Daniel','Moira','Alex',     // macOS/iOS premium
   'Google UK English Female','Google UK English Male',
   'Google US English',
   'Microsoft Libby','Microsoft Sonia','Microsoft Ryan', // Windows neural
@@ -1051,26 +1052,36 @@ const VOICE_PRIORITY=[
 ];
 let _cachedVoice=null;
 function getBestVoice(){
-  if(_cachedVoice)return _cachedVoice;
   const voices=window.speechSynthesis.getVoices();
   if(!voices.length)return null;
+  if(_cachedVoice&&voices.includes(_cachedVoice))return _cachedVoice;
   for(const name of VOICE_PRIORITY){
     const v=voices.find(v=>v.name.includes(name));
     if(v){_cachedVoice=v;return v;}
   }
-  // Fallback: any en-GB then any en
-  const v=voices.find(v=>v.lang==='en-GB')||voices.find(v=>v.lang.startsWith('en-US'))||voices.find(v=>v.lang.startsWith('en'));
-  _cachedVoice=v||null;return _cachedVoice;
+  // Fallback: prefer en-GB, then en-US, then any English
+  _cachedVoice=voices.find(v=>v.lang==='en-GB')
+    ||voices.find(v=>v.lang==='en-US')
+    ||voices.find(v=>v.lang.startsWith('en'))
+    ||null;
+  return _cachedVoice;
 }
-// Reset cache when voices change (Chrome loads them async)
-window.speechSynthesis.onvoiceschanged=()=>{_cachedVoice=null;};
+// Reset cache and pre-warm when voices load (Chrome/iOS loads async)
+if(window.speechSynthesis.onvoiceschanged!==undefined){
+  window.speechSynthesis.onvoiceschanged=()=>{_cachedVoice=null;getBestVoice();};
+}
 
 function speak(text,rate=0.9,lang='en-GB'){
   window.speechSynthesis.cancel();
   const u=new SpeechSynthesisUtterance(text);
   u.lang=lang;u.rate=rate;
-  const v=getBestVoice();if(v)u.voice=v;
-  window.speechSynthesis.speak(u);
+  const doSpeak=()=>{const v=getBestVoice();if(v)u.voice=v;window.speechSynthesis.speak(u);};
+  if(window.speechSynthesis.getVoices().length>0){doSpeak();}
+  else{
+    const h=()=>{window.speechSynthesis.removeEventListener('voiceschanged',h);doSpeak();};
+    window.speechSynthesis.addEventListener('voiceschanged',h);
+    setTimeout(doSpeak,600); // safety fallback
+  }
   return u;
 }
 
@@ -1246,9 +1257,15 @@ function getAge(){return state.profile==='rodrigo'?9:12;}
 function getLevelDesc(){return {normal:'beginner A1-A2, keep it very simple and encouraging',pro:'intermediate B1, moderately challenging',goat:'advanced B2-C1, challenging like a native speaker'}[state.level];}
 
 // ══ KM + PRESTIGE ══
-function addKm(amount){
-  const p=state.profile,prev=state.progress[p];
-  const newKm=prev+amount;
+function addKm(amount,_skipStreakBonus=false){
+  if(!amount||amount<=0){updateTopbar();return;}
+  const p=state.profile;
+  // Streak bonus: 5+ consecutive days = +10 km extra per activity
+  const streakCount=state.streak[p]?.count||0;
+  const streakBonus=(!_skipStreakBonus&&streakCount>=5)?10:0;
+  if(streakBonus>0)showToast(`🔥 Streak ×${streakCount} days: +${streakBonus} bonus km!`,1400);
+  const prev=state.progress[p];
+  const newKm=prev+(amount+streakBonus);
   if(newKm>=TOTAL_KM){
     state.progress[p]=0;
     const pr=state.prestige[p];
@@ -2462,6 +2479,27 @@ function checkMoversRW6(){
 }
 
 // ══ PET TRAINING ══
+// ── PET global state ─────────────────────────────────────────────────────────
+let _petCurrentData=null;    // data from last AI-generated exercise
+let _petCurrentSection=null; // PET_SECTIONS entry currently shown
+let _petFullExamActive=false; // true when timed exam is running
+let _petTimerRemaining=0;
+let _petTimerMinutes=0;
+let _petSessionScore=0;
+let _petListeningScripts=[]; // store scripts to avoid JSON-in-onclick
+
+function petTimerTick(){
+  if(_petTimerRemaining>0)_petTimerRemaining--;
+  const el=document.getElementById('pet-timer');
+  if(el){
+    const r=_petTimerRemaining,m=Math.floor(r/60),s=r%60;
+    el.textContent=r<=0?'TIME UP':`${m}:${s.toString().padStart(2,'0')}`;
+    el.style.color=r<300?'#c0392b':'#1e3a5f';
+    if(r<=0){clearInterval(window._petTimerInterval);window._petTimerInterval=null;}
+  }
+}
+function petPlayRecording(i){const sc=_petListeningScripts[i];if(sc)speak(sc,0.82);}
+
 const PET_SECTIONS = [
   {id:'rp1', part:'Reading', num:1, title:'Multiple choice (short texts)',  desc:'Read 5 short texts. Choose A, B or C for each question.',       km:100, time:30},
   {id:'rp2', part:'Reading', num:2, title:'Matching',                       desc:'Match 5 people to 8 short texts.',                                km:100, time:20},
@@ -2576,35 +2614,88 @@ Return a JSON object with "title" and all content needed to practise this part.`
 }
 
 function renderPETSection(s,d){
+  // Store globally to avoid JSON-in-onclick bugs
+  _petCurrentData=d;
+  _petCurrentSection=s;
+  _petListeningScripts=[];
+
   const area=document.getElementById('module-content-area');
   const partColors={Reading:'var(--blue)',Writing:'var(--gold)',Listening:'var(--purple)',Speaking:'var(--green)'};
   const col=partColors[s.part]||'var(--text)';
+  const backFn=_petFullExamActive?'runPETFull()':'runPET()';
+
+  // Timer bar (only during full exam)
+  let timerBar='';
+  if(_petFullExamActive){
+    const r=_petTimerRemaining,m=Math.floor(r/60),sec=r%60;
+    timerBar=`<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;
+      background:var(--card);border:1px solid var(--border);border-radius:12px;margin-bottom:14px">
+      <span style="font-family:'Orbitron',monospace;font-size:10px;color:var(--muted);letter-spacing:2px">📝 FULL EXAM · ${_petTimerMinutes} min</span>
+      <div style="font-family:'Orbitron',monospace;font-size:24px;font-weight:900;
+        background:#fff;color:#1e3a5f;border-radius:8px;padding:4px 14px;display:inline-block" id="pet-timer">
+        ${r<=0?'TIME UP':`${m}:${sec.toString().padStart(2,'0')}`}
+      </div>
+      <button class="pron-hint-btn" style="color:#f87171" onclick="clearInterval(window._petTimerInterval);window._petTimerInterval=null;_petFullExamActive=false;runPET()">✕ End</button>
+    </div>`;
+  }
 
   let html=`<div style="max-width:700px;margin:0 auto">
+    ${timerBar}
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap">
-      <button class="pron-hint-btn" onclick="runPET()">← Back</button>
+      <button class="pron-hint-btn" onclick="${backFn}">← Back</button>
       <span style="font-family:'Orbitron',monospace;font-size:11px;color:${col};letter-spacing:2px">${s.part.toUpperCase()} — PART ${s.num}</span>
       <span style="font-size:12px;color:var(--muted)">${s.title}</span>
     </div>`;
 
-  // Render based on section type
-  if(s.id==='rp1'&&d.items){
+  // ── Reading Part 1 & 4: Multiple Choice ──
+  if((s.id==='rp1'||s.id==='rp4')&&d.items){
+    const prefix=s.id==='rp1'?'rp1':'rp4';
+    if(d.passage)html+=`<div class="writing-prompt" style="font-size:15px;line-height:1.8;margin-bottom:16px">${d.passage}</div>`;
     html+=d.items.map((it,i)=>`
       <div class="writing-prompt" style="margin-bottom:12px">
         <div style="font-family:'Orbitron',monospace;font-size:10px;color:${col};letter-spacing:2px;margin-bottom:8px">TEXT ${i+1}</div>
-        <div style="font-size:15px;font-weight:600;margin-bottom:10px;padding:10px;background:rgba(255,255,255,.05);border-radius:8px">${it.text}</div>
+        ${it.text?`<div style="font-size:15px;font-weight:600;margin-bottom:10px;padding:10px;background:rgba(255,255,255,.05);border-radius:8px">${it.text}</div>`:''}
         <div style="font-size:14px;margin-bottom:8px">${it.question}</div>
         <div style="display:flex;flex-direction:column;gap:6px">
           ${it.options.map((opt,j)=>{
             const letter=String.fromCharCode(65+j);
             return `<label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:6px 10px;border-radius:8px;border:1px solid var(--border)">
-              <input type="radio" name="rp1_q${i}" value="${letter}" style="accent-color:${col}">
+              <input type="radio" name="${prefix}_q${i}" value="${letter}" style="accent-color:${col}">
               <span>${opt}</span></label>`;
           }).join('')}
         </div>
-        <div id="rp1_fb${i}" style="font-size:13px;margin-top:6px;min-height:20px"></div>
+        <div id="${prefix}_fb${i}" style="font-size:13px;margin-top:6px;min-height:20px"></div>
       </div>`).join('');
-    html+=`<button class="submit-btn" style="width:100%;margin-top:8px" onclick="checkPETRp1(${JSON.stringify(d.items).replace(/</g,'&lt;')})">Check answers ✓</button>`;
+    html+=`<button class="submit-btn" style="width:100%;margin-top:8px" onclick="checkPETMC('${prefix}')">Check answers ✓</button>`;
+
+  // ── Reading Part 2: Matching ──
+  } else if(s.id==='rp2'&&d.people&&d.texts){
+    html+=`<p style="font-size:13px;color:var(--muted);margin-bottom:12px">Match each person to the best text (A–H). Three texts are not used.</p>`;
+    html+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+      <div>
+        <div style="font-family:'Orbitron',monospace;font-size:10px;color:${col};letter-spacing:2px;margin-bottom:8px">PEOPLE</div>
+        ${d.people.map((p,i)=>`
+          <div class="writing-prompt" style="margin-bottom:8px">
+            <strong>${i+1}. ${p.name}</strong><br>
+            <span style="font-size:13px;color:var(--muted)">${p.need}</span><br>
+            <select id="rp2_q${i}" style="margin-top:6px;padding:4px 8px;background:var(--card2);color:var(--text);border:1px solid var(--border);border-radius:6px">
+              <option value="">— choose —</option>
+              ${(d.texts||[]).map(t=>`<option value="${t.label}">${t.label}</option>`).join('')}
+            </select>
+            <div id="rp2_fb${i}" style="font-size:12px;margin-top:4px;min-height:16px"></div>
+          </div>`).join('')}
+      </div>
+      <div>
+        <div style="font-family:'Orbitron',monospace;font-size:10px;color:${col};letter-spacing:2px;margin-bottom:8px">TEXTS</div>
+        ${(d.texts||[]).map(t=>`
+          <div style="padding:8px 10px;background:var(--card);border-radius:8px;border:1px solid var(--border);margin-bottom:6px">
+            <strong style="color:${col}">${t.label}.</strong> <span style="font-size:13px">${t.text}</span>
+          </div>`).join('')}
+      </div>
+    </div>
+    <button class="submit-btn" style="width:100%;margin-top:8px" onclick="checkPETRp2()">Check answers ✓</button>`;
+
+  // ── Reading Part 3: True/False ──
   } else if(s.id==='rp3'&&d.items){
     html+=`<div class="writing-prompt" style="font-size:15px;line-height:1.8;margin-bottom:16px">${d.passage}</div>`;
     html+=`<div style="display:flex;flex-direction:column;gap:8px">`;
@@ -2612,41 +2703,80 @@ function renderPETSection(s,d){
       <div style="display:flex;align-items:flex-start;gap:10px;padding:10px;background:var(--card);border-radius:10px;border:1px solid var(--border)">
         <span style="font-family:'Orbitron',monospace;font-size:11px;color:${col};min-width:20px">${i+1}</span>
         <span style="flex:1;font-size:14px">${it.statement}</span>
-        <div style="display:flex;gap:6px">
+        <div style="display:flex;gap:6px;white-space:nowrap">
           <label style="cursor:pointer"><input type="radio" name="rp3_q${i}" value="True" style="accent-color:${col}"> True</label>
           <label style="cursor:pointer"><input type="radio" name="rp3_q${i}" value="False" style="accent-color:${col}"> False</label>
         </div>
+        <div id="rp3_fb${i}" style="font-size:12px;min-width:20px"></div>
       </div>`).join('');
-    html+=`</div><button class="submit-btn" style="width:100%;margin-top:12px" onclick="checkPETTF(${JSON.stringify(d.items).replace(/</g,'&lt;')})">Check ✓</button>`;
+    html+=`</div><button class="submit-btn" style="width:100%;margin-top:12px" onclick="checkPETTF()">Check ✓</button>`;
+
+  // ── Reading Part 5: Multiple Choice Cloze ──
+  } else if(s.id==='rp5'&&(d.items||d.gaps)){
+    const gaps=d.items||d.gaps||[];
+    if(d.passage||d.text)html+=`<div class="writing-prompt" style="font-size:15px;line-height:1.8;margin-bottom:16px">${d.passage||d.text}</div>`;
+    html+=gaps.map((it,i)=>`
+      <div class="writing-prompt" style="margin-bottom:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span style="font-family:'Orbitron',monospace;font-size:11px;color:${col}">${i+1}</span>
+        <span style="font-size:14px;flex:1">${it.context||it.sentence||''}</span>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          ${(it.options||[]).map((opt,j)=>{
+            const letter=String.fromCharCode(65+j);
+            return `<label style="cursor:pointer;padding:4px 10px;border-radius:6px;border:1px solid var(--border)">
+              <input type="radio" name="rp5_q${i}" value="${letter}" style="accent-color:${col}"> ${opt}</label>`;
+          }).join('')}
+        </div>
+        <div id="rp5_fb${i}" style="font-size:12px;min-width:20px"></div>
+      </div>`).join('');
+    html+=`<button class="submit-btn" style="width:100%;margin-top:8px" onclick="checkPETMC('rp5')">Check ✓</button>`;
+
+  // ── Writing Part 1: Sentence Transformations ──
   } else if(s.id==='wp1'&&d.items){
     html+=`<p style="font-size:13px;color:var(--muted);margin-bottom:14px">Complete the second sentence so it means the same as the first.</p>`;
     html+=d.items.map((it,i)=>`
       <div class="writing-prompt" style="margin-bottom:12px">
         <div style="font-size:15px;margin-bottom:8px">1. ${it.original}</div>
-        <div style="font-size:15px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">2. ${it.gapped.replace('___',`<input id="wp1_${i}" type="text" class="blank-input" style="width:160px;font-size:14px;padding:6px 10px" autocomplete="off" spellcheck="false">`)}</div>
+        <div style="font-size:15px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          2. ${it.gapped.replace('___',`<input id="wp1_${i}" type="text" class="blank-input"
+            style="width:180px;font-size:14px;padding:6px 10px" autocomplete="off" spellcheck="false"
+            onkeydown="if(event.key==='Enter')checkPETWp1()">`)}
+        </div>
         <div id="wp1_fb${i}" style="font-size:13px;margin-top:6px;min-height:20px"></div>
       </div>`).join('');
-    html+=`<button class="submit-btn" style="width:100%;margin-top:8px" onclick="checkPETWp1(${JSON.stringify(d.items).replace(/</g,'&lt;')})">Check ✓</button>`;
-  } else if((s.id==='wp2'||s.id==='wp3')&&(d.points||d.prompt)){
-    // Writing tasks — free response
+    html+=`<button class="submit-btn" style="width:100%;margin-top:8px" onclick="checkPETWp1()">Check ✓</button>`;
+
+  // ── Writing Part 2 & 3: Free writing ──
+  } else if((s.id==='wp2'||s.id==='wp3')&&(d.points||d.prompt||d.scenario)){
     if(s.id==='wp2'){
-      html+=`<div class="writing-prompt" style="margin-bottom:12px"><strong>${d.scenario}</strong><ul style="margin-top:8px;padding-left:20px">${(d.points||[]).map(p=>`<li style="margin-bottom:4px">${p}</li>`).join('')}</ul></div>`;
+      html+=`<div class="writing-prompt" style="margin-bottom:12px"><strong>${d.scenario||''}</strong>
+        <ul style="margin-top:8px;padding-left:20px">${(d.points||[]).map(p=>`<li style="margin-bottom:4px">${p}</li>`).join('')}</ul></div>`;
     } else {
-      html+=`<div class="writing-prompt" style="margin-bottom:12px">${d.prompt}</div>`;
+      html+=`<div class="writing-prompt" style="margin-bottom:12px">${d.prompt||''}</div>`;
     }
-    html+=`<textarea class="writing-area" id="pet-writing-area" rows="8" placeholder="Write your answer here... (${s.id==='wp2'?'35–45':'~100'} words)"></textarea>
+    html+=`<textarea class="writing-area" id="pet-writing-area" rows="8"
+      placeholder="Write your answer here... (${s.id==='wp2'?'35–45':'~100'} words)"></textarea>
       <div style="display:flex;gap:8px;margin-top:10px">
-        <button class="submit-btn" style="flex:1" onclick="evaluatePETWriting('${s.id}',${JSON.stringify(d).replace(/</g,'&lt;')})">Evaluate ✓</button>
+        <button class="submit-btn" style="flex:1" onclick="evaluatePETWriting()">Evaluate ✓</button>
         ${d.sampleAnswer||d.modelAnswer?`<button class="pron-hint-btn" onclick="document.getElementById('pet-model').style.display=''">See model answer</button>`:''}
       </div>
-      ${(d.sampleAnswer||d.modelAnswer)?`<div id="pet-model" style="display:none" class="writing-prompt" style="margin-top:12px"><strong>Model answer:</strong><br>${d.sampleAnswer||d.modelAnswer}</div>`:''}
+      ${(d.sampleAnswer||d.modelAnswer)?`<div id="pet-model" style="display:none" class="writing-prompt"><strong>Model answer:</strong><br>${d.sampleAnswer||d.modelAnswer}</div>`:''}
       <div id="pet-writing-fb" style="margin-top:12px"></div>`;
+
+  // ── Listening Part 1: Short recordings ──
   } else if(s.id==='lp1'&&d.items){
-    html+=`<p style="font-size:13px;color:var(--muted);margin-bottom:14px">Read each scene, then choose the best answer.</p>`;
+    _petListeningScripts=d.items.map(it=>it.script||'');
+    html+=`<p style="font-size:13px;color:var(--muted);margin-bottom:14px">
+      🎧 Click <strong>▶ Play</strong> to hear each recording, then choose the best answer.</p>`;
     html+=d.items.map((it,i)=>`
       <div class="writing-prompt" style="margin-bottom:12px">
-        <div style="font-family:'Orbitron',monospace;font-size:10px;color:${col};letter-spacing:2px;margin-bottom:6px">Recording ${i+1}</div>
-        <div style="font-size:13px;color:var(--muted);padding:8px;background:rgba(255,255,255,.04);border-radius:8px;margin-bottom:8px;line-height:1.6">${it.script}</div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+          <div style="font-family:'Orbitron',monospace;font-size:10px;color:${col};letter-spacing:2px">Recording ${i+1}</div>
+          <button onclick="petPlayRecording(${i})"
+            style="background:var(--purple,#8b5cf6);color:#fff;border:none;border-radius:8px;
+              padding:6px 14px;cursor:pointer;font-size:13px;font-family:'Rajdhani',sans-serif;font-weight:700">
+            ▶ Play
+          </button>
+        </div>
         <div style="font-size:14px;font-weight:600;margin-bottom:8px">${it.question}</div>
         <div style="display:flex;flex-direction:column;gap:6px">
           ${it.options.map((opt,j)=>{
@@ -2657,100 +2787,278 @@ function renderPETSection(s,d){
           }).join('')}
         </div>
         <div id="lp1_fb${i}" style="font-size:13px;margin-top:6px;min-height:20px"></div>
+        <div id="lp1_script${i}" style="display:none;font-size:12px;color:var(--muted);
+          padding:8px 10px;background:rgba(255,255,255,.04);border-radius:8px;margin-top:8px;line-height:1.6">
+          📄 ${it.script||''}
+        </div>
       </div>`).join('');
-    html+=`<button class="submit-btn" style="width:100%;margin-top:8px" onclick="checkPETRp1Lp1(${JSON.stringify(d.items).replace(/</g,'&lt;')})">Check ✓</button>`;
-  } else if(s.part==='Speaking'&&d.questions){
-    // Speaking — interview style
-    html+=`<p style="font-size:13px;color:var(--muted);margin-bottom:14px">Answer each question aloud. Click 🔊 to hear the question via TTS.</p>`;
+    html+=`<button class="submit-btn" style="width:100%;margin-top:8px" onclick="checkPETLp1()">Check answers ✓</button>`;
+
+  // ── Listening Part 2: Notes completion ──
+  } else if(s.id==='lp2'&&(d.items||d.gaps)){
+    const gaps=d.items||d.gaps||[];
+    _petListeningScripts=[(d.script||d.monologue||'')];
+    html+=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+      <button onclick="petPlayRecording(0)"
+        style="background:var(--purple,#8b5cf6);color:#fff;border:none;border-radius:8px;
+          padding:8px 18px;cursor:pointer;font-size:14px;font-family:'Rajdhani',sans-serif;font-weight:700">
+        ▶ Play monologue
+      </button>
+      <span style="font-size:13px;color:var(--muted)">Listen and complete the notes</span>
+    </div>
+    <div class="writing-prompt" style="margin-bottom:16px">
+      ${gaps.map((g,i)=>`<div style="margin-bottom:10px;font-size:14px">
+        ${g.context||g.sentence||`Gap ${i+1}`}:
+        <input id="lp2_${i}" type="text" class="blank-input"
+          style="width:160px;font-size:14px;padding:4px 10px;margin-left:6px"
+          autocomplete="off" spellcheck="false">
+        <span id="lp2_fb${i}" style="font-size:12px;margin-left:8px"></span>
+      </div>`).join('')}
+    </div>
+    <button class="submit-btn" style="width:100%" onclick="checkPETLp2()">Check ✓</button>`;
+
+  // ── Listening Part 3 & 4 ──
+  } else if((s.id==='lp3'||s.id==='lp4')&&d.items){
+    const pfx=s.id;
+    _petListeningScripts=[(d.script||d.conversation||'')];
+    html+=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+      <button onclick="petPlayRecording(0)"
+        style="background:var(--purple,#8b5cf6);color:#fff;border:none;border-radius:8px;
+          padding:8px 18px;cursor:pointer;font-size:14px;font-family:'Rajdhani',sans-serif;font-weight:700">
+        ▶ Play recording
+      </button>
+    </div>`;
+    html+=d.items.map((it,i)=>`
+      <div class="writing-prompt" style="margin-bottom:12px">
+        <div style="font-size:14px;font-weight:600;margin-bottom:8px">${i+1}. ${it.question||it.statement||''}</div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          ${(it.options||['True','False']).map((opt,j)=>{
+            const letter=String.fromCharCode(65+j);
+            return `<label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:6px 10px;border-radius:8px;border:1px solid var(--border)">
+              <input type="radio" name="${pfx}_q${i}" value="${letter}" style="accent-color:${col}">
+              <span>${opt}</span></label>`;
+          }).join('')}
+        </div>
+        <div id="${pfx}_fb${i}" style="font-size:13px;margin-top:6px;min-height:20px"></div>
+      </div>`).join('');
+    html+=`<button class="submit-btn" style="width:100%;margin-top:8px" onclick="checkPETMC('${pfx}')">Check ✓</button>`;
+
+  // ── Speaking Part 1: Interview ──
+  } else if(s.id==='sp1'&&d.questions){
+    html+=`<div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.3);border-radius:12px;
+      padding:12px 16px;margin-bottom:14px;font-size:13px;color:var(--muted)">
+      🎤 Answer each question aloud. Click <strong>▶</strong> to hear it first.
+    </div>`;
     html+=d.questions.map((q,i)=>`
-      <div class="writing-prompt" style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px">
-        <span style="font-family:'Orbitron',monospace;font-size:11px;color:${col};min-width:20px;margin-top:2px">${i+1}</span>
-        <span style="flex:1;font-size:15px">${q}</span>
-        <button class="pron-hint-btn" onclick="petSpeak(${JSON.stringify(q)})">🔊</button>
+      <div class="writing-prompt" style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px">
+        <span style="font-family:'Orbitron',monospace;font-size:11px;color:${col};min-width:22px;padding-top:3px">${i+1}</span>
+        <span style="flex:1;font-size:15px;line-height:1.6">${q}</span>
+        <button onclick="petSpeak(this)"
+          data-text="${q.replace(/"/g,'&quot;')}"
+          style="background:var(--green,#22c55e);color:#fff;border:none;border-radius:8px;
+            padding:6px 12px;cursor:pointer;font-size:14px;white-space:nowrap">▶</button>
       </div>`).join('');
-    html+=`<button class="submit-btn" style="width:100%;margin-top:12px" onclick="petSpeakAll(${JSON.stringify(d.questions)})">▶ Read all questions</button>`;
-  } else if(d.situation){
-    // Speaking Part 3
+    html+=`<button class="submit-btn" style="width:100%;margin-top:12px" onclick="petSpeakAllQ()">▶ Read all aloud</button>`;
+
+  // ── Speaking Part 2: Photo description ──
+  } else if(s.id==='sp2'&&d.photoDescription){
+    html+=`<div class="writing-prompt" style="margin-bottom:12px;font-size:15px;line-height:1.7">
+      <strong>🖼 Photo:</strong> ${d.photoDescription}
+      <button onclick="speak(${JSON.stringify(d.photoDescription||'').replace(/'/g,"\\'")})"
+        style="margin-left:10px;background:var(--green,#22c55e);color:#fff;border:none;
+          border-radius:6px;padding:4px 10px;cursor:pointer;font-size:13px">▶</button>
+    </div>
+    <div class="writing-prompt" style="margin-bottom:12px"><strong>Task:</strong> ${d.instructions||''}</div>`;
+    if(d.followUp)html+=d.followUp.map(q=>`
+      <div style="margin-top:8px;padding:8px 12px;background:var(--card);border-radius:8px;font-size:14px;
+        display:flex;align-items:center;gap:10px">${q}
+        <button onclick="speak(${JSON.stringify(q||'').replace(/'/g,"\\'")})"
+          style="background:var(--green,#22c55e);color:#fff;border:none;border-radius:6px;
+            padding:3px 8px;cursor:pointer;font-size:12px;white-space:nowrap">▶</button>
+      </div>`).join('');
+
+  // ── Speaking Part 3: Collaborative task ──
+  } else if(s.id==='sp3'&&d.situation){
     html+=`<div class="writing-prompt" style="margin-bottom:12px"><strong>Situation:</strong> ${d.situation}</div>`;
-    html+=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:16px">`;
-    html+=(d.prompts||[]).map(p=>`<div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;font-size:14px;font-weight:600;text-align:center">${p}</div>`).join('');
-    html+=`</div><div class="writing-prompt" style="margin-bottom:12px"><strong>Task:</strong> ${d.task}</div>`;
-    if(d.followUp)html+=`<div><strong style="font-size:13px;color:var(--muted)">Follow-up:</strong>${d.followUp.map(q=>`<div style="margin-top:8px;padding:8px 12px;background:var(--card);border-radius:8px;font-size:14px">${q}</div>`).join('')}</div>`;
-  } else if(d.photoDescription){
-    // Speaking Part 2
-    html+=`<div class="writing-prompt" style="margin-bottom:12px"><strong>Photo:</strong> ${d.photoDescription}</div>
-      <div class="writing-prompt" style="margin-bottom:12px"><strong>Task:</strong> ${d.instructions}</div>`;
-    if(d.followUp)html+=d.followUp.map(q=>`<div style="margin-top:8px;padding:8px 12px;background:var(--card);border-radius:8px;font-size:14px">${q}</div>`).join('');
+    html+=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:16px">
+      ${(d.prompts||[]).map(p=>`<div style="background:var(--card);border:1px solid var(--border);
+        border-radius:10px;padding:12px;font-size:14px;font-weight:600;text-align:center">${p}</div>`).join('')}
+    </div>
+    <div class="writing-prompt" style="margin-bottom:12px"><strong>Task:</strong> ${d.task||''}</div>`;
+    if(d.followUp)html+=`<div><strong style="font-size:13px;color:var(--muted)">Follow-up:</strong>
+      ${d.followUp.map(q=>`<div style="margin-top:8px;padding:8px 12px;background:var(--card);
+        border-radius:8px;font-size:14px">${q}</div>`).join('')}</div>`;
+
+  // ── Speaking Part 4: Discussion ──
+  } else if(s.id==='sp4'&&(d.questions||d.topics)){
+    const qs=d.questions||d.topics||[];
+    html+=`<div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.3);
+      border-radius:12px;padding:12px 16px;margin-bottom:14px;font-size:13px;color:var(--muted)">
+      🎤 Discuss these topics and give your opinions aloud.
+    </div>`;
+    html+=qs.map((q,i)=>`
+      <div class="writing-prompt" style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px">
+        <span style="font-family:'Orbitron',monospace;font-size:11px;color:${col};min-width:22px;padding-top:3px">${i+1}</span>
+        <span style="flex:1;font-size:15px">${q}</span>
+      </div>`).join('');
+
   } else {
-    // Fallback: show raw JSON prettily
-    html+=`<pre style="font-size:12px;color:var(--muted);overflow:auto;white-space:pre-wrap">${JSON.stringify(d,null,2)}</pre>`;
+    // Fallback: show structured data instead of raw JSON
+    html+=`<div class="writing-prompt"><pre style="font-size:12px;color:var(--muted);
+      overflow:auto;white-space:pre-wrap;max-height:400px">${JSON.stringify(d,null,2)}</pre></div>`;
   }
 
-  html+=`<div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
-    <button class="pron-hint-btn" onclick="runPET()">← All sections</button>
+  html+=`<div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);
+    display:flex;justify-content:space-between;align-items:center">
+    <button class="pron-hint-btn" onclick="${backFn}">← All sections</button>
     <button class="submit-btn" onclick="petComplete(${s.km})">Mark complete (+${s.km} km) ✓</button>
   </div></div>`;
 
   area.innerHTML=html;
 }
 
-function checkPETRp1(items){
-  let score=0;
-  items.forEach((it,i)=>{
-    const sel=document.querySelector(`input[name="rp1_q${i}"]:checked`);
-    const fb=document.getElementById(`rp1_fb${i}`);
-    if(!fb)return;
-    if(sel&&sel.value===it.answer){score++;fb.innerHTML=`<span style="color:#4ade80">✅ Correct!</span>`;}
-    else{fb.innerHTML=`<span style="color:#f87171">✗ Answer: ${it.answer}</span>`;}
-  });
-  const km=score*10;addKm(km);
-  showToast(`📖 Reading Part 1: ${score}/${items.length} — +${km} km!`);
-}
+// Normalize answers for flexible matching
+function _normAns(s){return(s||'').trim().toLowerCase().replace(/[.,!?;:'"]+$/,'').replace(/\s+/g,' ');}
 
-function checkPETRp1Lp1(items){
+// Generic Multiple Choice check (rp1, rp4, rp5, lp3, lp4)
+function checkPETMC(prefix){
+  const items=_petCurrentData?.items||_petCurrentData?.gaps||[];
+  if(!items.length){showToast('No answers to check.');return;}
   let score=0;
-  const prefix=items[0]?.script?'lp1':'rp1';
   items.forEach((it,i)=>{
     const sel=document.querySelector(`input[name="${prefix}_q${i}"]:checked`);
     const fb=document.getElementById(`${prefix}_fb${i}`);
     if(!fb)return;
-    const ans=it.answer?.charAt(0).toUpperCase();
-    if(sel&&sel.value===ans){score++;fb.innerHTML=`<span style="color:#4ade80">✅ Correct!</span>`;}
-    else{fb.innerHTML=`<span style="color:#f87171">✗ Answer: ${ans}</span>`;}
+    const ans=(it.answer||'').charAt(0).toUpperCase();
+    if(sel&&sel.value.toUpperCase()===ans){
+      score++;
+      fb.innerHTML=`<span style="color:#4ade80">✅ Correct!</span>`;
+      sel.closest('label')&&(sel.closest('label').style.borderColor='#4ade80');
+    } else {
+      fb.innerHTML=`<span style="color:#f87171">✗ ${ans}</span>`;
+      if(sel)sel.closest('label')&&(sel.closest('label').style.borderColor='#f87171');
+    }
   });
-  const km=score*10;addKm(km);showToast(`✅ ${score}/${items.length} — +${km} km!`);
+  const km=score*10;addKm(km);
+  _petSessionScore+=km;
+  showToast(`✅ ${score}/${items.length} — +${km} km!`);
 }
 
-function checkPETTF(items){
+// Reading Part 2: Matching
+function checkPETRp2(){
+  const people=_petCurrentData?.people||[];
+  const answers=_petCurrentData?.answers||{};
+  let score=0;
+  people.forEach((p,i)=>{
+    const sel=document.getElementById(`rp2_q${i}`)?.value;
+    const fb=document.getElementById(`rp2_fb${i}`);
+    if(!fb)return;
+    const correct=answers[String(i+1)]||answers[p.name]||'';
+    if(sel&&sel.toUpperCase()===correct.toUpperCase()){
+      score++;fb.innerHTML=`<span style="color:#4ade80">✅</span>`;
+    } else {
+      fb.innerHTML=`<span style="color:#f87171">✗ ${correct}</span>`;
+    }
+  });
+  const km=score*10;addKm(km);_petSessionScore+=km;
+  showToast(`📖 Matching: ${score}/${people.length} — +${km} km!`);
+}
+
+// Reading Part 3: True/False
+function checkPETTF(){
+  const items=_petCurrentData?.items||[];
   let score=0;
   items.forEach((it,i)=>{
     const sel=document.querySelector(`input[name="rp3_q${i}"]:checked`);
-    const fb=document.querySelector(`input[name="rp3_q${i}"]`)?.closest('div[style]');
-    if(sel&&sel.value===it.answer){score++;if(fb)fb.style.borderColor='#4ade80';}
-    else if(fb){fb.style.borderColor='#f87171';}
+    const fb=document.getElementById(`rp3_fb${i}`);
+    const row=sel?.closest('div[style]');
+    const ans=(it.answer||it.correct||'True');
+    if(sel&&_normAns(sel.value)===_normAns(ans)){
+      score++;
+      if(row)row.style.borderColor='#4ade80';
+      if(fb)fb.innerHTML='✅';
+    } else {
+      if(row)row.style.borderColor='#f87171';
+      if(fb)fb.innerHTML=`<span style="color:#f87171">${ans}</span>`;
+    }
   });
-  const km=score*8;addKm(km);showToast(`📖 True/False: ${score}/${items.length} — +${km} km!`);
+  const km=score*8;addKm(km);_petSessionScore+=km;
+  showToast(`📖 True/False: ${score}/${items.length} — +${km} km!`);
 }
 
-function checkPETWp1(items){
+// Writing Part 1: Sentence Transformations (flexible matching)
+function checkPETWp1(){
+  const items=_petCurrentData?.items||[];
   let score=0;
   items.forEach((it,i)=>{
     const inp=document.getElementById(`wp1_${i}`);
     const fb=document.getElementById(`wp1_fb${i}`);
     if(!inp||!fb)return;
-    const userVal=inp.value.trim().toLowerCase();
-    const correct=it.answer.trim().toLowerCase();
-    if(userVal===correct){score++;fb.innerHTML=`<span style="color:#4ade80">✅ Correct!</span>`;inp.style.borderColor='#4ade80';}
-    else{fb.innerHTML=`<span style="color:#f87171">✗ Answer: <em>${it.answer}</em></span>`;inp.style.borderColor='#f87171';}
+    const userVal=_normAns(inp.value);
+    const correct=_normAns(it.answer);
+    // Accept if user answer contains the key phrase or vice versa
+    const isOk=userVal===correct||userVal.includes(correct)||correct.includes(userVal);
+    if(isOk){
+      score++;
+      fb.innerHTML=`<span style="color:#4ade80">✅ Correct! (${it.answer})</span>`;
+      inp.style.borderColor='#4ade80';
+    } else {
+      fb.innerHTML=`<span style="color:#f87171">✗ Answer: <em>${it.answer}</em></span>`;
+      inp.style.borderColor='#f87171';
+    }
   });
-  const km=score*15;addKm(km);showToast(`✏️ Transformations: ${score}/${items.length} — +${km} km!`);
+  const km=score*15;addKm(km);_petSessionScore+=km;
+  showToast(`✏️ Transformations: ${score}/${items.length} — +${km} km!`);
 }
 
-async function evaluatePETWriting(sectionId,d){
+// Listening Part 1: reveal scripts after checking
+function checkPETLp1(){
+  const items=_petCurrentData?.items||[];
+  let score=0;
+  items.forEach((it,i)=>{
+    const sel=document.querySelector(`input[name="lp1_q${i}"]:checked`);
+    const fb=document.getElementById(`lp1_fb${i}`);
+    const scriptEl=document.getElementById(`lp1_script${i}`);
+    if(!fb)return;
+    const ans=(it.answer||'').charAt(0).toUpperCase();
+    if(sel&&sel.value.toUpperCase()===ans){
+      score++;fb.innerHTML=`<span style="color:#4ade80">✅ Correct!</span>`;
+    } else {
+      fb.innerHTML=`<span style="color:#f87171">✗ ${ans}</span>`;
+    }
+    if(scriptEl)scriptEl.style.display=''; // reveal transcript
+  });
+  const km=score*10;addKm(km);_petSessionScore+=km;
+  showToast(`🎧 Listening Part 1: ${score}/${items.length} — +${km} km!`);
+}
+
+// Listening Part 2: Notes completion
+function checkPETLp2(){
+  const gaps=_petCurrentData?.items||_petCurrentData?.gaps||[];
+  let score=0;
+  gaps.forEach((g,i)=>{
+    const inp=document.getElementById(`lp2_${i}`);
+    const fb=document.getElementById(`lp2_fb${i}`);
+    if(!inp||!fb)return;
+    const userVal=_normAns(inp.value);
+    const correct=_normAns(g.answer||g.correct||'');
+    if(userVal===correct||correct.includes(userVal)){
+      score++;fb.innerHTML=`<span style="color:#4ade80">✅</span>`;inp.style.borderColor='#4ade80';
+    } else {
+      fb.innerHTML=`<span style="color:#f87171">${g.answer||g.correct||''}</span>`;inp.style.borderColor='#f87171';
+    }
+  });
+  const km=score*12;addKm(km);_petSessionScore+=km;
+  showToast(`🎧 Listening Part 2: ${score}/${gaps.length} — +${km} km!`);
+}
+
+async function evaluatePETWriting(){
+  const d=_petCurrentData||{};
+  const s=_petCurrentSection||{};
   const text=document.getElementById('pet-writing-area')?.value?.trim();
   if(!text){showToast('Write something first!');return;}
   const wc=text.split(/\s+/).length;
-  const target=sectionId==='wp2'?'35–45':'around 100';
+  const target=s.id==='wp2'?'35–45':'around 100';
   const fb=document.getElementById('pet-writing-fb');
   fb.innerHTML=`<div class="loading-text" style="padding:12px">Evaluating your writing...</div>`;
 
@@ -2773,47 +3081,73 @@ Return ONLY this JSON: {"band":"A/B/C/D","feedback":"...","tip":"..."}`;
     const bandColors={'A':'#4ade80','B':'#a3e635','C':'var(--gold2)','D':'#f87171'};
     const bc=bandColors[ev.band]||'var(--muted)';
     const km=ev.band==='A'?100:ev.band==='B'?80:ev.band==='C'?60:40;
-    addKm(km);
+    addKm(km);_petSessionScore+=km;
     fb.innerHTML=`<div class="result-box" style="border-color:${bc};background:rgba(0,0,0,.1)">
       <div style="font-family:'Orbitron',monospace;font-size:18px;color:${bc};margin-bottom:8px">Band ${ev.band} · +${km} km</div>
       <p style="font-size:14px;line-height:1.7;margin-bottom:8px">${ev.feedback}</p>
       <p style="font-size:13px;color:var(--gold2)">💡 ${ev.tip}</p>
     </div>`;
-    showToast(`✏️ Writing evaluated: Band ${ev.band} — +${km} km!`);
+    showToast(`✏️ Writing: Band ${ev.band} — +${km} km!`);
   }catch(e){fb.innerHTML=`<div class="error-box">Evaluation failed. ${e.message}</div>`;}
 }
 
-function petSpeak(text){speak(text,0.9);}
-function petSpeakAll(qs){let i=0;function next(){if(i>=qs.length)return;petSpeak(qs[i++]);setTimeout(next,3000);}next();}
-function petComplete(km){addKm(km);showToast(`📝 Section complete! +${km} km!`);runPET();}
+function petSpeak(btnOrText){
+  // Accept either a button element (reads data-text) or a string
+  const text=typeof btnOrText==='string'?btnOrText:btnOrText?.dataset?.text||'';
+  speak(text,0.9);
+}
+function petSpeakAllQ(){
+  const qs=_petCurrentData?.questions||_petCurrentData?.topics||[];
+  let i=0;
+  function next(){if(i>=qs.length)return;speak(qs[i++],0.9);setTimeout(next,3500);}
+  next();
+}
+function petComplete(km){addKm(km);showToast(`📝 Section complete! +${km} km!`);
+  if(_petFullExamActive)runPETFull();else runPET();}
 
 function runPETFull(minutes){
   const area=document.getElementById('module-content-area');
-  let remaining=minutes*60;
-  const tick=()=>{remaining--;const m=Math.floor(remaining/60),s=remaining%60;
-    const el=document.getElementById('pet-timer');
-    if(el){el.textContent=`${m}:${s.toString().padStart(2,'0')}`;el.style.color=remaining<300?'#f87171':'var(--gold2)';}
-    if(remaining<=0){clearInterval(window._petTimer);if(el)el.textContent='TIME UP';}
-  };
-  window._petTimer=setInterval(tick,1000);
+
+  // New session if minutes provided; otherwise just re-render (back from section)
+  if(minutes!==undefined){
+    if(window._petTimerInterval)clearInterval(window._petTimerInterval);
+    _petTimerRemaining=minutes*60;
+    _petTimerMinutes=minutes;
+    _petFullExamActive=true;
+    _petSessionScore=0;
+    window._petTimerInterval=setInterval(petTimerTick,1000);
+  }
+
+  const r=_petTimerRemaining;
+  const m=Math.floor(r/60),sec=r%60;
+  const timeStr=r<=0?'TIME UP':`${m}:${sec.toString().padStart(2,'0')}`;
+
   area.innerHTML=`<div style="max-width:700px;margin:0 auto">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;padding:14px 18px;background:var(--card);border-radius:14px;border:1px solid var(--border)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;
+      padding:14px 18px;background:var(--card);border-radius:14px;border:1px solid var(--border)">
       <div>
         <div style="font-family:'Orbitron',monospace;font-size:11px;color:var(--muted);letter-spacing:2px">FULL PET EXAM</div>
-        <div style="font-size:13px;color:var(--muted);margin-top:2px">${minutes} minute session</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:2px">${_petTimerMinutes} min · Session score: ${_petSessionScore} km</div>
       </div>
       <div style="text-align:center">
-        <div style="font-family:'Orbitron',monospace;font-size:32px;font-weight:900;color:var(--gold2)" id="pet-timer">${minutes}:00</div>
+        <div style="font-family:'Orbitron',monospace;font-size:32px;font-weight:900;
+          background:#fff;color:#1e3a5f;border-radius:10px;padding:6px 18px;display:inline-block" id="pet-timer">
+          ${timeStr}
+        </div>
         <div style="font-size:11px;color:var(--muted)">remaining</div>
       </div>
-      <button class="pron-hint-btn" onclick="clearInterval(window._petTimer);runPET()">✕ End</button>
+      <button class="pron-hint-btn" style="color:#f87171"
+        onclick="clearInterval(window._petTimerInterval);window._petTimerInterval=null;_petFullExamActive=false;runPET()">✕ End</button>
     </div>
-    <p style="font-size:14px;color:var(--muted);margin-bottom:16px">Choose any section below to practise. The timer runs across all sections.</p>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:16px">
+      Choose any section to practise. The timer keeps running while you work.</p>
     ${['Reading','Writing','Listening','Speaking'].map(part=>`
       <div style="margin-bottom:12px">
         <div style="font-family:'Orbitron',monospace;font-size:10px;letter-spacing:3px;color:var(--muted);margin-bottom:8px">${part.toUpperCase()}</div>
         <div style="display:flex;flex-wrap:wrap;gap:8px">
-          ${PET_SECTIONS.filter(s=>s.part===part).map(s=>`<button class="pron-hint-btn" onclick="runPETSection('${s.id}')" style="font-size:13px;padding:8px 14px">Part ${s.num}</button>`).join('')}
+          ${PET_SECTIONS.filter(s=>s.part===part).map(s=>
+            `<button class="pron-hint-btn" onclick="runPETSection('${s.id}')"
+              style="font-size:13px;padding:8px 14px">Part ${s.num}</button>`).join('')}
         </div>
       </div>`).join('')}
   </div>`;
@@ -2931,21 +3265,25 @@ async function openBookChapter(bookId,chNum){
 
   const prompt=`You are helping a 12-year-old Chilean student practice English reading comprehension for "${book.title}" by C.S. Lewis, Chapter ${chNum}: "${ch.title}".
 
-Generate a comprehension exercise with these parts:
-1. A SHORT chapter summary (4-5 sentences, B1 level English) that captures what actually happens — subtle enough that only someone who READ the chapter can confirm it, but clear enough to understand.
-2. A comprehension question with 3 options (A, B, C) where:
-   - The CORRECT answer reflects what actually happens in the chapter
-   - The WRONG options are plausible but subtly incorrect — they should trip up someone who DIDN'T read carefully
-3. A vocabulary word from the chapter with its English definition (B1 level)
+Create a comprehension exercise where Fernando must identify WHICH summary is the accurate description of the chapter. Only someone who actually READ the chapter carefully can answer correctly.
+
+Rules:
+- Write THREE summaries (A, B, C) of the chapter in B1 English (4-5 sentences each)
+- ONE summary is ACCURATE and describes exactly what happens
+- TWO summaries have SUBTLE but important differences — wrong character actions, wrong outcomes, wrong details — plausible but incorrect
+- A vocabulary word from the chapter with its English definition
 
 Return ONLY this JSON:
 {
-  "summary": "Chapter summary here...",
-  "question": "What does [character] do when...?",
-  "options": {"A": "...", "B": "...", "C": "..."},
-  "answer": "B",
+  "question": "Which summary correctly describes what happens in Chapter ${chNum}: ${ch.title}?",
+  "summaries": {
+    "A": "summary text A...",
+    "B": "summary text B...",
+    "C": "summary text C..."
+  },
+  "answer": "A",
   "vocabWord": "word",
-  "vocabDef": "definition in English"
+  "vocabDef": "definition in simple English"
 }`;
 
   try{
@@ -2957,46 +3295,61 @@ Return ONLY this JSON:
 
 function renderBookChapter(book,chNum,ch,d){
   const area=document.getElementById('module-content-area');
+  // Store answer globally to avoid JSON-in-onclick
+  window._bcCurrentAnswer=d.answer;
+  window._bcCurrentBookId=book.id;
+  window._bcCurrentChNum=chNum;
+
+  const summaries=d.summaries||{};
   area.innerHTML=`<div style="max-width:660px;margin:0 auto">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
       <button class="pron-hint-btn" onclick="runBookClub()">← Back</button>
       <span style="font-family:'Orbitron',monospace;font-size:11px;color:var(--green);letter-spacing:2px">${book.icon} CH. ${chNum} — ${ch.title.toUpperCase()}</span>
     </div>
 
-    <div class="writing-prompt" style="margin-bottom:16px;line-height:1.85;font-size:15px">
-      <div style="font-family:'Orbitron',monospace;font-size:10px;color:var(--muted);letter-spacing:2px;margin-bottom:10px">CHAPTER SUMMARY</div>
-      ${d.summary}
+    <div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.25);border-radius:12px;
+      padding:12px 16px;margin-bottom:16px;font-size:13px;color:var(--muted)">
+      📖 Read each summary carefully. Only one correctly describes what happens in this chapter.
+      <strong style="color:var(--green)">Choose the accurate one.</strong>
     </div>
 
     <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:16px">
-      <div style="font-family:'Orbitron',monospace;font-size:10px;color:var(--muted);letter-spacing:2px;margin-bottom:12px">COMPREHENSION CHECK</div>
-      <div style="font-size:15px;font-weight:600;margin-bottom:12px">${d.question}</div>
-      <div style="display:flex;flex-direction:column;gap:8px">
-        ${Object.entries(d.options).map(([letter,text])=>`
-          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:10px 14px;border-radius:10px;border:1px solid var(--border)">
-            <input type="radio" name="bc_q" value="${letter}" style="accent-color:var(--green)">
-            <span><strong>${letter}.</strong> ${text}</span>
+      <div style="font-family:'Orbitron',monospace;font-size:10px;color:var(--muted);letter-spacing:2px;margin-bottom:12px">
+        ${d.question||'Which summary correctly describes this chapter?'}
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        ${Object.entries(summaries).map(([letter,text])=>`
+          <label style="display:flex;align-items:flex-start;gap:12px;cursor:pointer;
+            padding:14px 16px;border-radius:12px;border:2px solid var(--border);
+            transition:border-color .2s" onmouseover="this.style.borderColor='var(--green)'"
+            onmouseout="this.style.borderColor='var(--border)'">
+            <input type="radio" name="bc_q" value="${letter}" style="accent-color:var(--green);margin-top:3px;flex-shrink:0">
+            <div>
+              <strong style="color:var(--green);font-family:'Orbitron',monospace;font-size:11px">Summary ${letter}</strong>
+              <div style="font-size:14px;line-height:1.75;margin-top:4px;color:var(--text)">${text}</div>
+            </div>
           </label>`).join('')}
       </div>
     </div>
 
     <div style="background:var(--card);border:1px solid rgba(59,130,246,.3);border-radius:14px;padding:16px;margin-bottom:16px">
       <div style="font-family:'Orbitron',monospace;font-size:10px;color:var(--blue);letter-spacing:2px;margin-bottom:8px">VOCABULARY</div>
-      <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:4px">${d.vocabWord}</div>
-      <div style="font-size:14px;color:var(--muted)">${d.vocabDef}</div>
+      <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:4px">${d.vocabWord||''}</div>
+      <div style="font-size:14px;color:var(--muted)">${d.vocabDef||''}</div>
     </div>
 
-    <button class="submit-btn" style="width:100%" onclick="checkBookChapter('${book.id}',${chNum},${JSON.stringify(d.answer)})">
-      Submit answer ✓
-    </button>
+    <button class="submit-btn" style="width:100%" onclick="checkBookChapter()">Submit answer ✓</button>
     <div id="bc-feedback" style="margin-top:14px"></div>
   </div>`;
 }
 
-function checkBookChapter(bookId,chNum,correctAnswer){
+function checkBookChapter(){
+  const bookId=window._bcCurrentBookId;
+  const chNum=window._bcCurrentChNum;
+  const correctAnswer=window._bcCurrentAnswer;
   const sel=document.querySelector('input[name="bc_q"]:checked');
   const fb=document.getElementById('bc-feedback');
-  if(!sel){fb.innerHTML=`<div style="color:var(--muted);font-size:13px">Please select an answer first.</div>`;return;}
+  if(!sel){fb.innerHTML=`<div style="color:var(--muted);font-size:13px">Please select a summary first.</div>`;return;}
 
   const progress=getBookClubProgress();
   if(!progress[bookId])progress[bookId]={};
@@ -3086,14 +3439,15 @@ function showVeCard(){
     return;
   }
   const w=words[idx];
+  // Hide the word — only show definition + gapped example
+  const gapped=w.example.replace(new RegExp(`\\b${w.word}\\b`,'gi'),'___');
   document.getElementById('module-content-area').innerHTML=`
     <div class="ve-card">
-      <div style="font-family:'Orbitron',monospace;font-size:10px;color:var(--muted);letter-spacing:2px">${idx+1} / ${words.length}</div>
-      <div class="ve-word">${w.word}</div>
-      <div class="ve-def">${w.definition}</div>
-      <div class="ve-example">"${w.example.replace(new RegExp(w.word,'gi'),'___')}"</div>
-      <div style="font-size:13px;color:var(--muted);margin-bottom:8px">Type the missing word:</div>
-      <input class="ve-input" id="ve-input" type="text" placeholder="..." autocomplete="off" spellcheck="false"
+      <div style="font-family:'Orbitron',monospace;font-size:10px;color:var(--muted);letter-spacing:2px;margin-bottom:14px">${idx+1} / ${words.length}</div>
+      <div class="ve-def" style="font-size:16px;color:var(--text);margin-bottom:14px">${w.definition}</div>
+      <div class="ve-example">"${gapped}"</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:8px">What is the missing word?</div>
+      <input class="ve-input" id="ve-input" type="text" placeholder="Type the word..." autocomplete="off" spellcheck="false"
         onkeydown="if(event.key==='Enter')checkVeWord()">
       <button class="submit-btn" style="width:100%;margin-top:10px" onclick="checkVeWord()">Check ✓</button>
       <div id="ve-fb" style="margin-top:10px;min-height:20px"></div>
