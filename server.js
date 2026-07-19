@@ -4,7 +4,7 @@ const fs = require('fs');
 
 const app = express();
 app.use(express.json({ limit: '2mb' }));
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname)));
 
 // ── Scores storage ──────────────────────────────────────────────────────────
 const SCORES_FILE = path.join(__dirname, 'scores.json');
@@ -72,7 +72,7 @@ app.post('/api/chat', async (req, res) => {
 
 // Fallback: serve index.html
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 const PORT = process.env.PORT || 3000;
