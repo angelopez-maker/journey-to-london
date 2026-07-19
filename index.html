@@ -1055,11 +1055,16 @@ function getBestVoice(){
   const voices=window.speechSynthesis.getVoices();
   if(!voices.length)return null;
   if(_cachedVoice&&voices.includes(_cachedVoice))return _cachedVoice;
+
+  // 1. Try named priority list (macOS/Windows premium voices)
   for(const name of VOICE_PRIORITY){
-    const v=voices.find(v=>v.name.includes(name));
+    const v=voices.find(v=>v.name===name||v.name.includes(name));
     if(v){_cachedVoice=v;return v;}
   }
-  // Fallback: prefer en-GB, then en-US, then any English
+  // 2. Android/Chrome: network voices (Google TTS) are non-local and high quality
+  const netEn=voices.filter(v=>v.lang.startsWith('en')&&v.localService===false);
+  if(netEn.length){_cachedVoice=netEn[0];return _cachedVoice;}
+  // 3. Any English voice
   _cachedVoice=voices.find(v=>v.lang==='en-GB')
     ||voices.find(v=>v.lang==='en-US')
     ||voices.find(v=>v.lang.startsWith('en'))
@@ -2739,14 +2744,20 @@ function renderPETSection(s,d){
           ${it.context||it.sentence?`<span style="font-size:14px;flex:1">${it.context||it.sentence}</span>`:''}
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;padding-left:4px">
-          ${(it.options||[]).map((opt,j)=>{
-            const letter=String.fromCharCode(65+j);
-            // Options may come as "A: word" or just "word"
-            const display=opt.replace(/^[A-D]:\s*/,'');
-            return `<label style="cursor:pointer;padding:6px 14px;border-radius:8px;border:1px solid var(--border);font-size:14px">
-              <input type="radio" name="rp5_q${i}" value="${letter}" style="accent-color:${col}">
-              <strong style="color:${col}">${letter}</strong> ${display}</label>`;
-          }).join('')}
+          ${(()=>{
+            // options can be array ["A: x","B: y"] or object {A:"x",B:"y"}
+            const opts=Array.isArray(it.options)?it.options
+              :it.options?Object.entries(it.options).map(([k,v])=>`${k}: ${v}`)
+              :it.choices?Array.isArray(it.choices)?it.choices:Object.entries(it.choices).map(([k,v])=>`${k}: ${v}`)
+              :[];
+            return opts.map((opt,j)=>{
+              const letter=String.fromCharCode(65+j);
+              const display=String(opt).replace(/^[A-D]:\s*/,'');
+              return `<label style="cursor:pointer;padding:6px 14px;border-radius:8px;border:1px solid var(--border);font-size:14px">
+                <input type="radio" name="rp5_q${i}" value="${letter}" style="accent-color:${col}">
+                <strong style="color:${col}">${letter}</strong> ${display}</label>`;
+            }).join('');
+          })()}
         </div>
         <div id="rp5_fb${i}" style="font-size:12px;margin-top:4px;min-height:16px"></div>
       </div>`;
@@ -2945,7 +2956,7 @@ function _normAns(s){return(s||'').trim().toLowerCase().replace(/[.,!?;:'"]+$/,'
 
 // Generic Multiple Choice check (rp1, rp4, rp5, lp3, lp4)
 function checkPETMC(prefix){
-  const items=_petCurrentData?.items||_petCurrentData?.gaps||[];
+  const items=_petCurrentData?.items||_petCurrentData?.gaps||_petCurrentData?.questions||[];
   if(!items.length){showToast('No answers to check.');return;}
   let score=0;
   items.forEach((it,i)=>{
