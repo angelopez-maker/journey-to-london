@@ -1295,21 +1295,45 @@ function updateRodrigoQuickNav(){
 }
 
 function openSpellingSemanal(){
-  const w=_calActive(SPELLING_CALENDAR)||_calNext(SPELLING_CALENDAR);
-  const unitName=w?w.unit:'Cambridge A1 Movers';
-  // Find the unit in CAM_MOVERS curriculum
+  // Show all 8 Cambridge Movers units — current week highlighted
+  openModule('movers');
+  const area=document.getElementById('module-content-area');
+  document.getElementById('mod-title').textContent='SPELLING SEMANAL';
+  const activeWeek=_calActive(SPELLING_CALENDAR);
+  const nextWeek=_calNext(SPELLING_CALENDAR);
+  const highlightUnit=(activeWeek||nextWeek)?.unit;
   const moversBook=CURRICULUM['CAM_MOVERS'];
-  const unitEntry=moversBook?.units?.find(u=>u.topic===unitName||u.name.includes(unitName));
-  state.currentUnit=unitEntry
-    ?{unitName:unitEntry.name,topic:unitEntry.topic,vocab:unitEntry.vocab}
-    :{unitName,topic:unitName,vocab:''};
+  const unitsHTML=moversBook.units.map(u=>{
+    const isHighlight=u.topic===highlightUnit||u.name.includes(highlightUnit||'__none__');
+    return `<button class="module-btn" style="--mc:${isHighlight?'var(--gold2)':'var(--blue2)'};text-align:left;padding:16px;${isHighlight?'border-color:var(--gold);':''}" onclick="startSpellingUnit('CAM_MOVERS',${u.id})">
+      <div style="font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;color:${isHighlight?'var(--gold2)':'var(--blue2)'}">Unit ${u.id} — ${u.topic}</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:3px">${u.vocab.split(',').slice(0,4).join(', ')}...</div>
+      ${isHighlight?`<div style="font-size:10px;color:var(--gold2);margin-top:4px;font-weight:700">${activeWeek?'📌 Esta semana':'📌 Próxima semana'}</div>`:''}
+    </button>`;
+  }).join('');
+  area.innerHTML=`<div style="max-width:680px;margin:0 auto">
+    <div style="background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.3);border-radius:14px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:14px">
+      <div style="font-size:28px">🔤</div>
+      <div>
+        <div style="font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:var(--blue2);letter-spacing:2px">MOVERS — SPELLING SEMANAL</div>
+        <div style="font-size:15px;font-weight:700;color:var(--text);margin-top:2px">Cambridge A1 Movers</div>
+        <div style="font-size:12px;color:var(--muted)">Elige la unidad que quieres practicar</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr;gap:10px">${unitsHTML}</div>
+  </div>`;
+}
+
+function startSpellingUnit(bookKey,unitId){
+  const unit=CURRICULUM[bookKey]?.units?.find(u=>u.id==unitId);
+  if(!unit)return;
+  state.currentUnit={unitName:unit.name,topic:unit.topic,vocab:unit.vocab||''};
   openModule('spelling');
 }
 
 function openMiniMockSemanal(){
-  const w=_calActive(MINI_MOCK_CALENDAR)||_calNext(MINI_MOCK_CALENDAR);
+  // Open Movers module — runMovers() already highlights current week's parts
   openModule('movers');
-  if(w)renderMiniMockMenu(w);
 }
 
 function renderMiniMockMenu(week){
