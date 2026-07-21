@@ -692,8 +692,8 @@
       </select>
     </div>
     </div><!-- /default-learning-sections -->
-    <div class="modules-label">Learning Modules</div>
-    <div class="modules-grid">
+    <div class="modules-label" id="modules-label-el">Learning Modules</div>
+    <div class="modules-grid" id="modules-grid-el">
       <button class="module-btn" data-module="learning" onclick="openModule('learning')"><div class="module-icon">📚</div><div class="module-name">Learning</div><div class="module-km">100 km</div></button>
       <button class="module-btn" data-module="reading" onclick="openModule('reading')"><div class="module-icon">📖</div><div class="module-name">Reading</div><div class="module-km">100 km</div></button>
       <button class="module-btn" data-module="listening" onclick="openModule('listening')"><div class="module-icon">🎧</div><div class="module-name">Listening</div><div class="module-km">100 km</div></button>
@@ -710,7 +710,7 @@
       <button class="module-btn" data-module="watching" onclick="openModule('watching')"><div class="module-icon">🎬</div><div class="module-name">Watching</div><div class="module-km">100 km</div></button>
       <button class="module-btn" data-module="resources" onclick="openModule('resources')"><div class="module-icon">📋</div><div class="module-name">Resources</div><div class="module-km">Reference</div></button>
     </div>
-    <button class="test-btn" onclick="openModule('test')">
+    <button class="test-btn" id="test-btn-el" onclick="openModule('test')">
       <span class="test-icon">🏆</span>
       <div><div>TEST</div><span class="test-sub">Full Evaluation · Up to 200 km bonus</span></div>
     </button>
@@ -1224,6 +1224,11 @@ function updateTopbar(){
   if(rqn)rqn.style.display=p==='rodrigo'?'block':'none';
   if(dls)dls.style.display=p==='rodrigo'?'none':'block';
   if(p==='rodrigo')updateRodrigoQuickNav();
+  // Rodrigo: hide modules grid and test button (everything accessible via 4 buttons)
+  ['modules-label-el','modules-grid-el','test-btn-el'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)el.style.display=p==='rodrigo'?'none':'';
+  });
   // Mini mock countdown (Rodrigo only)
   updateMockCountdown(p);
 }
