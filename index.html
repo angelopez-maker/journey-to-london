@@ -173,6 +173,27 @@
   .mock-countdown.done .mock-cd-days{color:#4ade80;}
   @keyframes pulse-border{0%,100%{box-shadow:0 0 0 0 rgba(251,191,36,.2);}50%{box-shadow:0 0 0 4px rgba(251,191,36,.05);}}
 
+  /* ── RODRIGO QUICK NAV ── */
+  .rqn-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px;}
+  .rqn-btn{background:var(--card);border-radius:18px;padding:22px 14px 18px;cursor:pointer;text-align:center;
+    display:flex;flex-direction:column;align-items:center;gap:7px;transition:transform .15s,box-shadow .15s;border:2px solid;}
+  .rqn-btn:hover{transform:translateY(-3px);}
+  .rqn-btn.spelling{border-color:var(--blue);} .rqn-btn.spelling:hover{box-shadow:0 8px 24px rgba(59,130,246,.25);}
+  .rqn-btn.mock{border-color:var(--gold);} .rqn-btn.mock:hover{box-shadow:0 8px 24px rgba(251,191,36,.25);}
+  .rqn-btn.libro{border-color:#4ade80;} .rqn-btn.libro:hover{box-shadow:0 8px 24px rgba(74,222,128,.25);}
+  .rqn-icon{font-size:34px;line-height:1;}
+  .rqn-cat{font-family:'Orbitron',monospace;font-size:10px;font-weight:700;letter-spacing:2px;margin-top:2px;}
+  .rqn-btn.spelling .rqn-cat{color:var(--blue2);}
+  .rqn-btn.mock .rqn-cat{color:var(--gold2);}
+  .rqn-btn.libro .rqn-cat{color:#4ade80;}
+  .rqn-title{font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;color:var(--text);}
+  .rqn-sub{font-size:11px;color:var(--muted);line-height:1.35;min-height:28px;}
+  .rqn-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;margin-top:2px;}
+  .rqn-badge.now{background:rgba(251,191,36,.2);color:var(--gold2);}
+  .rqn-badge.next{background:rgba(255,255,255,.07);color:var(--muted);}
+  @media(max-width:480px){.rqn-grid{grid-template-columns:1fr;}.rqn-btn{flex-direction:row;text-align:left;gap:14px;padding:16px 18px;}
+    .rqn-icon{font-size:28px;}.rqn-sub,.rqn-badge{display:none;}}
+
   /* ── DASHBOARD ── */
   #screen-dashboard{padding:0;flex-direction:column;}
   .dashboard-content{flex:1;padding:24px;max-width:900px;width:100%;margin:0 auto;}
@@ -555,6 +576,35 @@
       <div class="mock-cd-days" id="mock-cd-days"></div>
     </div>
 
+    <!-- Rodrigo Quick Nav — 3 big buttons (Rodrigo only) -->
+    <div id="rodrigo-quick-nav" style="display:none">
+      <div class="rqn-grid">
+        <button class="rqn-btn spelling" onclick="openSpellingSemanal()">
+          <div class="rqn-icon">🔤</div>
+          <div class="rqn-cat">MOVERS</div>
+          <div class="rqn-title">Spelling Semanal</div>
+          <div class="rqn-sub" id="rqn-spelling-sub">Cargando...</div>
+          <div class="rqn-badge" id="rqn-spelling-badge"></div>
+        </button>
+        <button class="rqn-btn mock" onclick="openMiniMockSemanal()">
+          <div class="rqn-icon">📝</div>
+          <div class="rqn-cat">MINI MOCK</div>
+          <div class="rqn-title" id="rqn-mock-title">Cambridge A1</div>
+          <div class="rqn-sub" id="rqn-mock-sub">Cargando...</div>
+          <div class="rqn-badge" id="rqn-mock-badge"></div>
+        </button>
+        <button class="rqn-btn libro" onclick="openLibroRodrigo()">
+          <div class="rqn-icon">📚</div>
+          <div class="rqn-cat">LIBRO</div>
+          <div class="rqn-title">Learning Lands 4</div>
+          <div class="rqn-sub">Elige un capítulo</div>
+          <div class="rqn-badge next">Cap. 6 activo</div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Default learning sections (Fernando + Rodrigo general modules) -->
+    <div id="default-learning-sections">
     <div class="topic-section">
       <div class="section-label">What do you want to learn today?</div>
       <div class="topic-input-wrap">
@@ -631,6 +681,7 @@
         <option value="">— Select a unit —</option>
       </select>
     </div>
+    </div><!-- /default-learning-sections -->
     <div class="modules-label">Learning Modules</div>
     <div class="modules-grid">
       <button class="module-btn" data-module="learning" onclick="openModule('learning')"><div class="module-icon">📚</div><div class="module-name">Learning</div><div class="module-km">100 km</div></button>
@@ -1157,17 +1208,208 @@ function updateTopbar(){
   });
   const petHero=document.getElementById('pet-btn-hero');
   if(petHero)petHero.style.display=p==='fernando'?'flex':'none';
+  // Rodrigo: 3-button quick nav instead of topic/duel/curriculum
+  const rqn=document.getElementById('rodrigo-quick-nav');
+  const dls=document.getElementById('default-learning-sections');
+  if(rqn)rqn.style.display=p==='rodrigo'?'block':'none';
+  if(dls)dls.style.display=p==='rodrigo'?'none':'block';
+  if(p==='rodrigo')updateRodrigoQuickNav();
   // Mini mock countdown (Rodrigo only)
   updateMockCountdown(p);
 }
 
-const MINI_MOCKS=[
-  {date:'2026-07-21', label:'R&W Part 6', desc:'Reading & Writing — Part 6'},
-  {date:'2026-07-28', label:'R&W Part 5', desc:'Reading & Writing — Part 5'},
-  {date:'2026-08-04', label:'Listening Part 1', desc:'Listening — Part 1'},
-  {date:'2026-08-11', label:'Listening Part 2', desc:'Listening — Part 2'},
-  {date:'2026-08-18', label:'Full Mock Exam',   desc:'Cambridge A1 Movers — Full Exam'},
+// ══ RODRIGO CALENDARS ══
+const SPELLING_CALENDAR=[
+  {start:'2026-08-03',end:'2026-08-07',unit:'A Favourite Toy Shop'},
+  {start:'2026-08-10',end:'2026-08-14',unit:'The Party'},
+  {start:'2026-08-17',end:'2026-08-21',unit:"At the Doctor's"},
+  {start:'2026-08-24',end:'2026-08-28',unit:"Uncle Charlie's Hotel"},
+  {start:'2026-08-31',end:'2026-09-04',unit:'From the Countryside to the Jungle'},
+  {start:'2026-09-07',end:'2026-09-11',unit:'The Weather'},
+  {start:'2026-09-21',end:'2026-09-25',unit:'Our Town'},
+  {start:'2026-09-28',end:'2026-10-02',unit:'Dreaming of Holidays'},
 ];
+
+const MINI_MOCK_CALENDAR=[
+  {start:'2026-07-20',end:'2026-07-24',parts:['rw6'],       label:'R&W Part 6',          desc:'Story completion — word box'},
+  {start:'2026-08-03',end:'2026-08-07',parts:['l5','rw5'],  label:'Listening 5 + R&W 5', desc:'Listening Part 5 · Open cloze'},
+  {start:'2026-08-17',end:'2026-08-21',parts:['l4','rw4'],  label:'Listening 4 + R&W 4', desc:'Listening Part 4 · Multiple choice cloze'},
+  {start:'2026-08-31',end:'2026-09-04',parts:['l3','rw3'],  label:'Listening 3 + R&W 3', desc:'Listening Part 3 · True/False'},
+  {start:'2026-09-21',end:'2026-09-25',parts:['l2','rw2'],  label:'Listening 2 + R&W 2', desc:'Listening Part 2 · Matching'},
+  {start:'2026-10-05',end:'2026-10-09',parts:['l1','rw1'],  label:'Listening 1 + R&W 1', desc:'Listening Part 1 · Multiple choice'},
+];
+
+const MOCK_PART_INFO={
+  rw1:{label:'R&W Part 1',desc:'3-option multiple choice',icon:'🔤'},
+  rw2:{label:'R&W Part 2',desc:'Match characters to descriptions',icon:'🔗'},
+  rw3:{label:'R&W Part 3',desc:'True / False story questions',icon:'✅'},
+  rw4:{label:'R&W Part 4',desc:'Multiple choice cloze (A/B/C)',icon:'🎯'},
+  rw5:{label:'R&W Part 5',desc:'Open cloze — fill one word',icon:'✏️'},
+  rw6:{label:'R&W Part 6',desc:'Story completion — word box',icon:'📝'},
+  l1: {label:'Listening Part 1',desc:'Match people to activities',icon:'🎧'},
+  l2: {label:'Listening Part 2',desc:'Listen and write information',icon:'🎧'},
+  l3: {label:'Listening Part 3',desc:'Listen and choose the picture',icon:'🎧'},
+  l4: {label:'Listening Part 4',desc:'Listen and tick the answer',icon:'🎧'},
+  l5: {label:'Listening Part 5',desc:'Listen and colour / write',icon:'🎧'},
+};
+
+function _calToday(){return new Date().toLocaleDateString('en-CA');}
+function _calActive(cal){const t=_calToday();return cal.find(w=>w.start<=t&&t<=w.end)||null;}
+function _calNext(cal){const t=_calToday();return cal.find(w=>w.start>t)||null;}
+function _calFmt(iso){const d=new Date(iso+'T12:00:00');return d.toLocaleDateString('es-CL',{day:'numeric',month:'short'});}
+
+function updateRodrigoQuickNav(){
+  // Spelling
+  const sp=_calActive(SPELLING_CALENDAR)||_calNext(SPELLING_CALENDAR);
+  const spSub=document.getElementById('rqn-spelling-sub');
+  const spBadge=document.getElementById('rqn-spelling-badge');
+  if(spSub&&spBadge){
+    const isNow=!!_calActive(SPELLING_CALENDAR);
+    if(sp){
+      spSub.textContent=sp.unit;
+      spBadge.textContent=isNow?'¡Esta semana!':_calFmt(sp.start);
+      spBadge.className='rqn-badge '+(isNow?'now':'next');
+    } else {
+      spSub.textContent='¡Todas las unidades completadas!';
+      spBadge.textContent='🏆';spBadge.className='rqn-badge now';
+    }
+  }
+  // Mini Mock
+  const mk=_calActive(MINI_MOCK_CALENDAR)||_calNext(MINI_MOCK_CALENDAR);
+  const mkTitle=document.getElementById('rqn-mock-title');
+  const mkSub=document.getElementById('rqn-mock-sub');
+  const mkBadge=document.getElementById('rqn-mock-badge');
+  if(mkTitle&&mkSub&&mkBadge){
+    const isNow=!!_calActive(MINI_MOCK_CALENDAR);
+    if(mk){
+      mkTitle.textContent=mk.label;
+      mkSub.textContent=mk.desc;
+      mkBadge.textContent=isNow?'¡Esta semana!':_calFmt(mk.start);
+      mkBadge.className='rqn-badge '+(isNow?'now':'next');
+    } else {
+      mkTitle.textContent='Completado';
+      mkSub.textContent='¡Todas las secciones listas!';
+      mkBadge.textContent='🏆';mkBadge.className='rqn-badge now';
+    }
+  }
+}
+
+function openSpellingSemanal(){
+  const w=_calActive(SPELLING_CALENDAR)||_calNext(SPELLING_CALENDAR);
+  const unitName=w?w.unit:'Cambridge A1 Movers';
+  // Find the unit in CAM_MOVERS curriculum
+  const moversBook=CURRICULUM['CAM_MOVERS'];
+  const unitEntry=moversBook?.units?.find(u=>u.topic===unitName||u.name.includes(unitName));
+  state.currentUnit=unitEntry
+    ?{unitName:unitEntry.name,topic:unitEntry.topic,vocab:unitEntry.vocab}
+    :{unitName,topic:unitName,vocab:''};
+  openModule('spelling');
+}
+
+function openMiniMockSemanal(){
+  const w=_calActive(MINI_MOCK_CALENDAR)||_calNext(MINI_MOCK_CALENDAR);
+  openModule('movers');
+  if(w)renderMiniMockMenu(w);
+}
+
+function renderMiniMockMenu(week){
+  const area=document.getElementById('module-content-area');
+  const isNow=!!_calActive(MINI_MOCK_CALENDAR);
+  const partsHTML=week.parts.map(p=>{
+    const info=MOCK_PART_INFO[p]||{label:p,desc:'',icon:'📝'};
+    return `<button class="module-btn" style="--mc:#a78bfa;text-align:left;padding:18px" onclick="runMoversPart('${p}')">
+      <div style="font-size:28px;margin-bottom:6px">${info.icon}</div>
+      <div style="font-family:'Rajdhani',sans-serif;font-weight:700;font-size:15px;color:#a78bfa">${info.label}</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px">${info.desc}</div>
+    </button>`;
+  }).join('');
+  area.innerHTML=`<div style="max-width:680px;margin:0 auto">
+    <div style="background:rgba(251,191,36,.08);border:1px solid var(--gold);border-radius:14px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:14px">
+      <div style="font-size:28px">📝</div>
+      <div>
+        <div style="font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:var(--gold2);letter-spacing:2px">MINI MOCK${isNow?' — ¡ESTA SEMANA!':''}</div>
+        <div style="font-size:16px;font-weight:700;color:var(--text);margin-top:2px">${week.label}</div>
+        <div style="font-size:12px;color:var(--muted)">${week.desc}</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">${partsHTML}</div>
+    <button onclick="runMovers()" style="margin-top:16px;background:none;border:1px solid var(--border);border-radius:10px;padding:10px 16px;color:var(--muted);font-size:12px;cursor:pointer;width:100%">← Ver todos los módulos Movers</button>
+  </div>`;
+}
+
+function openLibroRodrigo(){
+  // Open the Learning Lands book selector as a module
+  openModule('movers');
+  const area=document.getElementById('module-content-area');
+  const book=CURRICULUM['LEARNING_LANDS_4'];
+  const unitsHTML=book.units.map(u=>`
+    <button class="module-btn" style="--mc:#4ade80;text-align:left;padding:16px" onclick="selectLibroUnit('LEARNING_LANDS_4','${u.id}')">
+      <div style="font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;color:#4ade80">${u.name}</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px">${u.topic}</div>
+    </button>`).join('');
+  area.innerHTML=`<div style="max-width:680px;margin:0 auto">
+    <div style="background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.3);border-radius:14px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:14px">
+      <div style="font-size:28px">📚</div>
+      <div>
+        <div style="font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:#4ade80;letter-spacing:2px">LIBRO</div>
+        <div style="font-size:16px;font-weight:700;color:var(--text);margin-top:2px">Learning Lands Level 4</div>
+        <div style="font-size:12px;color:var(--muted)">Selecciona un capítulo para practicar</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr;gap:10px">${unitsHTML}</div>
+  </div>`;
+}
+
+function selectLibroUnit(bookKey,unitId){
+  const book=CURRICULUM[bookKey];
+  const unit=book?.units?.find(u=>u.id==unitId);
+  if(!unit)return;
+  state.currentUnit={unitName:unit.name,topic:unit.topic,vocab:unit.vocab||''};
+  // Show module picker for this unit
+  const area=document.getElementById('module-content-area');
+  const modulePicks=[
+    {id:'learning',icon:'📚',label:'Learning',km:'100 km'},
+    {id:'reading', icon:'📖',label:'Reading', km:'100 km'},
+    {id:'writing', icon:'✏️',label:'Writing',  km:'60-100 km'},
+    {id:'spelling',icon:'🔤',label:'Spelling', km:'15 km / ✓'},
+    {id:'talking', icon:'🎤',label:'Talking',  km:'100 km'},
+  ];
+  const modsHTML=modulePicks.map(m=>`<button class="module-btn" style="--mc:#4ade80;text-align:left;padding:16px" onclick="openModule('${m.id}')">
+    <div style="font-size:22px;margin-bottom:4px">${m.icon}</div>
+    <div style="font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;color:#4ade80">${m.label}</div>
+    <div style="font-size:11px;color:var(--muted);margin-top:2px">${m.km}</div>
+  </button>`).join('');
+  area.innerHTML=`<div style="max-width:680px;margin:0 auto">
+    <div style="background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.3);border-radius:14px;padding:14px 18px;margin-bottom:20px">
+      <div style="font-size:11px;color:#4ade80;font-family:'Orbitron',monospace;font-weight:700;letter-spacing:2px">CAPÍTULO SELECCIONADO</div>
+      <div style="font-size:16px;font-weight:700;color:var(--text);margin-top:4px">${unit.name}</div>
+      <div style="font-size:12px;color:var(--muted)">Tema: ${unit.topic}</div>
+    </div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:12px">¿Qué quieres practicar?</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px">${modsHTML}</div>
+    <button onclick="openLibroRodrigo()" style="margin-top:16px;background:none;border:1px solid var(--border);border-radius:10px;padding:10px 16px;color:var(--muted);font-size:12px;cursor:pointer;width:100%">← Volver a capítulos</button>
+  </div>`;
+}
+
+function runMoversPart(part){
+  switch(part){
+    case 'rw1':return runMoversRW1();
+    case 'rw2':return runMoversRW2();
+    case 'rw3':return runMoversRW3();
+    case 'rw4':return runMoversRW4();
+    case 'rw5':return runMoversRW5();
+    case 'rw6':return runMoversRW6();
+    case 'l1': return runMoversL('l1');
+    case 'l2': return runMoversL('l2');
+    case 'l3': return runMoversL('l3');
+    case 'l4': return runMoversL('l4');
+    case 'l5': return runMoversL('l5');
+    default:showToast('Coming soon!');
+  }
+}
+
+// Keep old MINI_MOCKS for updateMockCountdown compatibility
+const MINI_MOCKS=MINI_MOCK_CALENDAR.map(w=>({date:w.start,label:w.label,desc:w.desc}));
 
 function updateMockCountdown(profile){
   const el=document.getElementById('mini-mock-countdown');
@@ -1214,7 +1456,16 @@ function onTopicInput(i){document.getElementById('topic-clear').style.display=i.
 function clearTopic(){document.getElementById('topic-input').value='';document.getElementById('topic-clear').style.display='none';document.querySelectorAll('.preset-chip').forEach(c=>c.classList.remove('selected'));}
 function setTopic(chip){document.querySelectorAll('.preset-chip').forEach(c=>c.classList.remove('selected'));chip.classList.add('selected');document.getElementById('topic-input').value=chip.textContent;document.getElementById('topic-clear').style.display='block';}
 
-function getTopic(){return document.getElementById('topic-input').value.trim()||'General English';}
+function getTopic(){
+  const inp=document.getElementById('topic-input');
+  if(inp&&inp.value.trim())return inp.value.trim();
+  // Rodrigo auto-topic: use current spelling week
+  if(state.profile==='rodrigo'){
+    const w=_calActive(SPELLING_CALENDAR)||_calNext(SPELLING_CALENDAR);
+    if(w)return w.unit;
+  }
+  return 'General English';
+}
 function getUnitContext(){
   const unitSel=document.getElementById('curriculum-unit-select');
   if(!unitSel||!unitSel.value)return null;
@@ -2299,34 +2550,37 @@ function vmSelect(col,idx){
 // ══ MOVERS EXAM ══
 function runMovers(){
   const area=document.getElementById('module-content-area');
-  area.innerHTML=`
-    <div style="max-width:680px;margin:0 auto">
-      <h2 style="font-family:'Orbitron',monospace;font-size:16px;color:var(--text);margin-bottom:8px">🎓 Cambridge A1 Movers</h2>
-      <p style="color:var(--muted);font-size:13px;margin-bottom:20px">Choose a part to practise:</p>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-        <button class="module-btn" style="--mc:#a78bfa;text-align:left;padding:18px" onclick="runMoversRW6()">
-          <div style="font-size:24px;margin-bottom:6px">📝</div>
-          <div style="font-family:'Rajdhani',sans-serif;font-weight:700;font-size:15px;color:#a78bfa">R&amp;W Part 6</div>
-          <div style="font-size:12px;color:var(--muted);margin-top:4px">Complete the story — word box</div>
-          <div style="font-size:11px;color:var(--gold2);margin-top:6px">⚠️ MINI MOCK THIS WEEK</div>
-        </button>
-        <button class="module-btn" style="--mc:var(--muted);text-align:left;padding:18px;opacity:.45;cursor:not-allowed">
-          <div style="font-size:24px;margin-bottom:6px">🔒</div>
-          <div style="font-family:'Rajdhani',sans-serif;font-weight:700;font-size:15px;color:var(--muted)">R&amp;W Part 5</div>
-          <div style="font-size:12px;color:var(--muted);margin-top:4px">Coming soon</div>
-        </button>
-        <button class="module-btn" style="--mc:var(--muted);text-align:left;padding:18px;opacity:.45;cursor:not-allowed">
-          <div style="font-size:24px;margin-bottom:6px">🔒</div>
-          <div style="font-family:'Rajdhani',sans-serif;font-weight:700;font-size:15px;color:var(--muted)">Listening Part 1</div>
-          <div style="font-size:12px;color:var(--muted);margin-top:4px">Coming soon</div>
-        </button>
-        <button class="module-btn" style="--mc:var(--muted);text-align:left;padding:18px;opacity:.45;cursor:not-allowed">
-          <div style="font-size:24px;margin-bottom:6px">🔒</div>
-          <div style="font-family:'Rajdhani',sans-serif;font-weight:700;font-size:15px;color:var(--muted)">Full Mock Exam</div>
-          <div style="font-size:12px;color:var(--muted);margin-top:4px">Coming soon</div>
-        </button>
-      </div>
-    </div>`;
+  const activeMock=_calActive(MINI_MOCK_CALENDAR);
+  const rwParts=[
+    {id:'rw1',label:'R&W Part 1',desc:'3-option multiple choice',icon:'🔤'},
+    {id:'rw2',label:'R&W Part 2',desc:'Match characters',icon:'🔗'},
+    {id:'rw3',label:'R&W Part 3',desc:'True / False',icon:'✅'},
+    {id:'rw4',label:'R&W Part 4',desc:'Multiple choice cloze',icon:'🎯'},
+    {id:'rw5',label:'R&W Part 5',desc:'Open cloze',icon:'✏️'},
+    {id:'rw6',label:'R&W Part 6',desc:'Story — word box',icon:'📝'},
+  ];
+  const lParts=[
+    {id:'l1',label:'Listening 1',desc:'Match people',icon:'🎧'},
+    {id:'l2',label:'Listening 2',desc:'Write information',icon:'🎧'},
+    {id:'l3',label:'Listening 3',desc:'Choose picture',icon:'🎧'},
+    {id:'l4',label:'Listening 4',desc:'Multiple choice',icon:'🎧'},
+    {id:'l5',label:'Listening 5',desc:'Listen & answer',icon:'🎧'},
+  ];
+  const makeBtn=(p)=>{
+    const isMock=activeMock&&activeMock.parts.includes(p.id);
+    return `<button class="module-btn" style="--mc:${isMock?'var(--gold2)':'#a78bfa'};text-align:left;padding:16px;${isMock?'border-color:var(--gold);':''}" onclick="runMoversPart('${p.id}')">
+      <div style="font-size:22px;margin-bottom:4px">${p.icon}</div>
+      <div style="font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;color:${isMock?'var(--gold2)':'#a78bfa'}">${p.label}</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:3px">${p.desc}</div>
+      ${isMock?'<div style="font-size:10px;color:var(--gold2);margin-top:4px;font-weight:700">📌 Esta semana</div>':''}
+    </button>`;
+  };
+  area.innerHTML=`<div style="max-width:680px;margin:0 auto">
+    <div style="font-family:'Orbitron',monospace;font-size:11px;font-weight:700;letter-spacing:2px;color:var(--muted);margin-bottom:10px">READING & WRITING</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px">${rwParts.map(makeBtn).join('')}</div>
+    <div style="font-family:'Orbitron',monospace;font-size:11px;font-weight:700;letter-spacing:2px;color:var(--muted);margin-bottom:10px">LISTENING</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">${lParts.map(makeBtn).join('')}</div>
+  </div>`;
 }
 
 async function runMoversRW6(){
@@ -2488,6 +2742,431 @@ function checkMoversRW6(){
   else{msg=`<div class="result-box" style="border-color:var(--red);background:rgba(239,68,68,.1)">💪 Keep practising! ${correct}/${total} correct — +${km} km. Hover wrong answers to see the correct word.</div>`;}
   fb.innerHTML=msg+`<button class="submit-btn" style="margin-top:12px;width:100%" onclick="runMoversRW6()">New story 🔄</button>`;
   showToast(`📝 Movers Part 6: ${correct}/${total} — +${km} km!`);
+}
+
+// ══ MOVERS R&W PARTS 1-5 ══
+
+async function runMoversRW1(){
+  showLoading('Preparing Part 1...');
+  const unitCtx=state.currentUnit||getUnitContext();
+  const topicHint=unitCtx?`Use the topic "${unitCtx.unitName}". Prefer vocabulary: ${unitCtx.vocab}.`:'Use Cambridge A1 Movers topics (animals, toys, food, clothes, etc).';
+  const prompt=`You are a Cambridge A1 Movers Reading & Writing Part 1 generator.
+Create 5 picture-description multiple-choice items. Each has a short picture description and 3 word options (A, B, C). Only one is correct.
+${topicHint}
+Rules: words must be A1 Movers level. All 5 answers must be different words.
+Return ONLY valid JSON:
+{"items":[
+  {"picture":"A boy is kicking a round object in the park","options":["ball","bat","kite"],"answer":"ball"},
+  ...5 items
+]}`;
+  try{
+    const raw=await callClaude(prompt,600);
+    const d=parseJSON(raw);
+    renderMoversRW1(d);
+  }catch(e){showError(e.message);}
+}
+
+function renderMoversRW1(d){
+  const area=document.getElementById('module-content-area');
+  window._moversRW1Data=d;
+  const itemsHTML=d.items.map((it,i)=>`
+    <div style="background:var(--card2);border-radius:12px;padding:16px;margin-bottom:12px">
+      <div style="font-size:13px;color:var(--text);margin-bottom:10px"><b>${i+1}.</b> 🖼️ ${it.picture}</div>
+      ${it.options.map((op,j)=>`<label style="display:flex;align-items:center;gap:10px;margin:6px 0;cursor:pointer;font-size:14px">
+        <input type="radio" name="rw1_${i}" value="${op}" style="accent-color:var(--blue)"> ${op}
+      </label>`).join('')}
+      <div id="rw1_fb${i}" style="font-size:12px;margin-top:6px"></div>
+    </div>`).join('');
+  area.innerHTML=`<div style="max-width:680px;margin:0 auto">
+    <div style="font-family:'Orbitron',monospace;font-size:12px;color:#a78bfa;margin-bottom:16px;font-weight:700">📝 R&W PART 1 — 3-OPTION MULTIPLE CHOICE</div>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:16px">Look at the picture. Choose the right word. ✏️</p>
+    ${itemsHTML}
+    <button class="submit-btn" onclick="checkMoversRW1()">Check answers ✓</button>
+    <div id="rw1_result" style="margin-top:16px"></div>
+  </div>`;
+}
+
+function checkMoversRW1(){
+  const d=window._moversRW1Data;if(!d)return;
+  let correct=0;
+  d.items.forEach((it,i)=>{
+    const sel=document.querySelector(`input[name="rw1_${i}"]:checked`);
+    const fb=document.getElementById('rw1_fb'+i);
+    if(sel&&sel.value===it.answer){correct++;if(fb)fb.innerHTML='<span style="color:#4ade80">✓ Correct!</span>';}
+    else{if(fb)fb.innerHTML=`<span style="color:#f87171">✗ Answer: <b>${it.answer}</b></span>`;}
+  });
+  const total=d.items.length,pct=correct/total;
+  const km=Math.round(30+(pct*20));
+  addKm(km);
+  const res=document.getElementById('rw1_result');
+  if(res){
+    const msg=pct===1?`🏆 Perfect! ${correct}/${total} — +${km} km!`:pct>=.6?`⭐ Good! ${correct}/${total} — +${km} km!`:`💪 Keep going! ${correct}/${total} — +${km} km`;
+    res.innerHTML=`<div class="result-box" style="border-color:${pct===1?'#4ade80':pct>=.6?'var(--gold2)':'var(--red)'}">${msg}</div><button class="submit-btn" style="margin-top:10px;width:100%" onclick="runMoversRW1()">New exercise 🔄</button>`;
+  }
+  showToast(`R&W Part 1: ${correct}/${total} — +${km} km!`);
+}
+
+async function runMoversRW2(){
+  showLoading('Preparing Part 2...');
+  const unitCtx=state.currentUnit||getUnitContext();
+  const topicHint=unitCtx?`Topic: "${unitCtx.unitName}". Vocabulary: ${unitCtx.vocab}.`:'Use Cambridge A1 Movers topics.';
+  const prompt=`You are a Cambridge A1 Movers Reading & Writing Part 2 generator.
+Create a short paragraph about a child's family or friends (4-5 characters with names). Then write 5 questions asking who did what.
+${topicHint}
+Rules: A1 Movers level. Each question has a unique answer (one of the character names).
+Return ONLY valid JSON:
+{"passage":"Tom loves his family. His mum ...","characters":["Tom","Mum","Dad","Grandma","Uncle Jack"],
+"questions":[{"text":"This person likes cooking.","answer":"Mum"},... 5 questions]}`;
+  try{
+    const raw=await callClaude(prompt,700);
+    const d=parseJSON(raw);
+    renderMoversRW2(d);
+  }catch(e){showError(e.message);}
+}
+
+function renderMoversRW2(d){
+  const area=document.getElementById('module-content-area');
+  window._moversRW2Data=d;
+  const qHTML=d.questions.map((q,i)=>`
+    <div style="background:var(--card2);border-radius:10px;padding:14px;margin-bottom:10px">
+      <div style="font-size:13px;color:var(--text);margin-bottom:8px"><b>${i+1}.</b> ${q.text}</div>
+      <select id="rw2_sel${i}" style="width:100%;padding:9px 12px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px">
+        <option value="">— Choose a name —</option>
+        ${d.characters.map(c=>`<option value="${c}">${c}</option>`).join('')}
+      </select>
+      <div id="rw2_fb${i}" style="font-size:12px;margin-top:6px"></div>
+    </div>`).join('');
+  area.innerHTML=`<div style="max-width:680px;margin:0 auto">
+    <div style="font-family:'Orbitron',monospace;font-size:12px;color:#a78bfa;margin-bottom:16px;font-weight:700">📝 R&W PART 2 — MATCHING</div>
+    <div style="background:var(--card2);border-radius:12px;padding:16px;margin-bottom:20px;font-size:13px;line-height:1.7;color:var(--text)">${d.passage}</div>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:12px">Who does each thing? Choose a name. ✏️</p>
+    ${qHTML}
+    <button class="submit-btn" onclick="checkMoversRW2()">Check answers ✓</button>
+    <div id="rw2_result" style="margin-top:16px"></div>
+  </div>`;
+}
+
+function checkMoversRW2(){
+  const d=window._moversRW2Data;if(!d)return;
+  let correct=0;
+  d.questions.forEach((q,i)=>{
+    const sel=document.getElementById('rw2_sel'+i);
+    const fb=document.getElementById('rw2_fb'+i);
+    if(sel&&sel.value===q.answer){correct++;if(fb)fb.innerHTML='<span style="color:#4ade80">✓ Correct!</span>';}
+    else{if(fb)fb.innerHTML=`<span style="color:#f87171">✗ Answer: <b>${q.answer}</b></span>`;}
+  });
+  const total=d.questions.length,pct=correct/total,km=Math.round(30+(pct*20));
+  addKm(km);
+  const res=document.getElementById('rw2_result');
+  if(res)res.innerHTML=`<div class="result-box" style="border-color:${pct===1?'#4ade80':pct>=.6?'var(--gold2)':'var(--red)'}">${pct===1?'🏆 Perfect!':pct>=.6?'⭐ Good!':'💪 Keep going!'} ${correct}/${total} — +${km} km!</div><button class="submit-btn" style="margin-top:10px;width:100%" onclick="runMoversRW2()">New exercise 🔄</button>`;
+  showToast(`R&W Part 2: ${correct}/${total} — +${km} km!`);
+}
+
+async function runMoversRW3(){
+  showLoading('Preparing Part 3...');
+  const unitCtx=state.currentUnit||getUnitContext();
+  const topicHint=unitCtx?`Topic: "${unitCtx.unitName}". Vocabulary: ${unitCtx.vocab}.`:'Use Cambridge A1 Movers topics.';
+  const prompt=`You are a Cambridge A1 Movers Reading & Writing Part 3 generator.
+Write a short story (60-80 words, A1 Movers level). Then write 6 True/False statements about it.
+${topicHint}
+Return ONLY valid JSON:
+{"story":"Last Saturday, Emma went to the park...","statements":[{"text":"Emma went to the park on Friday.","answer":"false"},... 6 items]}`;
+  try{
+    const raw=await callClaude(prompt,700);
+    const d=parseJSON(raw);
+    renderMoversRW3(d);
+  }catch(e){showError(e.message);}
+}
+
+function renderMoversRW3(d){
+  const area=document.getElementById('module-content-area');
+  window._moversRW3Data=d;
+  const stHTML=d.statements.map((st,i)=>`
+    <div style="background:var(--card2);border-radius:10px;padding:14px;margin-bottom:10px">
+      <div style="font-size:13px;color:var(--text);margin-bottom:8px"><b>${i+1}.</b> ${st.text}</div>
+      <label style="margin-right:20px;cursor:pointer;font-size:14px"><input type="radio" name="rw3_${i}" value="true" style="accent-color:#4ade80"> True</label>
+      <label style="cursor:pointer;font-size:14px"><input type="radio" name="rw3_${i}" value="false" style="accent-color:#f87171"> False</label>
+      <div id="rw3_fb${i}" style="font-size:12px;margin-top:6px"></div>
+    </div>`).join('');
+  area.innerHTML=`<div style="max-width:680px;margin:0 auto">
+    <div style="font-family:'Orbitron',monospace;font-size:12px;color:#a78bfa;margin-bottom:16px;font-weight:700">📝 R&W PART 3 — TRUE / FALSE</div>
+    <div style="background:var(--card2);border-radius:12px;padding:16px;margin-bottom:20px;font-size:13px;line-height:1.7;color:var(--text)">${d.story}</div>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:12px">Read the story. Are these sentences true or false? ✏️</p>
+    ${stHTML}
+    <button class="submit-btn" onclick="checkMoversRW3()">Check answers ✓</button>
+    <div id="rw3_result" style="margin-top:16px"></div>
+  </div>`;
+}
+
+function checkMoversRW3(){
+  const d=window._moversRW3Data;if(!d)return;
+  let correct=0;
+  d.statements.forEach((st,i)=>{
+    const sel=document.querySelector(`input[name="rw3_${i}"]:checked`);
+    const fb=document.getElementById('rw3_fb'+i);
+    if(sel&&sel.value===st.answer){correct++;if(fb)fb.innerHTML='<span style="color:#4ade80">✓ Correct!</span>';}
+    else{if(fb)fb.innerHTML=`<span style="color:#f87171">✗ Answer: <b>${st.answer==='true'?'True':'False'}</b></span>`;}
+  });
+  const total=d.statements.length,pct=correct/total,km=Math.round(30+(pct*20));
+  addKm(km);
+  const res=document.getElementById('rw3_result');
+  if(res)res.innerHTML=`<div class="result-box" style="border-color:${pct===1?'#4ade80':pct>=.6?'var(--gold2)':'var(--red)'}">${pct===1?'🏆 Perfect!':pct>=.6?'⭐ Good!':'💪 Keep going!'} ${correct}/${total} — +${km} km!</div><button class="submit-btn" style="margin-top:10px;width:100%" onclick="runMoversRW3()">New exercise 🔄</button>`;
+  showToast(`R&W Part 3: ${correct}/${total} — +${km} km!`);
+}
+
+async function runMoversRW4(){
+  showLoading('Preparing Part 4...');
+  const unitCtx=state.currentUnit||getUnitContext();
+  const topicHint=unitCtx?`Topic: "${unitCtx.unitName}". Vocabulary: ${unitCtx.vocab}.`:'Use Cambridge A1 Movers topics.';
+  const prompt=`You are a Cambridge A1 Movers Reading & Writing Part 4 generator.
+Write a short informational text (50-70 words) with 5 numbered gaps __(1)__ to __(5)__. For each gap provide 3 options (A, B, C) where only one is correct.
+${topicHint}
+Return ONLY valid JSON:
+{"text":"Dolphins are very __(1)__ animals. They can __(2)__ very fast in the water.","gaps":[{"n":1,"options":["clever","slowly","heavy"],"answer":"clever"},... 5 gaps]}`;
+  try{
+    const raw=await callClaude(prompt,700);
+    const d=parseJSON(raw);
+    renderMoversRW4(d);
+  }catch(e){showError(e.message);}
+}
+
+function renderMoversRW4(d){
+  const area=document.getElementById('module-content-area');
+  window._moversRW4Data=d;
+  // Render text with gap placeholders as numbered labels
+  let displayText=d.text;
+  d.gaps.forEach(g=>{displayText=displayText.replace(`__(${g.n})__`,`<span style="font-weight:700;color:#a78bfa">(${g.n})</span>`);});
+  const gapsHTML=d.gaps.map(g=>`
+    <div style="background:var(--card2);border-radius:10px;padding:14px;margin-bottom:10px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+      <div style="font-family:'Orbitron',monospace;font-size:13px;font-weight:700;color:#a78bfa;flex-shrink:0">(${g.n})</div>
+      ${g.options.map((op,j)=>`<label style="cursor:pointer;font-size:14px;display:flex;align-items:center;gap:6px"><input type="radio" name="rw4_${g.n}" value="${op}" style="accent-color:var(--blue)"> ${String.fromCharCode(65+j)}) ${op}</label>`).join('')}
+      <div id="rw4_fb${g.n}" style="font-size:12px;width:100%"></div>
+    </div>`).join('');
+  area.innerHTML=`<div style="max-width:680px;margin:0 auto">
+    <div style="font-family:'Orbitron',monospace;font-size:12px;color:#a78bfa;margin-bottom:16px;font-weight:700">📝 R&W PART 4 — MULTIPLE CHOICE CLOZE</div>
+    <div style="background:var(--card2);border-radius:12px;padding:16px;margin-bottom:20px;font-size:13px;line-height:1.9;color:var(--text)">${displayText}</div>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:12px">Choose the best word (A, B or C) for each gap. ✏️</p>
+    ${gapsHTML}
+    <button class="submit-btn" onclick="checkMoversRW4()">Check answers ✓</button>
+    <div id="rw4_result" style="margin-top:16px"></div>
+  </div>`;
+}
+
+function checkMoversRW4(){
+  const d=window._moversRW4Data;if(!d)return;
+  let correct=0;
+  d.gaps.forEach(g=>{
+    const sel=document.querySelector(`input[name="rw4_${g.n}"]:checked`);
+    const fb=document.getElementById('rw4_fb'+g.n);
+    if(sel&&sel.value===g.answer){correct++;if(fb)fb.innerHTML='<span style="color:#4ade80">✓ Correct!</span>';}
+    else{if(fb)fb.innerHTML=`<span style="color:#f87171">✗ Answer: <b>${g.answer}</b></span>`;}
+  });
+  const total=d.gaps.length,pct=correct/total,km=Math.round(30+(pct*20));
+  addKm(km);
+  const res=document.getElementById('rw4_result');
+  if(res)res.innerHTML=`<div class="result-box" style="border-color:${pct===1?'#4ade80':pct>=.6?'var(--gold2)':'var(--red)'}">${pct===1?'🏆 Perfect!':pct>=.6?'⭐ Good!':'💪 Keep going!'} ${correct}/${total} — +${km} km!</div><button class="submit-btn" style="margin-top:10px;width:100%" onclick="runMoversRW4()">New exercise 🔄</button>`;
+  showToast(`R&W Part 4: ${correct}/${total} — +${km} km!`);
+}
+
+async function runMoversRW5(){
+  showLoading('Preparing Part 5...');
+  const unitCtx=state.currentUnit||getUnitContext();
+  const topicHint=unitCtx?`Topic: "${unitCtx.unitName}". Vocabulary: ${unitCtx.vocab}.`:'Use Cambridge A1 Movers topics.';
+  const prompt=`You are a Cambridge A1 Movers Reading & Writing Part 5 generator.
+Write a short story (60-80 words, A1 Movers level) with 6 numbered gaps __(1)__ to __(6)__. Each gap must be filled with exactly ONE common English word.
+${topicHint}
+Rules: gaps should test common words (articles, prepositions, verbs, adjectives). Not proper nouns.
+Return ONLY valid JSON:
+{"story":"Tom __(1)__ to school every day. He __(2)__ his bag and puts __(3)__ his shoes.","gaps":[{"n":1,"answer":"goes"},... 6 gaps]}`;
+  try{
+    const raw=await callClaude(prompt,600);
+    const d=parseJSON(raw);
+    renderMoversRW5(d);
+  }catch(e){showError(e.message);}
+}
+
+function renderMoversRW5(d){
+  const area=document.getElementById('module-content-area');
+  window._moversRW5Data=d;
+  let displayStory=d.story;
+  d.gaps.forEach(g=>{
+    displayStory=displayStory.replace(`__(${g.n})__`,
+      `<input type="text" id="rw5_inp${g.n}" placeholder="(${g.n})" style="width:80px;padding:4px 8px;background:var(--card);border:1px solid var(--blue);border-radius:6px;color:var(--text);font-size:14px;text-align:center">`);
+  });
+  area.innerHTML=`<div style="max-width:680px;margin:0 auto">
+    <div style="font-family:'Orbitron',monospace;font-size:12px;color:#a78bfa;margin-bottom:16px;font-weight:700">📝 R&W PART 5 — OPEN CLOZE</div>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:16px">Read the story. Write ONE word in each gap. ✏️</p>
+    <div style="background:var(--card2);border-radius:12px;padding:20px;font-size:14px;line-height:2.2;color:var(--text)">${displayStory}</div>
+    <div id="rw5_fbs" style="margin-top:12px"></div>
+    <button class="submit-btn" style="margin-top:16px" onclick="checkMoversRW5()">Check answers ✓</button>
+    <div id="rw5_result" style="margin-top:16px"></div>
+  </div>`;
+}
+
+function checkMoversRW5(){
+  const d=window._moversRW5Data;if(!d)return;
+  let correct=0;
+  const fbLines=d.gaps.map(g=>{
+    const inp=document.getElementById('rw5_inp'+g.n);
+    const user=_normAns(inp?inp.value:'');
+    const ok=user===_normAns(g.answer);
+    if(ok)correct++;
+    if(inp)inp.style.borderColor=ok?'#4ade80':'#f87171';
+    return `<div style="font-size:12px;margin:3px 0">${ok?'✅':'❌'} Gap (${g.n}): <b>${g.answer}</b>${ok?'':' — you wrote: "'+(_normAns(inp?.value||'')||'?')+'"'}</div>`;
+  });
+  document.getElementById('rw5_fbs').innerHTML=fbLines.join('');
+  const total=d.gaps.length,pct=correct/total,km=Math.round(30+(pct*20));
+  addKm(km);
+  const res=document.getElementById('rw5_result');
+  if(res)res.innerHTML=`<div class="result-box" style="border-color:${pct===1?'#4ade80':pct>=.6?'var(--gold2)':'var(--red)'}">${pct===1?'🏆 Perfect!':pct>=.6?'⭐ Good!':'💪 Keep going!'} ${correct}/${total} — +${km} km!</div><button class="submit-btn" style="margin-top:10px;width:100%" onclick="runMoversRW5()">New exercise 🔄</button>`;
+  showToast(`R&W Part 5: ${correct}/${total} — +${km} km!`);
+}
+
+// ══ MOVERS LISTENING PARTS 1-5 ══
+async function runMoversL(part){
+  const info=MOCK_PART_INFO[part];
+  showLoading(`Preparing ${info.label}...`);
+  const unitCtx=state.currentUnit||getUnitContext();
+  const topicHint=unitCtx?`Topic: "${unitCtx.unitName}". Vocabulary: ${unitCtx.vocab}.`:'Use Cambridge A1 Movers topics.';
+  const formats={
+    l1:`Generate a Listening Part 1 exercise: 5 items. Each has a person's name and one activity/object. The student listens to descriptions and matches people to activities.
+Return JSON: {"items":[{"name":"Lucy","activity":"swimming","clue":"Lucy loves the water and goes to the pool every morning."},... 5 items],"distractors":["cycling","painting","cooking"]}`,
+    l2:`Generate a Listening Part 2 exercise: a form with 5 blank fields. The student listens to a conversation and fills in the missing information (names, numbers, places).
+Return JSON: {"context":"A boy is telling his teacher about a school trip.","fields":[{"label":"Name of the place","answer":"Green Park"},... 5 fields],"script":"Teacher: Where are you going? Boy: We're going to Green Park..."}`,
+    l3:`Generate a Listening Part 3 exercise: 5 questions. Each has 3 picture descriptions (A, B, C) and a listening clue. Student picks the right picture.
+Return JSON: {"items":[{"question":"What did Tom eat for breakfast?","options":["A: a bowl of cereal","B: two eggs","C: toast and jam"],"answer":"B","clue":"I had two eggs this morning. They were delicious!"},... 5 items]}`,
+    l4:`Generate a Listening Part 4 exercise: 5 short questions with 3 answer choices (A, B, C). Based on a short dialogue or description.
+Return JSON: {"items":[{"question":"Where does the girl go after school?","options":["A: the park","B: the library","C: the sports centre"],"answer":"A","clue":"After school I always go to the park to play with my friends."},... 5 items]}`,
+    l5:`Generate a Listening Part 5 exercise: A description of a picture scene with 5 instructions about what to colour or write. Adapt for digital: 5 comprehension questions about the described scene.
+Return JSON: {"scene":"A busy classroom with children doing different activities.","items":[{"question":"What colour is the teacher's bag?","answer":"red","clue":"The teacher has a red bag on her chair."},... 5 items]}`,
+  };
+  const prompt=`You are a Cambridge A1 Movers Listening ${part.toUpperCase()} generator.
+${topicHint}
+${formats[part]}
+Use simple, clear language. A1 Movers level. Return ONLY valid JSON.`;
+  try{
+    const raw=await callClaude(prompt,800);
+    const d=parseJSON(raw);
+    renderMoversL(part,d);
+  }catch(e){showError(e.message);}
+}
+
+function renderMoversL(part,d){
+  const area=document.getElementById('module-content-area');
+  window._moversLData=d;
+  window._moversLPart=part;
+  const info=MOCK_PART_INFO[part];
+  let html=`<div style="max-width:680px;margin:0 auto">
+    <div style="font-family:'Orbitron',monospace;font-size:12px;color:#a78bfa;margin-bottom:4px;font-weight:700">🎧 ${info.label.toUpperCase()}</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:16px">${info.desc}</div>
+    <div style="background:rgba(59,130,246,.08);border:1px solid var(--blue);border-radius:12px;padding:14px 16px;margin-bottom:20px;font-size:13px;color:var(--muted)">
+      🎧 In the real exam you hear audio. Here, click <b>▶ Play</b> to hear each clue, then answer the questions.
+    </div>`;
+
+  if(part==='l1'){
+    // Store scripts for TTS
+    const allItems=[...d.items,...(d.distractors||[]).map(x=>({name:'',activity:x,clue:''}))];
+    window._moversLScripts=d.items.map(it=>it.clue);
+    const activitiesAll=[...d.items.map(i=>i.activity),...(d.distractors||[])].sort(()=>Math.random()-.5);
+    html+=`<div style="font-size:13px;color:var(--text);margin-bottom:12px">Match each person to their activity. Listen to the clue first!</div>`;
+    html+=d.items.map((it,i)=>`
+      <div style="background:var(--card2);border-radius:10px;padding:14px;margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+          <button onclick="speak(window._moversLScripts[${i}],0.82)" style="background:var(--blue);border:none;border-radius:8px;padding:6px 12px;color:white;font-size:12px;cursor:pointer">▶ Play</button>
+          <b style="font-size:14px">${it.name}</b>
+        </div>
+        <select id="l1_sel${i}" style="width:100%;padding:9px 12px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px">
+          <option value="">— Choose activity —</option>
+          ${activitiesAll.map(a=>`<option value="${a}">${a}</option>`).join('')}
+        </select>
+        <div id="l1_fb${i}" style="font-size:12px;margin-top:6px"></div>
+      </div>`).join('');
+    html+=`<button class="submit-btn" onclick="checkMoversL()">Check answers ✓</button>`;
+  } else if(part==='l2'){
+    window._moversLScripts=[d.script];
+    html+=`<div style="background:var(--card2);border-radius:12px;padding:16px;margin-bottom:16px">
+      <div style="font-size:13px;color:var(--muted);margin-bottom:10px">Context: ${d.context}</div>
+      <button onclick="speak(window._moversLScripts[0],0.82)" style="background:var(--blue);border:none;border-radius:8px;padding:8px 16px;color:white;font-size:13px;cursor:pointer">▶ Play conversation</button>
+    </div>`;
+    html+=d.fields.map((f,i)=>`
+      <div style="background:var(--card2);border-radius:10px;padding:14px;margin-bottom:10px">
+        <div style="font-size:13px;color:var(--muted);margin-bottom:6px">${f.label}:</div>
+        <input type="text" id="l2_inp${i}" placeholder="Write your answer..." style="width:100%;padding:9px 12px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;box-sizing:border-box">
+        <div id="l2_fb${i}" style="font-size:12px;margin-top:6px"></div>
+      </div>`).join('');
+    html+=`<button class="submit-btn" onclick="checkMoversL()">Check answers ✓</button>`;
+  } else if(part==='l3'||part==='l4'){
+    window._moversLScripts=d.items.map(it=>it.clue);
+    html+=d.items.map((it,i)=>`
+      <div style="background:var(--card2);border-radius:10px;padding:14px;margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+          <button onclick="speak(window._moversLScripts[${i}],0.82)" style="background:var(--blue);border:none;border-radius:8px;padding:6px 12px;color:white;font-size:12px;cursor:pointer">▶ Play</button>
+          <div style="font-size:13px;font-weight:700;color:var(--text)">${i+1}. ${it.question}</div>
+        </div>
+        ${it.options.map((op,j)=>`<label style="display:flex;align-items:center;gap:8px;margin:6px 0;cursor:pointer;font-size:13px"><input type="radio" name="lmc_${i}" value="${['A','B','C'][j]}" style="accent-color:var(--blue)"> ${op}</label>`).join('')}
+        <div id="lmc_fb${i}" style="font-size:12px;margin-top:6px"></div>
+      </div>`).join('');
+    html+=`<button class="submit-btn" onclick="checkMoversL()">Check answers ✓</button>`;
+  } else if(part==='l5'){
+    window._moversLScripts=d.items.map(it=>it.clue);
+    html+=`<div style="background:var(--card2);border-radius:12px;padding:14px;margin-bottom:16px;font-size:13px;color:var(--text)">🖼️ Scene: ${d.scene}</div>`;
+    html+=d.items.map((it,i)=>`
+      <div style="background:var(--card2);border-radius:10px;padding:14px;margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+          <button onclick="speak(window._moversLScripts[${i}],0.82)" style="background:var(--blue);border:none;border-radius:8px;padding:6px 12px;color:white;font-size:12px;cursor:pointer">▶ Play</button>
+          <div style="font-size:13px;font-weight:700;color:var(--text)">${i+1}. ${it.question}</div>
+        </div>
+        <input type="text" id="l5_inp${i}" placeholder="Write your answer..." style="width:100%;padding:9px 12px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;box-sizing:border-box">
+        <div id="l5_fb${i}" style="font-size:12px;margin-top:6px"></div>
+      </div>`).join('');
+    html+=`<button class="submit-btn" onclick="checkMoversL()">Check answers ✓</button>`;
+  }
+  html+=`<div id="moversL_result" style="margin-top:16px"></div></div>`;
+  area.innerHTML=html;
+}
+
+function checkMoversL(){
+  const d=window._moversLData,part=window._moversLPart;
+  if(!d)return;
+  let correct=0,total=0;
+  if(part==='l1'){
+    d.items.forEach((it,i)=>{
+      const sel=document.getElementById('l1_sel'+i);
+      const fb=document.getElementById('l1_fb'+i);total++;
+      if(sel&&sel.value===it.activity){correct++;if(fb)fb.innerHTML='<span style="color:#4ade80">✓ Correct!</span>';}
+      else{if(fb)fb.innerHTML=`<span style="color:#f87171">✗ Answer: <b>${it.activity}</b></span>`;}
+    });
+  } else if(part==='l2'){
+    d.fields.forEach((f,i)=>{
+      const inp=document.getElementById('l2_inp'+i);
+      const fb=document.getElementById('l2_fb'+i);total++;
+      const ok=_normAns(inp?.value)===_normAns(f.answer);
+      if(ok)correct++;
+      if(inp)inp.style.borderColor=ok?'#4ade80':'#f87171';
+      if(fb)fb.innerHTML=ok?'<span style="color:#4ade80">✓</span>':`<span style="color:#f87171">✗ Answer: <b>${f.answer}</b></span>`;
+    });
+  } else if(part==='l3'||part==='l4'){
+    d.items.forEach((it,i)=>{
+      const sel=document.querySelector(`input[name="lmc_${i}"]:checked`);
+      const fb=document.getElementById('lmc_fb'+i);total++;
+      if(sel&&sel.value===it.answer){correct++;if(fb)fb.innerHTML='<span style="color:#4ade80">✓ Correct!</span>';}
+      else{if(fb)fb.innerHTML=`<span style="color:#f87171">✗ Answer: <b>${it.answer}</b></span>`;}
+    });
+  } else if(part==='l5'){
+    d.items.forEach((it,i)=>{
+      const inp=document.getElementById('l5_inp'+i);
+      const fb=document.getElementById('l5_fb'+i);total++;
+      const ok=_normAns(inp?.value)===_normAns(it.answer);
+      if(ok)correct++;
+      if(inp)inp.style.borderColor=ok?'#4ade80':'#f87171';
+      if(fb)fb.innerHTML=ok?'<span style="color:#4ade80">✓</span>':`<span style="color:#f87171">✗ Answer: <b>${it.answer}</b></span>`;
+    });
+  }
+  const pct=correct/total,km=Math.round(30+(pct*20));
+  addKm(km);
+  const res=document.getElementById('moversL_result');
+  if(res)res.innerHTML=`<div class="result-box" style="border-color:${pct===1?'#4ade80':pct>=.6?'var(--gold2)':'var(--red)'}">${pct===1?'🏆 Perfect!':pct>=.6?'⭐ Good!':'💪 Keep going!'} ${correct}/${total} — +${km} km!</div><button class="submit-btn" style="margin-top:10px;width:100%" onclick="runMoversL('${part}')">New exercise 🔄</button>`;
+  showToast(`Listening ${part.toUpperCase()}: ${correct}/${total} — +${km} km!`);
 }
 
 // ══ PET TRAINING ══
