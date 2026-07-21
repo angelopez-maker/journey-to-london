@@ -174,7 +174,7 @@
   @keyframes pulse-border{0%,100%{box-shadow:0 0 0 0 rgba(251,191,36,.2);}50%{box-shadow:0 0 0 4px rgba(251,191,36,.05);}}
 
   /* ── RODRIGO QUICK NAV ── */
-  .rqn-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px;}
+  .rqn-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:20px;}
   .rqn-btn{background:var(--card);border-radius:18px;padding:22px 14px 18px;cursor:pointer;text-align:center;
     display:flex;flex-direction:column;align-items:center;gap:7px;transition:transform .15s,box-shadow .15s;border:2px solid;}
   .rqn-btn:hover{transform:translateY(-3px);}
@@ -191,6 +191,9 @@
   .rqn-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;margin-top:2px;}
   .rqn-badge.now{background:rgba(251,191,36,.2);color:var(--gold2);}
   .rqn-badge.next{background:rgba(255,255,255,.07);color:var(--muted);}
+  .rqn-btn.libre{border-color:#c084fc;}
+  .rqn-btn.libre:hover{box-shadow:0 8px 24px rgba(192,132,252,.25);}
+  .rqn-btn.libre .rqn-cat{color:#c084fc;}
   @media(max-width:480px){.rqn-grid{grid-template-columns:1fr;}.rqn-btn{flex-direction:row;text-align:left;gap:14px;padding:16px 18px;}
     .rqn-icon{font-size:28px;}.rqn-sub,.rqn-badge{display:none;}}
 
@@ -582,7 +585,7 @@
         <button class="rqn-btn spelling" onclick="openSpellingSemanal()">
           <div class="rqn-icon">🔤</div>
           <div class="rqn-cat">MOVERS</div>
-          <div class="rqn-title">Spelling Semanal</div>
+          <div class="rqn-title">Cambridge Units</div>
           <div class="rqn-sub" id="rqn-spelling-sub">Cargando...</div>
           <div class="rqn-badge" id="rqn-spelling-badge"></div>
         </button>
@@ -599,6 +602,13 @@
           <div class="rqn-title">Learning Lands 4</div>
           <div class="rqn-sub">Elige un capítulo</div>
           <div class="rqn-badge next">Cap. 6 activo</div>
+        </button>
+        <button class="rqn-btn libre" onclick="openPracticaLibre()">
+          <div class="rqn-icon">🌍</div>
+          <div class="rqn-cat">PRÁCTICA LIBRE</div>
+          <div class="rqn-title">Free Practice</div>
+          <div class="rqn-sub">Elige cualquier tema</div>
+          <div class="rqn-badge next">Gramática · Vocab · Más</div>
         </button>
       </div>
     </div>
@@ -1295,45 +1305,124 @@ function updateRodrigoQuickNav(){
 }
 
 function openSpellingSemanal(){
-  // Show all 8 Cambridge Movers units — current week highlighted
   openModule('movers');
   const area=document.getElementById('module-content-area');
-  document.getElementById('mod-title').textContent='SPELLING SEMANAL';
+  document.getElementById('mod-title').textContent='MOVERS';
   const activeWeek=_calActive(SPELLING_CALENDAR);
   const nextWeek=_calNext(SPELLING_CALENDAR);
   const highlightUnit=(activeWeek||nextWeek)?.unit;
   const moversBook=CURRICULUM['CAM_MOVERS'];
   const unitsHTML=moversBook.units.map(u=>{
-    const isHighlight=u.topic===highlightUnit||u.name.includes(highlightUnit||'__none__');
-    return `<button class="module-btn" style="--mc:${isHighlight?'var(--gold2)':'var(--blue2)'};text-align:left;padding:16px;${isHighlight?'border-color:var(--gold);':''}" onclick="startSpellingUnit('CAM_MOVERS',${u.id})">
-      <div style="font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;color:${isHighlight?'var(--gold2)':'var(--blue2)'}">Unit ${u.id} — ${u.topic}</div>
-      <div style="font-size:11px;color:var(--muted);margin-top:3px">${u.vocab.split(',').slice(0,4).join(', ')}...</div>
-      ${isHighlight?`<div style="font-size:10px;color:var(--gold2);margin-top:4px;font-weight:700">${activeWeek?'📌 Esta semana':'📌 Próxima semana'}</div>`:''}
+    const isHL=u.topic===highlightUnit||u.name.includes(highlightUnit||'__none__');
+    return `<button class="module-btn" style="--mc:${isHL?'var(--gold2)':'var(--blue2)'};text-align:left;padding:16px;${isHL?'border-color:var(--gold);':''}" onclick="selectMoversUnit(${u.id})">
+      <div style="font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;color:${isHL?'var(--gold2)':'var(--blue2)'}">Unit ${u.id} — ${u.topic}</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:3px">${u.vocab.split(',').slice(0,5).join(', ')}…</div>
+      ${isHL?`<div style="font-size:10px;color:var(--gold2);margin-top:4px;font-weight:700">${activeWeek?'📌 Esta semana':'📌 Próxima semana'}</div>`:''}
     </button>`;
   }).join('');
   area.innerHTML=`<div style="max-width:680px;margin:0 auto">
     <div style="background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.3);border-radius:14px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:14px">
-      <div style="font-size:28px">🔤</div>
+      <div style="font-size:26px">🔤</div>
       <div>
-        <div style="font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:var(--blue2);letter-spacing:2px">MOVERS — SPELLING SEMANAL</div>
-        <div style="font-size:15px;font-weight:700;color:var(--text);margin-top:2px">Cambridge A1 Movers</div>
-        <div style="font-size:12px;color:var(--muted)">Elige la unidad que quieres practicar</div>
+        <div style="font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:var(--blue2);letter-spacing:2px">MOVERS — CAMBRIDGE A1</div>
+        <div style="font-size:15px;font-weight:700;color:var(--text);margin-top:2px">Elige una unidad para practicar</div>
       </div>
     </div>
     <div style="display:grid;grid-template-columns:1fr;gap:10px">${unitsHTML}</div>
   </div>`;
 }
 
-function startSpellingUnit(bookKey,unitId){
-  const unit=CURRICULUM[bookKey]?.units?.find(u=>u.id==unitId);
+function selectMoversUnit(unitId){
+  const unit=CURRICULUM['CAM_MOVERS']?.units?.find(u=>u.id==unitId);
   if(!unit)return;
   state.currentUnit={unitName:unit.name,topic:unit.topic,vocab:unit.vocab||''};
-  openModule('spelling');
+  renderModuleHub('🔤',unit.name,'var(--blue2)','openSpellingSemanal()');
 }
 
 function openMiniMockSemanal(){
-  // Open Movers module — runMovers() already highlights current week's parts
   openModule('movers');
+}
+
+function openPracticaLibre(){
+  openModule('movers');
+  const area=document.getElementById('module-content-area');
+  document.getElementById('mod-title').textContent='PRÁCTICA LIBRE';
+  state.currentUnit=null;
+  const chips=['Colors','Numbers','Animals','Family','Food & Drinks','Clothes','Weather','Body Parts',
+    'Present Simple','Present Continuous','Past Simple','Future (Will)','Modal Verbs','Comparatives',
+    'Days of the Week','Months','House & Rooms','School & Classroom'];
+  const chipsHTML=chips.map(c=>`<span onclick="setFreeTopicAndHub(this)" style="display:inline-block;padding:6px 14px;margin:4px;background:var(--card2);border:1px solid var(--border);border-radius:20px;font-size:13px;cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor='#c084fc'" onmouseout="this.style.borderColor='var(--border)'">${c}</span>`).join('');
+  area.innerHTML=`<div style="max-width:680px;margin:0 auto">
+    <div style="background:rgba(192,132,252,.06);border:1px solid rgba(192,132,252,.3);border-radius:14px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:14px">
+      <div style="font-size:26px">🌍</div>
+      <div>
+        <div style="font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:#c084fc;letter-spacing:2px">PRÁCTICA LIBRE</div>
+        <div style="font-size:15px;font-weight:700;color:var(--text);margin-top:2px">¿Qué quieres practicar hoy?</div>
+      </div>
+    </div>
+    <div style="margin-bottom:16px">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Elige un tema rápido:</div>
+      <div>${chipsHTML}</div>
+    </div>
+    <div style="display:flex;gap:10px;margin-bottom:20px">
+      <input type="text" id="free-topic-input" placeholder="O escribe tu propio tema..." style="flex:1;padding:11px 14px;background:var(--card2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;outline:none" onkeydown="if(event.key==='Enter')confirmFreeTopicHub()">
+      <button onclick="confirmFreeTopicHub()" style="padding:11px 18px;background:#c084fc;border:none;border-radius:10px;color:#0a0a1a;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">Go →</button>
+    </div>
+    <div id="free-hub-area"></div>
+  </div>`;
+}
+
+function setFreeTopicAndHub(el){
+  document.querySelectorAll('#free-topic-input').forEach(i=>i&&(i.value=el.textContent));
+  const inp=document.getElementById('free-topic-input');
+  if(inp)inp.value=el.textContent;
+  confirmFreeTopicHub();
+}
+
+function confirmFreeTopicHub(){
+  const inp=document.getElementById('free-topic-input');
+  const topic=(inp?.value||'').trim()||'General English';
+  state.currentUnit={unitName:topic,topic,vocab:''};
+  document.getElementById('topic-input')&&(document.getElementById('topic-input').value=topic);
+  renderModuleHub('🌍',topic,'#c084fc',null,true);
+}
+
+// Shared module hub — shown after selecting a unit from any entry point
+function renderModuleHub(icon,title,color,backFn,inPlace=false){
+  const modules=[
+    {id:'learning', icon:'📚',label:'Learning',   km:'100 km'},
+    {id:'reading',  icon:'📖',label:'Reading',    km:'100 km'},
+    {id:'writing',  icon:'✏️', label:'Writing',   km:'60-100 km'},
+    {id:'talking',  icon:'🎤',label:'Talking',    km:'100 km'},
+    {id:'spelling', icon:'🔤',label:'Spelling',   km:'15 km / ✓'},
+    {id:'pronunciation',icon:'🗣️',label:'Pronun.',km:'15 km / word'},
+    {id:'vocabmatch',icon:'🔗',label:'Vocab Match',km:'20 km / pair'},
+    {id:'playing',  icon:'🎮',label:'Playing',    km:'20 km / ✓'},
+    {id:'singing',  icon:'🎵',label:'Singing',    km:'100 km'},
+    {id:'watching', icon:'🎬',label:'Watching',   km:'100 km'},
+  ];
+  const modsHTML=modules.map(m=>`<button class="module-btn" style="--mc:${color};text-align:left;padding:14px" onclick="openModule('${m.id}')">
+    <div style="font-size:22px;margin-bottom:4px">${m.icon}</div>
+    <div style="font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;color:${color}">${m.label}</div>
+    <div style="font-size:10px;color:var(--muted);margin-top:2px">${m.km}</div>
+  </button>`).join('');
+  const backHTML=backFn?`<button onclick="${backFn}" style="margin-top:14px;background:none;border:1px solid var(--border);border-radius:10px;padding:9px 16px;color:var(--muted);font-size:12px;cursor:pointer;width:100%">← Volver</button>`:'';
+  const hubHTML=`<div style="background:rgba(0,0,0,.15);border:1px solid var(--border);border-radius:14px;padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;gap:12px">
+      <div style="font-size:24px">${icon}</div>
+      <div>
+        <div style="font-size:11px;color:${color};font-family:'Orbitron',monospace;font-weight:700;letter-spacing:1px">PRACTICANDO</div>
+        <div style="font-size:15px;font-weight:700;color:var(--text)">${title}</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px">${modsHTML}</div>
+    ${backHTML}`;
+  if(inPlace){
+    const freeHub=document.getElementById('free-hub-area');
+    if(freeHub)freeHub.innerHTML=hubHTML;
+  } else {
+    const area=document.getElementById('module-content-area');
+    area.innerHTML=`<div style="max-width:680px;margin:0 auto">${hubHTML}</div>`;
+  }
 }
 
 function renderMiniMockMenu(week){
@@ -1385,34 +1474,10 @@ function openLibroRodrigo(){
 }
 
 function selectLibroUnit(bookKey,unitId){
-  const book=CURRICULUM[bookKey];
-  const unit=book?.units?.find(u=>u.id==unitId);
+  const unit=CURRICULUM[bookKey]?.units?.find(u=>u.id==unitId);
   if(!unit)return;
   state.currentUnit={unitName:unit.name,topic:unit.topic,vocab:unit.vocab||''};
-  // Show module picker for this unit
-  const area=document.getElementById('module-content-area');
-  const modulePicks=[
-    {id:'learning',icon:'📚',label:'Learning',km:'100 km'},
-    {id:'reading', icon:'📖',label:'Reading', km:'100 km'},
-    {id:'writing', icon:'✏️',label:'Writing',  km:'60-100 km'},
-    {id:'spelling',icon:'🔤',label:'Spelling', km:'15 km / ✓'},
-    {id:'talking', icon:'🎤',label:'Talking',  km:'100 km'},
-  ];
-  const modsHTML=modulePicks.map(m=>`<button class="module-btn" style="--mc:#4ade80;text-align:left;padding:16px" onclick="openModule('${m.id}')">
-    <div style="font-size:22px;margin-bottom:4px">${m.icon}</div>
-    <div style="font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;color:#4ade80">${m.label}</div>
-    <div style="font-size:11px;color:var(--muted);margin-top:2px">${m.km}</div>
-  </button>`).join('');
-  area.innerHTML=`<div style="max-width:680px;margin:0 auto">
-    <div style="background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.3);border-radius:14px;padding:14px 18px;margin-bottom:20px">
-      <div style="font-size:11px;color:#4ade80;font-family:'Orbitron',monospace;font-weight:700;letter-spacing:2px">CAPÍTULO SELECCIONADO</div>
-      <div style="font-size:16px;font-weight:700;color:var(--text);margin-top:4px">${unit.name}</div>
-      <div style="font-size:12px;color:var(--muted)">Tema: ${unit.topic}</div>
-    </div>
-    <div style="font-size:13px;color:var(--muted);margin-bottom:12px">¿Qué quieres practicar?</div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px">${modsHTML}</div>
-    <button onclick="openLibroRodrigo()" style="margin-top:16px;background:none;border:1px solid var(--border);border-radius:10px;padding:10px 16px;color:var(--muted);font-size:12px;cursor:pointer;width:100%">← Volver a capítulos</button>
-  </div>`;
+  renderModuleHub('📚',unit.name,'#4ade80',"openLibroRodrigo()");
 }
 
 function runMoversPart(part){
