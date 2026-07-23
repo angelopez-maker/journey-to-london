@@ -194,6 +194,12 @@
   .rqn-btn.libre{border-color:#c084fc;}
   .rqn-btn.libre:hover{box-shadow:0 8px 24px rgba(192,132,252,.25);}
   .rqn-btn.libre .rqn-cat{color:#c084fc;}
+  .rqn-btn.singing{border-color:var(--pink);}
+  .rqn-btn.singing:hover{box-shadow:0 8px 24px rgba(236,72,153,.25);}
+  .rqn-btn.singing .rqn-cat{color:var(--pink);}
+  .rqn-btn.watching{border-color:var(--orange);}
+  .rqn-btn.watching:hover{box-shadow:0 8px 24px rgba(249,115,22,.25);}
+  .rqn-btn.watching .rqn-cat{color:var(--orange);}
   @media(max-width:480px){.rqn-grid{grid-template-columns:1fr;}.rqn-btn{flex-direction:row;text-align:left;gap:14px;padding:16px 18px;}
     .rqn-icon{font-size:28px;}.rqn-sub,.rqn-badge{display:none;}}
 
@@ -661,6 +667,20 @@
           <div class="rqn-title">Free Practice</div>
           <div class="rqn-sub">Elige cualquier tema</div>
           <div class="rqn-badge next">Gramática · Vocab · Más</div>
+        </button>
+        <button class="rqn-btn singing" onclick="openModule('singing')">
+          <div class="rqn-icon">🎵</div>
+          <div class="rqn-cat">SINGING</div>
+          <div class="rqn-title">Music Playlists</div>
+          <div class="rqn-sub">5 niveles · 151 canciones</div>
+          <div class="rqn-badge">L1 → L5</div>
+        </button>
+        <button class="rqn-btn watching" onclick="openModule('watching')">
+          <div class="rqn-icon">🎬</div>
+          <div class="rqn-cat">WATCHING</div>
+          <div class="rqn-title">Movies</div>
+          <div class="rqn-sub">4 niveles · 60 películas</div>
+          <div class="rqn-badge">Aprende viendo</div>
         </button>
       </div>
     </div>
