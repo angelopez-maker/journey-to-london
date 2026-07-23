@@ -388,6 +388,58 @@
     letter-spacing:1px;text-decoration:none;transition:all .2s;}
   .yt-link:hover{background:#cc0000;transform:translateY(-1px);}
 
+  /* ── SINGING / WATCHING SPLIT LAYOUT ── */
+  .sw-entry-split{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;}
+  .sw-entry-left{display:flex;flex-direction:column;gap:10px;}
+  .sw-entry-title{font-family:'Orbitron',monospace;font-size:11px;font-weight:700;letter-spacing:2px;
+    color:var(--muted);margin-bottom:6px;}
+  .sw-level-btn{background:var(--card);border:2px solid;border-radius:16px;padding:14px 18px;cursor:pointer;
+    text-align:left;transition:all .15s;width:100%;}
+  .sw-level-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.3);}
+  .sw-level-num{font-family:'Orbitron',monospace;font-weight:900;font-size:17px;}
+  .sw-level-name{font-size:13px;font-weight:600;color:var(--text);margin-top:2px;}
+  .sw-level-dsc{font-size:12px;color:var(--muted);margin-top:2px;}
+  .sw-level-cnt{font-size:11px;color:var(--muted);margin-top:5px;font-family:'Orbitron',monospace;letter-spacing:1px;}
+  .sw-back-bar{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;}
+  .sw-back-btn{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:7px 14px;
+    cursor:pointer;color:var(--text);font-size:13px;transition:all .15s;}
+  .sw-back-btn:hover{border-color:var(--pink);}
+  .sw-list-hdr{font-family:'Orbitron',monospace;font-weight:700;font-size:13px;}
+  .sw-list-dsc{font-size:12px;color:var(--muted);}
+  .song-list{display:flex;flex-direction:column;gap:5px;}
+  .song-item{background:var(--card);border:1px solid var(--border);border-radius:11px;padding:11px 14px;
+    cursor:pointer;display:flex;align-items:center;gap:10px;
+    transition:all .15s;text-align:left;width:100%;}
+  .song-item:hover{border-color:var(--pink);transform:translateX(4px);}
+  .song-item-num{font-family:'Orbitron',monospace;font-size:10px;color:var(--muted);min-width:24px;}
+  .song-item-title{font-weight:700;font-size:14px;color:var(--text);}
+  .song-item-artist{font-size:12px;color:var(--muted);}
+  .song-screen{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:12px;height:490px;}
+  .song-yt{grid-column:1;grid-row:1;background:var(--card);border-radius:16px;border:2px solid var(--pink);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:14px;}
+  .song-vocab{grid-column:1;grid-row:2;background:var(--card);border-radius:16px;border:1px solid var(--border);
+    padding:12px;overflow-y:auto;}
+  .song-lyrics{grid-column:2;grid-row:1/3;background:var(--card);border-radius:16px;border:1px solid var(--border);
+    padding:18px;overflow-y:auto;}
+  .song-yt-btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;background:#ff0000;
+    border:none;border-radius:9px;color:white;font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;
+    letter-spacing:1px;text-decoration:none;cursor:pointer;transition:all .2s;margin-top:2px;}
+  .song-yt-btn:hover{background:#cc0000;transform:translateY(-1px);}
+  .vocab-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:7px;}
+  .vocab-item{background:var(--bg);border-radius:7px;padding:6px 8px;}
+  .vocab-word{font-weight:700;font-size:12px;color:var(--text);}
+  .vocab-mean{color:var(--muted);font-size:11px;margin-top:1px;}
+  .movie-item{background:var(--card);border:1px solid var(--border);border-radius:11px;padding:12px 16px;
+    cursor:pointer;display:flex;justify-content:space-between;align-items:center;
+    transition:all .15s;text-align:left;width:100%;margin-bottom:5px;}
+  .movie-item:hover{border-color:var(--orange);transform:translateX(4px);}
+  .movie-item-title{font-weight:700;font-size:14px;color:var(--text);}
+  .movie-item-year{font-size:12px;color:var(--muted);}
+  .movie-card-screen{display:flex;flex-direction:column;gap:12px;}
+  .movie-dvd-desc{background:var(--card);border-radius:14px;border:1px solid var(--border);padding:18px;}
+  .movie-vocab-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;}
+  .movie-quotes{display:flex;flex-direction:column;gap:7px;}
+
   /* Resources */
   .resource-table{width:100%;border-collapse:collapse;font-size:14px;margin-bottom:16px;}
   .resource-table th{background:var(--card2);color:var(--blue2);font-family:'Rajdhani',sans-serif;
@@ -2216,29 +2268,171 @@ function renderPlaying(d){
   document.getElementById('module-content-area').innerHTML=html;
 }
 
+// ══ SONG & MOVIE DATA ══
+const SONG_PLAYLISTS=[null,
+  {lbl:'Nivel 1',col:'#4ade80',dsc:'Lentas · Vocabulario básico',s:[
+    ['Music and Me','Michael Jackson'],["It's a Beautiful Day",'Queen'],
+    ['The Wonder of You','Elvis Presley'],['Yellow Submarine','The Beatles'],
+    ["She's Out of My Life",'Michael Jackson'],['You Are So Beautiful','Joe Cocker'],
+    ['I Was Born to Love You','Queen'],["Can't Help Falling in Love",'Elvis Presley'],
+    ['Return to Sender','Elvis Presley'],['Girlfriend','Michael Jackson'],
+    ['The Lady in My Life','Michael Jackson'],['Gone Too Soon','Michael Jackson'],
+    ['Heal the World','Michael Jackson'],['My Way','Frank Sinatra'],
+    ['Fly Me to the Moon','Frank Sinatra'],['Wonderful Tonight','Eric Clapton'],
+    ['Stand by Me','Ben E. King'],['What a Wonderful World','Louis Armstrong'],
+    ['Unchained Melody','Righteous Brothers'],['Love Me Tender','Elvis Presley'],
+    ['Are You Lonesome Tonight?','Elvis Presley'],['Always on My Mind','Elvis Presley'],
+    ['Something','The Beatles'],['Love of My Life','Queen'],
+    ['Woman','John Lennon'],['Strangers in the Night','Frank Sinatra'],
+    ['Moon River','Andy Williams'],["Annie's Song",'John Denver'],
+    ['When I Fall in Love','Nat King Cole'],['Tears in Heaven','Eric Clapton'],
+  ]},
+  {lbl:'Nivel 2',col:'#60a5fa',dsc:'Más texto · Vocabulario intermedio',s:[
+    ['Just the Way You Are','Barry White'],['All by Myself','Celine Dion'],
+    ['Without You','Mariah Carey'],['All I Want for Christmas Is You','Mariah Carey'],
+    ['Sorry Seems to Be the Hardest Word','Elton John & Ray Charles'],
+    ['Santa Claus Is Coming to Town','Michael Bublé'],
+    ['Let Me Live','Queen'],['Too Much Love Will Kill You','Queen'],
+    ['We Are the Champions','Queen'],['Who Wants to Live Forever','Queen'],
+    ['Yesterday','The Beatles'],['Help!','The Beatles'],['Let It Be','The Beatles'],
+    ['I Want You Back','Jackson 5'],["I'll Be There",'Jackson 5'],
+    ['Suspicious Minds','Elvis Presley'],['Breathe (In the Air)','Pink Floyd'],
+    ['Another Part of Me','Michael Jackson'],['Man in the Mirror','Michael Jackson'],
+    ['Leave Me Alone','Michael Jackson'],['Remember the Time','Michael Jackson'],
+    ['You Are Not Alone','Michael Jackson'],['Smile','Michael Jackson'],
+    ['Love Never Felt So Good','Michael Jackson'],["It's My Life",'Bon Jovi'],
+    ["That's Life",'Frank Sinatra'],["It's Not Unusual",'Tom Jones'],
+    ['Hit the Road Jack','Ray Charles'],['Imagine','John Lennon'],
+    ['New York, New York','Frank Sinatra'],['One','U2'],
+  ]},
+  {lbl:'Nivel 3',col:'#f97316',dsc:'Ritmo moderado · Pop/Rock adulto',s:[
+    ["Don't Stop Me Now",'Queen'],['The Show Must Go On','Queen'],
+    ['Comfortably Numb','Pink Floyd'],['Another Brick in the Wall','Pink Floyd'],
+    ['House of the Rising Sun','The Animals'],['Creep','Radiohead'],
+    ['November Rain',"Guns N' Roses"],["Don't Cry","Guns N' Roses"],
+    ['Patience',"Guns N' Roses"],["I Don't Want to Miss a Thing",'Aerosmith'],
+    ['Dream On','Aerosmith'],['Hotel California','Eagles'],['Take It Easy','Eagles'],
+    ['Beat It','Michael Jackson'],['Thriller','Michael Jackson'],
+    ['With or Without You','U2'],['Sunday Bloody Sunday','U2'],
+    ['Take On Me','a-ha'],['Wake Me Up Before You Go-Go','Wham!'],
+    ['Careless Whisper','George Michael'],['Faith','George Michael'],
+    ["Don't You Forget About Me",'Simple Minds'],['Karma Chameleon','Culture Club'],
+    ['Rio','Duran Duran'],['I Want It That Way','Backstreet Boys'],
+    ['Bye Bye Bye','NSYNC'],['Mirrors','Justin Timberlake'],
+    ['Come Together','The Beatles'],['Hey Jude','The Beatles'],
+    ['Living on a Prayer','Bon Jovi'],
+  ]},
+  {lbl:'Nivel 4',col:'#ef4444',dsc:'Rock rápido · Vocabulario complejo',s:[
+    ['Welcome to the Jungle',"Guns N' Roses"],['Paradise City',"Guns N' Roses"],
+    ["Sweet Child O' Mine","Guns N' Roses"],['Stairway to Heaven','Led Zeppelin'],
+    ['Whole Lotta Love','Led Zeppelin'],['Rock and Roll','Led Zeppelin'],
+    ['Highway to Hell','AC/DC'],['Back in Black','AC/DC'],['Thunderstruck','AC/DC'],
+    ['Paint It Black','Rolling Stones'],['Sympathy for the Devil','Rolling Stones'],
+    ['Satisfaction','Rolling Stones'],['Smells Like Teen Spirit','Nirvana'],
+    ['Come As You Are','Nirvana'],['Under the Bridge','Red Hot Chili Peppers'],
+    ['Californication','Red Hot Chili Peppers'],["Baba O'Riley",'The Who'],
+    ["Won't Get Fooled Again",'The Who'],['Bohemian Rhapsody','Queen'],
+    ['Born to Run','Bruce Springsteen'],['Born in the USA','Bruce Springsteen'],
+    ['Purple Haze','Jimi Hendrix'],['All Along the Watchtower','Jimi Hendrix'],
+    ['Jump','Van Halen'],['Eye of the Tiger','Survivor'],
+    ['Seven Nation Army','The White Stripes'],['Are You Gonna Go My Way','Lenny Kravitz'],
+    ['Even Flow','Pearl Jam'],['Mr. Brightside','The Killers'],
+    ["Livin' La Vida Loca",'Ricky Martin'],
+  ]},
+  {lbl:'Nivel 5',col:'#a855f7',dsc:'Rap · Metal · Rock extremo',s:[
+    ['Lose Yourself','Eminem'],['Without Me','Eminem'],
+    ['The Real Slim Shady','Eminem'],['Rap God','Eminem'],
+    ["Gettin' Jiggy Wit It",'Will Smith'],['Men in Black','Will Smith'],
+    ['Miami','Will Smith'],['Fresh Prince of Bel-Air','Will Smith'],
+    ['Black and Yellow','Wiz Khalifa'],['Empire State of Mind','Jay-Z ft. Alicia Keys'],
+    ['Old Town Road','Lil Nas X'],['In the End','Linkin Park'],
+    ['Numb','Linkin Park'],["What I've Done",'Linkin Park'],
+    ['Breaking the Habit','Linkin Park'],['New Divide','Linkin Park'],
+    ['Enter Sandman','Metallica'],['Master of Puppets','Metallica'],
+    ['One','Metallica'],['Battery','Metallica'],
+    ['Ace of Spades','Motörhead'],['Twist and Shout','The Beatles'],
+    ['Back in the USSR','The Beatles'],['Communication Breakdown','Led Zeppelin'],
+    ['Good Times Bad Times','Led Zeppelin'],['Bulls on Parade','Rage Against the Machine'],
+    ['Killing in the Name','Rage Against the Machine'],['Sabotage','Beastie Boys'],
+    ['Fight for Your Right','Beastie Boys'],['Crawling','Linkin Park'],
+  ]},
+];
+
+const MOVIE_LISTS=[null,
+  {lbl:'Nivel 1',col:'#4ade80',dsc:'Animación · Diálogo simple',m:[
+    ['Toy Story',1995],['The Lion King',1994],['Finding Nemo',2003],['Up',2009],
+    ['WALL-E',2008],['Moana',2016],['Frozen',2013],['The Incredibles',2004],
+    ['Ratatouille',2007],['Aladdin',1992],['Zootopia',2016],['Coco',2017],
+    ['Encanto',2021],['Lilo & Stitch',2002],['The Jungle Book',1967],
+  ]},
+  {lbl:'Nivel 2',col:'#60a5fa',dsc:'Acción ligera · Poco diálogo denso',m:[
+    ['Rocky IV',1985],['Top Gun',1986],['The Karate Kid',1984],['Home Alone',1990],
+    ['Back to the Future',1985],['Jurassic Park',1993],['Men in Black',1997],
+    ['Spider-Man',2002],['Iron Man',2008],['Star Wars: A New Hope',1977],
+    ['Indiana Jones: Raiders of the Lost Ark',1981],['E.T.',1982],
+    ['Ghostbusters',1984],['The Mask',1994],['Ace Ventura: Pet Detective',1994],
+  ]},
+  {lbl:'Nivel 3',col:'#f97316',dsc:'Más diálogo · Vocabulario rico',m:[
+    ['Gladiator',2000],['Forrest Gump',1994],['The Shawshank Redemption',1994],
+    ['Titanic',1997],['Good Will Hunting',1997],['A Few Good Men',1992],
+    ['Cast Away',2000],['The Dark Knight',2008],['Interstellar',2014],
+    ['Braveheart',1995],['The Green Mile',1999],['Rain Man',1988],
+    ['Philadelphia',1993],["Schindler's List",1993],['Good Morning, Vietnam',1987],
+  ]},
+  {lbl:'Nivel 4',col:'#a855f7',dsc:'Inglés británico · Lenguaje elaborado',m:[
+    ['Harry Potter (saga)',2001],['Lord of the Rings (saga)',2001],
+    ["The King's Speech",2010],['Notting Hill',1999],['Love Actually',2003],
+    ['Four Weddings and a Funeral',1994],['Pride & Prejudice',2005],
+    ['The Imitation Game',2014],['Darkest Hour',2017],['About a Boy',2002],
+    ["Bridget Jones's Diary",2001],['Paddington',2014],['Billy Elliot',2000],
+    ['Downton Abbey',2019],['1917',2019],
+  ]},
+];
+
 // ══ SINGING ══
 async function runSinging(){
-  showLoading('Finding your perfect songs...');
+  const area=document.getElementById('module-content-area');
+  const lvlBtns=SONG_PLAYLISTS.slice(1).map((p,i)=>{const lvl=i+1;
+    return `<button class="sw-level-btn" style="border-color:${p.col}" onclick="showSongList(${lvl})">
+      <div class="sw-level-num" style="color:${p.col}">Nivel ${lvl}</div>
+      <div class="sw-level-name">${p.lbl}</div>
+      <div class="sw-level-dsc">${p.dsc}</div>
+      <div class="sw-level-cnt">${p.s.length} canciones ▶</div>
+    </button>`;
+  }).join('');
+  area.innerHTML=`<div class="sw-entry-split">
+    <div class="sw-entry-left">
+      <div class="sw-entry-title">🎵 PLAYLISTS</div>${lvlBtns}
+    </div>
+    <div class="sw-entry-right">
+      <div class="sw-entry-title">🔍 BÚSQUEDA LIBRE</div>
+      <div id="sw-search-content"><div style="text-align:center;padding:32px 0;color:var(--muted)">
+        <div style="font-size:36px;margin-bottom:10px">🎵</div>
+        <p>Buscando canciones para "<strong>${getTopic()}</strong>"...</p>
+      </div></div>
+    </div>
+  </div>`;
   const topic=getTopic(),level=getLevelDesc();
   const prompt=`Suggest 3 songs to help a student learn English. Topic: "${topic}". Level: ${level}.
-For each song, include actual lyrics excerpt (4-8 lines) that relate to the topic.
+For each song include actual lyrics excerpt (4-8 lines) related to the topic.
 Return JSON:
-{"songs":[
-  {"title":"Song Title","artist":"Artist Name","difficulty":"easy|medium|hard","why":"why this song helps with the topic","lyrics_excerpt":"4-8 lines of actual lyrics","vocabulary":["word1 - meaning","word2 - meaning"],"youtube_search":"song title artist official"},
-  ...3 songs
-]}
+{"songs":[{"title":"Song Title","artist":"Artist Name","difficulty":"easy|medium|hard","why":"why this song helps","lyrics_excerpt":"4-8 lines of actual lyrics","vocabulary":["word1 - meaning","word2 - meaning"],"youtube_search":"song title artist official"},... 3 songs]}
 Return only valid JSON.`;
   try{
     const raw=await callClaude(prompt,2000);
     const d=parseJSON(raw);
-    renderSinging(d);
-  }catch(e){showError(e.message);}
+    const el=document.getElementById('sw-search-content');
+    if(el)el.innerHTML=_renderSongCards(d);
+  }catch(e){
+    const el=document.getElementById('sw-search-content');
+    if(el)el.innerHTML=`<div class="error-box">${e.message}</div>`;
+  }
 }
 
-function renderSinging(d){
+function _renderSongCards(d){
   const songs=d.songs||[];
-  let html=`<div class="content-card"><h2>🎵 Songs for "${getTopic()}"</h2>
-  <p style="color:var(--muted);margin-bottom:4px">Listen carefully, follow the lyrics, and train your ear!</p></div>`;
+  let html=`<div class="content-card" style="margin-bottom:12px"><h2>🎵 Songs for "${getTopic()}"</h2>
+  <p style="color:var(--muted);margin-bottom:0">Train your ear with these picks!</p></div>`;
   songs.forEach(s=>{
     const yt=encodeURIComponent(s.youtube_search||s.title+' '+s.artist);
     html+=`<div class="media-card">
@@ -2247,52 +2441,217 @@ function renderSinging(d){
         <div class="media-card-level ${s.difficulty}">${s.difficulty.toUpperCase()}</div>
       </div>
       <p>${s.why}</p>
-      <div class="lyrics-box">${(s.lyrics_excerpt||'').replace(/\n/g,'\n')}</div>
+      <div class="lyrics-box">${(s.lyrics_excerpt||'').replace(/\n/g,'<br>')}</div>
       ${s.vocabulary&&s.vocabulary.length?`<p><strong>Vocabulary:</strong> ${s.vocabulary.join(' · ')}</p>`:''}
       <a class="yt-link" href="https://www.youtube.com/results?search_query=${yt}" target="_blank">▶ YouTube</a>
     </div>`;
   });
-  html+=`<div class="km-award"><div class="km-award-num">🎶</div><div class="km-award-label">Enjoy the songs and train your ear!</div></div>`;
-  document.getElementById('module-content-area').innerHTML=html;
+  return html;
+}
+
+function showSongList(lvl){
+  const p=SONG_PLAYLISTS[lvl];
+  window._swLvl=lvl;
+  let songs='';
+  p.s.forEach(([t,a],i)=>{
+    songs+=`<button class="song-item" onclick="showSongScreen(${i})">
+      <div class="song-item-num">${String(i+1).padStart(2,'0')}</div>
+      <div style="flex:1"><div class="song-item-title">${t}</div><div class="song-item-artist">${a}</div></div>
+      <div style="color:var(--muted);font-size:16px">▶</div>
+    </button>`;
+  });
+  document.getElementById('module-content-area').innerHTML=`
+    <div class="sw-back-bar">
+      <button class="sw-back-btn" onclick="runSinging()">← Volver</button>
+      <div><div class="sw-list-hdr" style="color:${p.col}">Nivel ${lvl} — ${p.lbl}</div>
+      <div class="sw-list-dsc">${p.dsc} · ${p.s.length} canciones</div></div>
+    </div>
+    <div class="song-list">${songs}</div>`;
+}
+
+async function showSongScreen(idx){
+  const lvl=window._swLvl,p=SONG_PLAYLISTS[lvl];
+  const [t,a]=p.s[idx];
+  const ytQ=encodeURIComponent(`${t} ${a} official audio`);
+  document.getElementById('module-content-area').innerHTML=`
+    <div class="sw-back-bar">
+      <button class="sw-back-btn" onclick="showSongList(${lvl})">← Nivel ${lvl}</button>
+      <div class="sw-list-hdr" style="color:${p.col}">${t} — ${a}</div>
+    </div>
+    <div class="song-screen">
+      <div class="song-yt">
+        <div style="font-size:40px">🎵</div>
+        <div style="font-weight:700;font-size:14px;text-align:center;color:var(--text)">${t}</div>
+        <div style="font-size:12px;color:var(--muted);text-align:center">${a}</div>
+        <a class="song-yt-btn" href="https://www.youtube.com/results?search_query=${ytQ}" target="_blank">▶ Escuchar en YouTube</a>
+      </div>
+      <div class="song-vocab" id="ss-vocab">
+        <div style="font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);margin-bottom:7px">VOCABULARIO</div>
+        <div style="color:var(--muted);font-size:13px;text-align:center;padding:8px">Cargando...</div>
+      </div>
+      <div class="song-lyrics" id="ss-lyrics">
+        <div style="font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);margin-bottom:10px">LYRICS</div>
+        <div style="color:var(--muted);text-align:center">Buscando lyrics...</div>
+      </div>
+    </div>`;
+  _loadLyricsAndVocab(t,a);
+}
+
+async function _loadLyricsAndVocab(t,a){
+  let lyrics='';
+  try{
+    const r=await fetch(`https://api.lyrics.ovh/v1/${encodeURIComponent(a)}/${encodeURIComponent(t)}`);
+    const d=await r.json();
+    if(d.lyrics){
+      lyrics=d.lyrics;
+      const el=document.getElementById('ss-lyrics');
+      if(el)el.innerHTML=`<div style="font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);margin-bottom:10px">LYRICS</div><div style="white-space:pre-wrap;line-height:1.9;font-size:14px">${lyrics}</div>`;
+    }else{
+      const el=document.getElementById('ss-lyrics');
+      if(el)el.innerHTML=`<div style="font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);margin-bottom:10px">LYRICS</div><div style="color:var(--muted);text-align:center;padding:20px">Lyrics no disponibles.<br><br><a href="https://www.google.com/search?q=${encodeURIComponent(t+' '+a+' lyrics')}" target="_blank" style="color:var(--blue2)">Buscar en Google ↗</a></div>`;
+    }
+  }catch(e){
+    const el=document.getElementById('ss-lyrics');
+    if(el)el.innerHTML=`<div style="font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);margin-bottom:10px">LYRICS</div><div style="color:var(--muted);text-align:center;padding:20px">Error al cargar lyrics</div>`;
+  }
+  const lyricsCtx=lyrics?`\nLyrics:\n${lyrics.slice(0,600)}`:'';
+  const prompt=`For the song "${t}" by ${a}, select exactly 10 vocabulary words or phrases useful for an English learner.${lyricsCtx}
+Return JSON: {"vocab":[{"w":"word","m":"significado en español"},...10 items]}
+Return only valid JSON.`;
+  try{
+    const raw=await callClaude(prompt,500);
+    const d=parseJSON(raw);
+    const vocab=d.vocab||[];
+    const el=document.getElementById('ss-vocab');
+    if(el)el.innerHTML=`<div style="font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);margin-bottom:7px">VOCABULARIO</div>
+      <div class="vocab-grid">${vocab.map(v=>`<div class="vocab-item"><div class="vocab-word">${v.w}</div><div class="vocab-mean">${v.m}</div></div>`).join('')}</div>`;
+  }catch(e){
+    const el=document.getElementById('ss-vocab');
+    if(el)el.innerHTML=`<div style="font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);margin-bottom:7px">VOCABULARIO</div><div style="color:var(--muted);font-size:13px">No disponible</div>`;
+  }
 }
 
 // ══ WATCHING ══
 async function runWatching(){
-  showLoading('Finding your perfect scenes...');
+  const area=document.getElementById('module-content-area');
+  const lvlBtns=MOVIE_LISTS.slice(1).map((p,i)=>{const lvl=i+1;
+    return `<button class="sw-level-btn" style="border-color:${p.col}" onclick="showMovieList(${lvl})">
+      <div class="sw-level-num" style="color:${p.col}">Nivel ${lvl}</div>
+      <div class="sw-level-name">${p.lbl}</div>
+      <div class="sw-level-dsc">${p.dsc}</div>
+      <div class="sw-level-cnt">${p.m.length} películas ▶</div>
+    </button>`;
+  }).join('');
+  area.innerHTML=`<div class="sw-entry-split">
+    <div class="sw-entry-left">
+      <div class="sw-entry-title">🎬 PELÍCULAS</div>${lvlBtns}
+    </div>
+    <div class="sw-entry-right">
+      <div class="sw-entry-title">📎 CLIPS / BÚSQUEDA</div>
+      <div id="sw-clips-content"><div style="text-align:center;padding:32px 0;color:var(--muted)">
+        <div style="font-size:36px;margin-bottom:10px">🎬</div>
+        <p>Buscando clips para "<strong>${getTopic()}</strong>"...</p>
+      </div></div>
+    </div>
+  </div>`;
   const topic=getTopic(),level=getLevelDesc();
   const prompt=`Suggest 2 movie or TV show scenes to help a student learn English. Topic: "${topic}". Level: ${level}.
 Return JSON:
-{"scenes":[
-  {"title":"Movie/Show Title","scene_description":"which scene and why it's good","year":2010,"difficulty":"easy|medium|hard","quotes":["Famous quote 1 from the scene","Famous quote 2"],"vocabulary":["word - meaning"],"why":"why this helps with the topic","youtube_search":"movie title scene clip english"},
-  ...2 scenes
-]}
+{"scenes":[{"title":"Movie/Show Title","scene_description":"which scene and why","year":2010,"difficulty":"easy|medium|hard","quotes":["Famous quote 1","Famous quote 2"],"vocabulary":["word - meaning"],"why":"why this helps","youtube_search":"movie title scene clip english"},... 2 scenes]}
 Return only valid JSON.`;
   try{
     const raw=await callClaude(prompt,2000);
     const d=parseJSON(raw);
-    renderWatching(d);
-  }catch(e){showError(e.message);}
+    const el=document.getElementById('sw-clips-content');
+    if(el)el.innerHTML=_renderSceneCards(d);
+  }catch(e){
+    const el=document.getElementById('sw-clips-content');
+    if(el)el.innerHTML=`<div class="error-box">${e.message}</div>`;
+  }
 }
 
-function renderWatching(d){
+function _renderSceneCards(d){
   const scenes=d.scenes||[];
-  let html=`<div class="content-card"><h2>🎬 Watch &amp; Learn — "${getTopic()}"</h2><p style="color:var(--muted)">Watch the scene, listen for the quotes, and learn naturally!</p></div>`;
+  let html=`<div class="content-card" style="margin-bottom:12px"><h2>🎬 Watch &amp; Learn — "${getTopic()}"</h2><p style="color:var(--muted);margin-bottom:0">Watch the scene, listen for the quotes!</p></div>`;
   scenes.forEach(s=>{
     const yt=encodeURIComponent(s.youtube_search||s.title+' english scene');
     html+=`<div class="media-card">
       <div class="media-card-header">
-        <div><div class="media-card-title">🎬 ${s.title} <span style="color:var(--muted);font-size:14px">(${s.year||''})</span></div><div class="media-card-sub">${s.scene_description}</div></div>
+        <div><div class="media-card-title">🎬 ${s.title} <span style="color:var(--muted);font-size:13px">(${s.year||''})</span></div>
+        <div class="media-card-sub">${s.scene_description}</div></div>
         <div class="media-card-level ${s.difficulty}">${s.difficulty.toUpperCase()}</div>
       </div>
       <p>${s.why}</p>
-      <div style="margin-bottom:10px"><strong style="color:var(--orange);font-family:'Rajdhani',sans-serif;letter-spacing:1px">FAMOUS QUOTES:</strong></div>
+      <div style="margin-bottom:8px"><strong style="color:var(--orange);font-family:'Rajdhani',sans-serif;letter-spacing:1px">FAMOUS QUOTES:</strong></div>
       ${(s.quotes||[]).map(q=>`<div class="quote-box">"${q}"</div>`).join('')}
       ${s.vocabulary&&s.vocabulary.length?`<p style="margin-bottom:12px"><strong>Vocabulary:</strong> ${s.vocabulary.join(' · ')}</p>`:''}
       <a class="yt-link" href="https://www.youtube.com/results?search_query=${yt}" target="_blank">▶ YouTube</a>
     </div>`;
   });
-  html+=`<div class="km-award"><div class="km-award-num">🍿</div><div class="km-award-label">Watch, listen, and pick up new phrases!</div></div>`;
-  document.getElementById('module-content-area').innerHTML=html;
+  return html;
+}
+
+function showMovieList(lvl){
+  const p=MOVIE_LISTS[lvl];
+  window._mwLvl=lvl;
+  let movies='';
+  p.m.forEach(([t,y],i)=>{
+    movies+=`<button class="movie-item" onclick="showMovieCard(${i})">
+      <div><div class="movie-item-title">${t}</div><div class="movie-item-year">${y}</div></div>
+      <div style="color:var(--muted);font-size:16px">▶</div>
+    </button>`;
+  });
+  document.getElementById('module-content-area').innerHTML=`
+    <div class="sw-back-bar">
+      <button class="sw-back-btn" onclick="runWatching()">← Volver</button>
+      <div><div class="sw-list-hdr" style="color:${p.col}">Nivel ${lvl} — ${p.lbl}</div>
+      <div class="sw-list-dsc">${p.dsc} · ${p.m.length} películas</div></div>
+    </div>
+    <div>${movies}</div>`;
+}
+
+async function showMovieCard(idx){
+  const lvl=window._mwLvl,p=MOVIE_LISTS[lvl];
+  const [t,y]=p.m[idx];
+  document.getElementById('module-content-area').innerHTML=`
+    <div class="sw-back-bar">
+      <button class="sw-back-btn" onclick="showMovieList(${lvl})">← Nivel ${lvl}</button>
+      <div class="sw-list-hdr" style="color:${p.col}">${t} (${y})</div>
+    </div>
+    <div class="movie-card-screen" id="mc-content">
+      <div style="text-align:center;padding:36px;color:var(--muted)">
+        <div style="font-size:40px;margin-bottom:10px">🎬</div>
+        <p>Preparando guía para <strong>${t}</strong>...</p>
+      </div>
+    </div>`;
+  const level=getLevelDesc();
+  const prompt=`Create a learning guide for the movie "${t}" (${y}) for an English student at level ${level}.
+Return JSON:
+{"description":"2-3 sentence DVD-back style description in English","vocabulary":[{"w":"word","m":"significado en español"},...15 items],"quotes":["Famous quote 1","Famous quote 2","Famous quote 3","Famous quote 4","Famous quote 5"]}
+Return only valid JSON.`;
+  try{
+    const raw=await callClaude(prompt,1500);
+    const d=parseJSON(raw);
+    const vocab=d.vocabulary||d.vocab||[];
+    const quotes=d.quotes||[];
+    const el=document.getElementById('mc-content');
+    if(el)el.innerHTML=`
+      <div class="movie-dvd-desc">
+        <div style="font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);margin-bottom:10px">📽️ DESCRIPCIÓN</div>
+        <p style="line-height:1.7;margin:0;font-size:14px">${d.description||''}</p>
+      </div>
+      <div class="content-card">
+        <div style="font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);margin-bottom:10px">📖 VOCABULARIO</div>
+        <div class="movie-vocab-grid">${vocab.map(v=>`<div class="vocab-item"><div class="vocab-word">${v.w||v.word||''}</div><div class="vocab-mean">${v.m||v.meaning||''}</div></div>`).join('')}</div>
+      </div>
+      <div class="content-card">
+        <div style="font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;color:var(--orange);margin-bottom:10px">💬 FAMOUS QUOTES</div>
+        <div class="movie-quotes">${quotes.map(q=>`<div class="quote-box">"${q}"</div>`).join('')}</div>
+      </div>`;
+  }catch(e){
+    const el=document.getElementById('mc-content');
+    if(el)el.innerHTML=`<div class="error-box">${e.message}</div>`;
+  }
 }
 
 // ══ PRONUNCIATION ══
