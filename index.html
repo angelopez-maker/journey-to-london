@@ -672,7 +672,7 @@
           <div class="rqn-icon">🎵</div>
           <div class="rqn-cat">SINGING</div>
           <div class="rqn-title">Music Playlists</div>
-          <div class="rqn-sub">5 niveles · 151 canciones</div>
+          <div class="rqn-sub">5 niveles · 174 canciones</div>
           <div class="rqn-badge">L1 → L5</div>
         </button>
         <button class="rqn-btn watching" onclick="openModule('watching')">
@@ -2306,6 +2306,11 @@ const SONG_PLAYLISTS=[null,
     ['Woman','John Lennon'],['Strangers in the Night','Frank Sinatra'],
     ['Moon River','Andy Williams'],["Annie's Song",'John Denver'],
     ['When I Fall in Love','Nat King Cole'],['Tears in Heaven','Eric Clapton'],
+    ['I Will Always Love You','Whitney Houston'],['I Have Nothing','Whitney Houston'],
+    ['Underneath Your Clothes','Shakira'],['Addicted to You','Shakira'],
+    ["Who's Lovin' You",'Jackson 5'],['You','Ten Sharp'],
+    ['Still Loving You','Scorpions'],['Stop','Sam Brown'],
+    ['(Everything I Do) I Do It for You','Bryan Adams'],
   ]},
   {lbl:'Nivel 2',col:'#60a5fa',dsc:'Más texto · Vocabulario intermedio',s:[
     ['Just the Way You Are','Barry White'],['All by Myself','Celine Dion'],
@@ -2324,6 +2329,11 @@ const SONG_PLAYLISTS=[null,
     ["That's Life",'Frank Sinatra'],["It's Not Unusual",'Tom Jones'],
     ['Hit the Road Jack','Ray Charles'],['Imagine','John Lennon'],
     ['New York, New York','Frank Sinatra'],['One','U2'],
+    ['Run to You','Whitney Houston'],["I'm Every Woman",'Whitney Houston'],
+    ['Whenever, Wherever','Shakira'],['Waka Waka','Shakira'],
+    ['La La La','Shakira'],["Don't Bother",'Shakira'],
+    ['Dai Dai','Shakira'],["If You Don't Know Me by Now",'Simply Red'],
+    ['Always','Bon Jovi'],
   ]},
   {lbl:'Nivel 3',col:'#f97316',dsc:'Ritmo moderado · Pop/Rock adulto',s:[
     ["Don't Stop Me Now",'Queen'],['The Show Must Go On','Queen'],
@@ -2341,6 +2351,9 @@ const SONG_PLAYLISTS=[null,
     ['Bye Bye Bye','NSYNC'],['Mirrors','Justin Timberlake'],
     ['Come Together','The Beatles'],['Hey Jude','The Beatles'],
     ['Living on a Prayer','Bon Jovi'],
+    ['Queen of the Night','Whitney Houston'],["Hips Don't Lie",'Shakira'],
+    ['Objection','Shakira'],['Loca','Shakira'],
+    ['You Give Love a Bad Name','Bon Jovi'],
   ]},
   {lbl:'Nivel 4',col:'#ef4444',dsc:'Rock rápido · Vocabulario complejo',s:[
     ['Welcome to the Jungle',"Guns N' Roses"],['Paradise City',"Guns N' Roses"],
@@ -2377,6 +2390,113 @@ const SONG_PLAYLISTS=[null,
     ['Fight for Your Right','Beastie Boys'],['Crawling','Linkin Park'],
   ]},
 ];
+
+const LYRICS_CACHE={
+  'queen|it\'s a beautiful day':`It's a beautiful day\nThe sun is shining, I feel good\nAnd no one's gonna\nStop me now, oh yeah\n\nIt's a beautiful day\nI feel good, I feel right\nAnd no one, no one's\nGonna stop me now, mama\n\nSometimes I feel so sad\nSo sad, so bad\nBut no one's gonna\nStop me now, no one\nOoh, it's hopeless\nSo hopeless to even try`,
+  'michael jackson|girlfriend':`I'm gonna tell your boyfriend\nTell him\nExactly what we're doin'\nTell him what you do to me\nLate at night when the wind is free\nGirlfriend\nI'm gonna show your boyfriend\nShow him\nThe letters I've been savin'\nShow him how you feel inside\nAnd how love could not be denied\nWe're gonna have to tell him\nYou'll only be a girlfriend of mine\nGirlfriend\nYou better tell your boyfriend\nTell him\nExactly what we're doin'\nTell him what he needs to know\nOr he may never let you go`,
+  'linkin park|what i\'ve done':`In this farewell\nThere's no blood, there's no alibi\n'Cause I've drawn regret\nFrom the truth of a thousand lies\nSo let mercy come and wash away\nWhat I've done\n\nI'll face myself to cross out what I've become\nErase myself\nAnd let go of what I've done\n\nPut to rest what you thought of me\nWhile I clean this slate\nWith the hands of uncertainty\nSo let mercy come and wash away\nWhat I've done\n\nI'll face myself to cross out what I've become\nErase myself\nAnd let go of what I've done\n\nFor what I've done\nI start again\nAnd whatever pain may come\nToday this ends\nI'm forgiving what I've done\n\nI'll face myself to cross out what I've become\nErase myself\nAnd let go of what I've done\nWhat I've done\nForgiving what I've done`,
+  'jay-z|empire state of mind':`Yeah, I'm out that Brooklyn, now I'm down in Tribeca\nRight next to De Niro, but I'll be hood forever\nI'm the new Sinatra, and since I made it here\nI can make it anywhere, yeah, they love me everywhere\nI used to cop in Harlem, hola, my Dominicanos\nRight there up on Broadway, brought me back to that McDonald's\nTook it to my stashbox, 560 State Street\nCatch me in the kitchen like a Simmons whippin' pastry\nCruisin' down 8th Street, off-white Lexus\nDriverin' so slow, but BK is from Texas\nMe, I'm out that Bed-Stuy, home of that boy Biggie\nNow I live on Billboard and I brought my boys with me\n\nIn New York\nConcrete jungle where dreams are made of\nThere's nothin' you can't do\nNow you're in New York\nThese streets will make you feel brand new\nBig lights will inspire you\nLet's hear it for New York\nNew York, New York\n\nWelcome to the melting pot, corners where we sellin' rock\nAfrika Bambataa shit, home of the hip-hop\nYellow cab, gypsy cab, dollar cab, holla back\nFor foreigners it ain't fair, they act like they forgot how to add\nEight million stories, out there in the naked city\nCity is a pity, half of y'all won't make it\nStatue of Liberty, long live the World Trade\nLong live the king, yo, I'm from the Empire State\n\nIn New York\nConcrete jungle where dreams are made of\nThere's nothin' you can't do\nNow you're in New York\nThese streets will make you feel brand new\nBig lights will inspire you\nLet's hear it for New York\nNew York, New York\n\nLights is blinding, girls need blinders\nCity of sin, it's a pity on a whim\nGood girls gone bad, the city's filled with them\nCame here for school, graduated to the high life\nBall players, rap stars, addicted to the limelight\nThe city never sleeps, better slip you an Ambien\n\nIn New York\nConcrete jungle where dreams are made of\nThere's nothin' you can't do\nNow you're in New York\nThese streets will make you feel brand new\nBig lights will inspire you\nLet's hear it for New York\nNew York, New York`,
+};
+
+// Buffer de canciones por nivel (se usan cuando el usuario marca todas las activas como escuchadas)
+const SONG_BUFFER=[null,
+  // L1
+  [['Yesterday Once More','The Carpenters'],['Top of the World','The Carpenters'],['Close to You','The Carpenters'],["We've Only Just Begun",'The Carpenters'],['Sing','The Carpenters'],
+   ['Fernando','ABBA'],['Chiquitita','ABBA'],['How Deep Is Your Love','Bee Gees'],['Islands in the Stream','Bee Gees'],['Too Much Heaven','Bee Gees'],['Words','Bee Gees'],
+   ['Bridge Over Troubled Water','Simon & Garfunkel'],['Scarborough Fair','Simon & Garfunkel'],
+   ['Father and Son','Cat Stevens'],['Morning Has Broken','Cat Stevens'],["You've Got a Friend",'James Taylor'],
+   ['My Girl','The Temptations'],["Sittin' On the Dock of the Bay",'Otis Redding'],['Wonderful World','Sam Cooke'],['Georgia on My Mind','Ray Charles'],["Let's Stay Together",'Al Green'],
+   ['Only You','The Platters'],['The Great Pretender','The Platters'],
+   ['Beyond the Sea','Bobby Darin'],['Dream Lover','Bobby Darin'],
+   ["Knockin' on Heaven's Door",'Bob Dylan'],["Blowin' in the Wind",'Bob Dylan'],
+   ['Crying','Roy Orbison'],['In Dreams','Roy Orbison'],
+   ['I Just Called to Say I Love You','Stevie Wonder'],['You Are the Sunshine of My Life','Stevie Wonder'],
+   ['Lean on Me','Bill Withers'],['Lovely Day','Bill Withers'],
+   ['Nothing Compares 2 U','Sinead O\'Connor'],['The Rose','Bette Midler'],['God Only Knows','The Beach Boys'],['Sailing','Rod Stewart'],
+   ['Ebony and Ivory','Paul McCartney'],['The First Time Ever I Saw Your Face','Roberta Flack'],
+   ['Endless Love','Diana Ross'],['Walk On By','Dionne Warwick'],["Everybody's Talkin'",'Harry Nilsson'],
+   ['Time in a Bottle','Jim Croce'],['Green Green Grass of Home','Tom Jones'],['Wichita Lineman','Glen Campbell'],
+   ['Till There Was You','The Beatles'],['And I Love Her','The Beatles'],['Somewhere Over the Rainbow','Judy Garland'],
+   ['Happy','Pharrell Williams'],['Perfect','Ed Sheeran'],['Count on Me','Bruno Mars'],
+   ['Thinking Out Loud','Ed Sheeran'],['Flowers','Miley Cyrus'],['A Thousand Years','Christina Perri'],['Lover','Taylor Swift']],
+  // L2
+  [['Dancing Queen','ABBA'],['Mamma Mia','ABBA'],['The Winner Takes It All','ABBA'],['SOS','ABBA'],['Honey Honey','ABBA'],
+   ['Tragedy','Bee Gees'],['To Love Somebody','Bee Gees'],['More Than a Woman','Bee Gees'],
+   ['Another Day in Paradise','Phil Collins'],['In the Air Tonight','Phil Collins'],['Against All Odds','Phil Collins'],
+   ['Hello','Lionel Richie'],['All Night Long','Lionel Richie'],
+   ['True Colors','Cyndi Lauper'],['Time After Time','Cyndi Lauper'],
+   ['Every Breath You Take','The Police'],
+   ['The Sound of Silence','Simon & Garfunkel'],['Mrs. Robinson','Simon & Garfunkel'],
+   ['Everybody Hurts','R.E.M.'],['Wonderwall','Oasis'],["Don't Look Back in Anger",'Oasis'],['The Scientist','Coldplay'],['Yellow','Coldplay'],['Fix You','Coldplay'],
+   ['Angels','Robbie Williams'],['Back for Good','Take That'],
+   ["I'm Yours",'Jason Mraz'],['Lucky','Jason Mraz'],["Don't Know Why",'Norah Jones'],
+   ['It Must Have Been Love','Roxette'],['Spending My Time','Roxette'],
+   ['Fields of Gold','Sting'],['Wicked Game','Chris Isaak'],
+   ["What's Love Got to Do with It",'Tina Turner'],['Simply the Best','Tina Turner'],
+   ['Sweet Caroline','Neil Diamond'],['Desperado','Eagles'],
+   ['Piano Man','Billy Joel'],["Don't Stop Believin'",'Journey'],['Right Here Waiting','Richard Marx'],['All Out of Love','Air Supply'],
+   ["Don't Dream It's Over",'Crowded House'],["I'm Gonna Be (500 Miles)",'The Proclaimers'],['Bitter Sweet Symphony','The Verve'],
+   ['Jolene','Dolly Parton'],['The Gambler','Kenny Rogers'],
+   ['Someone Like You','Adele'],['Halo','Beyoncé'],['Diamonds','Rihanna'],['Dynamite','BTS'],
+   ['What Makes You Beautiful','One Direction'],['Where Is the Love?','Black Eyed Peas'],
+   ['Girls Like You','Maroon 5'],['Levitating','Dua Lipa'],['Save Your Tears','The Weeknd'],
+   ["Just Give Me a Reason",'Pink'],['Cheap Thrills','Sia'],['Lose You to Love Me','Selena Gomez'],['Adore You','Harry Styles'],
+   ['September','Earth, Wind & Fire']],
+  // L3
+  [['Go Your Own Way','Fleetwood Mac'],['Dreams','Fleetwood Mac'],['The Chain','Fleetwood Mac'],['Little Lies','Fleetwood Mac'],
+   ['Romeo and Juliet','Dire Straits'],['Sultans of Swing','Dire Straits'],
+   ['Losing My Religion','R.E.M.'],['Personal Jesus','Depeche Mode'],['Enjoy the Silence','Depeche Mode'],["Friday I'm in Love",'The Cure'],
+   ['The Look','Roxette'],['Joyride','Roxette'],['Material Girl','Madonna'],['Like a Prayer','Madonna'],["Papa Don't Preach",'Madonna'],
+   ['Smooth','Santana'],['Englishman in New York','Sting'],['Shape of My Heart','Sting'],
+   ['Fast Car','Tracy Chapman'],['Billie Jean','Michael Jackson'],
+   ['Heroes','David Bowie'],['Space Oddity','David Bowie'],
+   ['Sweet Dreams (Are Made of This)','Eurythmics'],
+   ['Zombie','The Cranberries'],['Linger','The Cranberries'],
+   ['Champagne Supernova','Oasis'],['Live Forever','Oasis'],
+   ['Boulevard of Broken Dreams','Green Day'],['Wake Me Up When September Ends','Green Day'],['Good Riddance','Green Day'],
+   ['Rolling in the Deep','Adele'],['Hello','Adele'],['Rehab','Amy Winehouse'],['Back to Black','Amy Winehouse'],
+   ['Shape of You','Ed Sheeran'],['Castle on the Hill','Ed Sheeran'],['Locked Out of Heaven','Bruno Mars'],['Firework','Katy Perry'],
+   ['Love Story','Taylor Swift'],['Counting Stars','OneRepublic'],['Radioactive','Imagine Dragons'],['Demons','Imagine Dragons'],
+   ['Everlong','Foo Fighters'],['Scar Tissue','Red Hot Chili Peppers'],['Shallow','Lady Gaga'],
+   ['bad guy','Billie Eilish'],['Uptown Funk','Bruno Mars'],['Blinding Lights','The Weeknd'],
+   ["Don't Start Now",'Dua Lipa'],['Espresso','Sabrina Carpenter'],['Enemy','Imagine Dragons'],
+   ['Titanium','David Guetta'],['Crazy in Love','Beyoncé'],['Get Lucky','Daft Punk'],
+   ['Chandelier','Sia'],['Umbrella','Rihanna']],
+  // L4 — sin buffer adicional por ahora
+  [],
+  // L5 — sin buffer adicional por ahora
+  [],
+];
+
+// ── Funciones sistema de cola por usuario ──
+function _queueKey(lvl){return `jtl_sw_done_${state.profile||'fer'}_L${lvl}`;}
+function _getDone(lvl){return JSON.parse(localStorage.getItem(_queueKey(lvl))||'[]');}
+function _saveDone(lvl,arr){localStorage.setItem(_queueKey(lvl),JSON.stringify(arr));}
+function _getBufPos(lvl){return parseInt(localStorage.getItem(_queueKey(lvl)+'_buf')||'0');}
+function _saveBufPos(lvl,pos){localStorage.setItem(_queueKey(lvl)+'_buf',pos);}
+
+function markSongDone(idx){
+  const lvl=window._swLvl;
+  const done=_getDone(lvl);
+  if(!done.includes(idx)){done.push(idx);_saveDone(lvl,done);}
+  // promote next from buffer
+  const buf=SONG_BUFFER[lvl]||[];
+  let pos=_getBufPos(lvl);
+  if(pos<buf.length){
+    // buf song is temporary: add to level playlist in memory for this session
+    if(!window._swBufAdded)window._swBufAdded={};
+    if(!window._swBufAdded[lvl])window._swBufAdded[lvl]=[];
+    window._swBufAdded[lvl].push(buf[pos]);
+    _saveBufPos(lvl,pos+1);
+  }
+  showSongList(lvl);
+}
+
+function _getAllSongs(lvl){
+  const base=SONG_PLAYLISTS[lvl].s;
+  const added=(window._swBufAdded&&window._swBufAdded[lvl])||[];
+  return [...base,...added];
+}
 
 const MOVIE_LISTS=[null,
   {lbl:'Nivel 1',col:'#4ade80',dsc:'Animación · Diálogo simple',m:[
@@ -2417,7 +2537,7 @@ async function runSinging(){
       <div class="sw-level-num" style="color:${p.col}">Nivel ${lvl}</div>
       <div class="sw-level-name">${p.lbl}</div>
       <div class="sw-level-dsc">${p.dsc}</div>
-      <div class="sw-level-cnt">${p.s.length} canciones ▶</div>
+      <div class="sw-level-cnt">${p.s.length+(SONG_BUFFER[lvl]||[]).length} canciones ▶</div>
     </button>`;
   }).join('');
   area.innerHTML=`<div class="sw-entry-split">
@@ -2472,26 +2592,73 @@ function _renderSongCards(d){
 function showSongList(lvl){
   const p=SONG_PLAYLISTS[lvl];
   window._swLvl=lvl;
-  let songs='';
-  p.s.forEach(([t,a],i)=>{
-    songs+=`<button class="song-item" onclick="showSongScreen(${i})">
+  const done=_getDone(lvl);
+  const all=_getAllSongs(lvl);
+  const active=all.filter((_,i)=>!done.includes(i));
+  const doneItems=all.filter((_,i)=>done.includes(i));
+  const buf=SONG_BUFFER[lvl]||[];
+  const bufPos=_getBufPos(lvl);
+  const bufLeft=buf.length-bufPos;
+
+  let activeSongs='';
+  all.forEach(([t,a],i)=>{
+    if(done.includes(i))return;
+    activeSongs+=`<button class="song-item" onclick="showSongScreen(${i})">
       <div class="song-item-num">${String(i+1).padStart(2,'0')}</div>
       <div style="flex:1"><div class="song-item-title">${t}</div><div class="song-item-artist">${a}</div></div>
       <div style="color:var(--muted);font-size:16px">▶</div>
     </button>`;
   });
+
+  let doneSongs='';
+  all.forEach(([t,a],i)=>{
+    if(!done.includes(i))return;
+    doneSongs+=`<button class="song-item" style="opacity:.5" onclick="showSongScreen(${i})">
+      <div class="song-item-num" style="color:var(--green)">✓</div>
+      <div style="flex:1"><div class="song-item-title">${t}</div><div class="song-item-artist">${a}</div></div>
+      <div style="color:var(--muted);font-size:16px">▶</div>
+    </button>`;
+  });
+
+  let bottomBlock='';
+  if(active.length===0){
+    if(bufLeft>0){
+      bottomBlock=`<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">Nuevas canciones cargando del buffer...</div>`;
+    } else {
+      bottomBlock=`<div style="text-align:center;padding:24px;background:var(--card);border-radius:16px;margin-top:8px">
+        <div style="font-size:32px;margin-bottom:8px">🏆</div>
+        <div style="font-size:15px;font-weight:700;color:var(--green);margin-bottom:4px">Congratulations!</div>
+        <div style="font-size:13px;color:var(--text)">You are an expert in Level ${lvl}.</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:6px">Ask for more to your parents 😄</div>
+      </div>`;
+    }
+  }
+
+  const doneSection=doneSongs?`
+    <div style="margin-top:14px">
+      <button onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'"
+        style="width:100%;text-align:left;background:none;border:none;color:var(--muted);font-size:12px;padding:6px 0;cursor:pointer;letter-spacing:1px">
+        ✓ YA ESCUCHADAS (${doneItems.length}) ▾
+      </button>
+      <div style="display:none">${doneSongs}</div>
+    </div>`:'';
+
   document.getElementById('module-content-area').innerHTML=`
     <div class="sw-back-bar">
       <button class="sw-back-btn" onclick="runSinging()">← Volver</button>
       <div><div class="sw-list-hdr" style="color:${p.col}">Nivel ${lvl} — ${p.lbl}</div>
-      <div class="sw-list-dsc">${p.dsc} · ${p.s.length} canciones</div></div>
+      <div class="sw-list-dsc">${p.dsc} · ${all.length} canciones</div></div>
     </div>
-    <div class="song-list">${songs}</div>`;
+    <div class="song-list">${activeSongs}${bottomBlock}</div>
+    ${doneSection}`;
 }
 
 async function showSongScreen(idx){
   const lvl=window._swLvl,p=SONG_PLAYLISTS[lvl];
-  const [t,a]=p.s[idx];
+  const all=_getAllSongs(lvl);
+  const [t,a]=all[idx];
+  const done=_getDone(lvl);
+  const isDone=done.includes(idx);
   const ytQ=encodeURIComponent(`${t} ${a} official audio`);
   document.getElementById('module-content-area').innerHTML=`
     <div class="sw-back-bar">
@@ -2504,6 +2671,10 @@ async function showSongScreen(idx){
         <div style="font-weight:700;font-size:13px;text-align:center;color:var(--text)">${t}</div>
         <div style="font-size:11px;color:var(--muted);text-align:center">${a}</div>
         <a class="song-yt-btn" href="https://www.youtube.com/results?search_query=${ytQ}" target="_blank">▶ Escuchar en YouTube</a>
+        ${isDone
+          ? `<div style="text-align:center;color:var(--green);font-size:12px;margin-top:6px">✓ Ya escuchada</div>`
+          : `<button onclick="markSongDone(${idx})" style="margin-top:8px;width:100%;padding:8px;background:var(--green);color:#000;border:none;border-radius:10px;font-weight:700;font-size:12px;cursor:pointer">✓ Give me another!</button>`
+        }
       </div>
       <div class="song-vocab" id="ss-vocab">
         <div style="font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);margin-bottom:7px">VOCABULARIO</div>
@@ -2519,32 +2690,54 @@ async function showSongScreen(idx){
 
 async function _loadLyricsAndVocab(t,a){
   let lyrics='';
-  try{
-    const r=await fetch(`https://api.lyrics.ovh/v1/${encodeURIComponent(a)}/${encodeURIComponent(t)}`);
-    const d=await r.json();
-    if(d.lyrics){
-      lyrics=d.lyrics;
-      const el=document.getElementById('ss-lyrics');
-      if(el)el.innerHTML=`<div style="font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);margin-bottom:10px">LYRICS</div><div style="white-space:pre-wrap;line-height:1.9;font-size:14px">${lyrics}</div>`;
-    }else{
-      const el=document.getElementById('ss-lyrics');
-      if(el)el.innerHTML=`<div style="font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);margin-bottom:10px">LYRICS</div><div style="color:var(--muted);text-align:center;padding:20px">Lyrics no disponibles.<br><br><a href="https://www.google.com/search?q=${encodeURIComponent(t+' '+a+' lyrics')}" target="_blank" style="color:var(--blue2)">Buscar en Google ↗</a></div>`;
-    }
-  }catch(e){
+  const cacheKey=`${a}|${t}`.toLowerCase();
+  if(LYRICS_CACHE[cacheKey]){
+    lyrics=LYRICS_CACHE[cacheKey];
     const el=document.getElementById('ss-lyrics');
-    if(el)el.innerHTML=`<div style="font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);margin-bottom:10px">LYRICS</div><div style="color:var(--muted);text-align:center;padding:20px">Error al cargar lyrics</div>`;
+    if(el)el.innerHTML=`<div style="font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);margin-bottom:10px">LYRICS</div><div style="white-space:pre-wrap;line-height:1.9;font-size:14px">${lyrics}</div>`;
+  }else{
+    try{
+      const r=await fetch(`https://api.lyrics.ovh/v1/${encodeURIComponent(a)}/${encodeURIComponent(t)}`);
+      const d=await r.json();
+      if(d.lyrics){
+        lyrics=d.lyrics;
+        const el=document.getElementById('ss-lyrics');
+        if(el)el.innerHTML=`<div style="font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);margin-bottom:10px">LYRICS</div><div style="white-space:pre-wrap;line-height:1.9;font-size:14px">${lyrics}</div>`;
+      }else{
+        const el=document.getElementById('ss-lyrics');
+        if(el)el.innerHTML=`<div style="font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);margin-bottom:10px">LYRICS</div><div style="color:var(--muted);text-align:center;padding:20px">Lyrics no disponibles.<br><br><a href="https://www.google.com/search?q=${encodeURIComponent(t+' '+a+' lyrics')}" target="_blank" style="color:var(--blue2)">Buscar en Google ↗</a></div>`;
+      }
+    }catch(e){
+      const el=document.getElementById('ss-lyrics');
+      if(el)el.innerHTML=`<div style="font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);margin-bottom:10px">LYRICS</div><div style="color:var(--muted);text-align:center;padding:20px">Error al cargar lyrics</div>`;
+    }
   }
-  const lyricsCtx=lyrics?`\nLyrics:\n${lyrics.slice(0,600)}`:'';
-  const prompt=`For the song "${t}" by ${a}, select exactly 10 vocabulary words or phrases useful for an English learner.${lyricsCtx}
-Return JSON: {"vocab":[{"w":"word","m":"significado en español"},...10 items]}
+  const lyricsCtx=lyrics?`\nLyrics:\n${lyrics.slice(0,800)}`:'';
+  const prompt=`For the song "${t}" by ${a}:
+1. Select exactly 10 vocabulary words useful for an English learner.
+2. Select up to 5 key phrases from the song that have a special meaning, emotional weight, or are idiomatic — phrases where the meaning is richer than the individual words. Only include if there are genuinely meaningful phrases; otherwise return an empty array.
+${lyricsCtx}
+Return JSON:
+{"vocab":[{"w":"word","m":"significado en español"},...10 items],
+ "phrases":[{"p":"the phrase","m":"qué significa o transmite en contexto"},...up to 5]}
 Return only valid JSON.`;
   try{
-    const raw=await callClaude(prompt,500);
+    const raw=await callClaude(prompt,700);
     const d=parseJSON(raw);
     const vocab=d.vocab||[];
+    const phrases=d.phrases||[];
     const el=document.getElementById('ss-vocab');
-    if(el)el.innerHTML=`<div style="font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);margin-bottom:7px">VOCABULARIO</div>
-      <div class="vocab-grid">${vocab.map(v=>`<div class="vocab-item"><div class="vocab-word">${v.w}</div><div class="vocab-mean">${v.m}</div></div>`).join('')}</div>`;
+    if(el){
+      const phrasesHtml=phrases.length?`
+        <div style="font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);margin-top:14px;margin-bottom:7px">FRASES CLAVE</div>
+        ${phrases.map(ph=>`<div style="background:var(--card2,var(--card));border-radius:10px;padding:8px 10px;margin-bottom:6px">
+          <div style="font-size:12px;font-weight:700;color:var(--blue2);margin-bottom:2px">"${ph.p}"</div>
+          <div style="font-size:11px;color:var(--muted);line-height:1.4">${ph.m}</div>
+        </div>`).join('')}`:'';
+      el.innerHTML=`<div style="font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);margin-bottom:7px">VOCABULARIO</div>
+        <div class="vocab-grid">${vocab.map(v=>`<div class="vocab-item"><div class="vocab-word">${v.w}</div><div class="vocab-mean">${v.m}</div></div>`).join('')}</div>
+        ${phrasesHtml}`;
+    }
   }catch(e){
     const el=document.getElementById('ss-vocab');
     if(el)el.innerHTML=`<div style="font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);margin-bottom:7px">VOCABULARIO</div><div style="color:var(--muted);font-size:13px">No disponible</div>`;
