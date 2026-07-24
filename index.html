@@ -2702,7 +2702,7 @@ async function _loadTrivia(t,a){
     return;
   }
   try{
-    const prompt=`Dame un dato curioso, breve y sorprendente sobre la canción "${t}" de ${a}. Algo interesante para un adolescente: la historia detrás, una conexión inesperada, o algo que no todos saben. Máximo 2 frases en español.`;
+    const prompt=`Give me one short, fun and surprising fact about the song "${t}" by ${a}. Something interesting for a teenager: the story behind it, an unexpected connection, or something most people don't know. Maximum 2 sentences in English.`;
     const fact=await callClaude(prompt,150);
     if(fact&&el){
       localStorage.setItem(key,fact);
