@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Progreso — Journey to London</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #f4f5f7;
+      min-height: 100vh;
+      padding: 32px 20px;
+      color: #111;
+    }
+
+    .container { max-width: 680px; margin: 0 auto; }
+
+    /* Header */
+    .header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 28px;
+    }
+    .header h1 { font-size: 22px; font-weight: 900; color: #111; }
+    .header h1 span { color: #6366f1; }
+    .live {
+      display: flex; align-items: center; gap: 7px;
+      font-size: 11px; font-weight: 700; color: #16a34a; letter-spacing: 1px;
+    }
+    .live-dot {
+      width: 9px; height: 9px; border-radius: 50%; background: #4ade80;
+      animation: blink 1.4s ease-in-out infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.25} }
+
+    /* London badge */
+    .london-badge {
+      background: linear-gradient(135deg, #1e1b4b, #312e81);
+      border: 2px solid #fbbf24;
+      border-radius: 16px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 24px rgba(251,191,36,.2);
+    }
+    .badge-icon { font-size: 40px; }
+    .badge-text h2 { font-size: 14px; font-weight: 900; color: #fbbf24; letter-spacing: 1px; text-transform: uppercase; }
+    .badge-text p  { font-size: 12px; color: rgba(255,255,255,.75); margin-top: 4px; }
+
+    /* Cards */
+    .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+    @media (max-width: 480px) { .cards { grid-template-columns: 1fr; } }
+
+    .card {
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 18px;
+      padding: 20px;
+      box-shadow: 0 1px 6px rgba(0,0,0,.06);
+    }
+    .card-name { font-size: 16px; font-weight: 900; margin-bottom: 16px; }
+
+    .stats { display: flex; justify-content: space-between; margin-bottom: 16px; }
+    .stat { text-align: center; flex: 1; }
+    .stat-val { font-size: 24px; font-weight: 900; }
+    .stat-val.purple { color: #6366f1; }
+    .stat-val.green  { color: #22c55e; }
+    .stat-val.gold   { color: #f59e0b; }
+    .stat-label { font-size: 9px; color: #888; margin-top: 3px; text-transform: uppercase; letter-spacing: .5px; }
+
+    .km-wrap { }
+    .km-labels { display: flex; justify-content: space-between; font-size: 10px; color: #aaa; margin-bottom: 5px; }
+    .km-track { height: 10px; background: #f0f0f0; border-radius: 10px; overflow: hidden; }
+    .km-fill { height: 100%; border-radius: 10px; transition: width 1.3s cubic-bezier(.4,0,.2,1); }
+    .fill-rod { background: linear-gradient(90deg, #6366f1, #a78bfa); }
+    .fill-fer { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+    .journey-tag {
+      margin-top: 8px; text-align: center;
+      font-size: 11px; font-weight: 700; color: #888;
+    }
+
+    /* Compare */
+    .compare {
+      background: white; border: 1px solid #e5e7eb;
+      border-radius: 18px; padding: 20px; margin-bottom: 20px;
+      box-shadow: 0 1px 6px rgba(0,0,0,.06);
+    }
+    .compare h3 { font-size: 11px; font-weight: 700; color: #aaa; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 16px; }
+    .bar-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+    .bar-name { width: 72px; font-size: 13px; font-weight: 700; text-align: right; color: #333; }
+    .bar-track { flex: 1; height: 26px; background: #f0f0f0; border-radius: 8px; overflow: hidden; }
+    .bar-inner {
+      height: 100%; border-radius: 8px;
+      display: flex; align-items: center; padding-left: 12px;
+      font-size: 12px; font-weight: 800; color: white;
+      transition: width 1.4s cubic-bezier(.4,0,.2,1);
+      white-space: nowrap; min-width: 72px;
+    }
+
+    /* Footer */
+    .footer { text-align: center; font-size: 11px; color: #bbb; }
+    .footer a { color: #6366f1; text-decoration: none; }
+
+    /* States */
+    .loading { text-align: center; padding: 60px; color: #888; font-size: 15px; }
+    .error   { text-align: center; padding: 60px; color: #f87171; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <div class="container" id="app">
+    <div class="loading">Cargando progreso… ✈️</div>
+  </div>
+
+  <script>
+    const LONDON_KM = 5000;
+
+    async function load() {
+      const app = document.getElementById('app');
+      try {
+        const r   = await fetch('/api/scores');
+        const d   = await r.json();
+        const rod = d.rodrigo;
+        const fer = d.fernando;
+
+        const ferStars    = fer.prestige?.stars    ?? 0;
+        const ferTrophies = fer.prestige?.trophies ?? 0;
+        const ferBens     = fer.prestige?.bens     ?? 0;
+        const ferPrestige = ferStars + ferTrophies + ferBens;
+        const ferTrips    = ferStars; // 1 estrella = 1 viaje completado
+
+        const rodStars    = rod.prestige?.stars    ?? 0;
+        const rodTrophies = rod.prestige?.trophies ?? 0;
+        const rodBens     = rod.prestige?.bens     ?? 0;
+        const rodPrestige = rodStars + rodTrophies + rodBens;
+
+        const total = Math.max(rod.km, fer.km, 1);
+        const now   = new Date().toLocaleDateString('es-CL', { day:'numeric', month:'long', hour:'2-digit', minute:'2-digit' });
+
+        app.innerHTML = `
+          <div class="header">
+            <h1>Journey to <span>London</span></h1>
+            <div class="live"><div class="live-dot"></div> EN VIVO</div>
+          </div>
+
+          ${ferTrips > 0 ? `
+          <div class="london-badge">
+            <div class="badge-icon">🏛️</div>
+            <div class="badge-text">
+              <h2>⭐ Fernando ya llegó a Londres</h2>
+              <p>Completó los ${LONDON_KM.toLocaleString()} km — está en su ${ferTrips + 1}º viaje</p>
+            </div>
+          </div>` : ''}
+
+          <div class="cards">
+            <!-- Rodrigo -->
+            <div class="card">
+              <div class="card-name">Rodrigo 🧑‍🚀</div>
+              <div class="stats">
+                <div class="stat">
+                  <div class="stat-val purple">${rod.km.toLocaleString()}</div>
+                  <div class="stat-label">km viajados</div>
+                </div>
+                <div class="stat">
+                  <div class="stat-val green">${rod.streak?.count ?? 0} 🔥</div>
+                  <div class="stat-label">días seguidos</div>
+                </div>
+                <div class="stat">
+                  <div class="stat-val gold">${rodPrestige > 0 ? '⭐'.repeat(rodPrestige) : '—'}</div>
+                  <div class="stat-label">logros</div>
+                </div>
+              </div>
+              <div class="km-wrap">
+                <div class="km-labels"><span>${rod.km.toLocaleString()} km</span><span>🏛️ ${LONDON_KM.toLocaleString()} km</span></div>
+                <div class="km-track"><div class="km-fill fill-rod" id="rb" style="width:0%"></div></div>
+              </div>
+              <div class="journey-tag">Primer viaje a Londres 🎯</div>
+            </div>
+
+            <!-- Fernando -->
+            <div class="card">
+              <div class="card-name">Fernando 👨‍🎓</div>
+              <div class="stats">
+                <div class="stat">
+                  <div class="stat-val purple">${fer.km.toLocaleString()}</div>
+                  <div class="stat-label">km viajados</div>
+                </div>
+                <div class="stat">
+                  <div class="stat-val green">${fer.streak?.count ?? 0} 🔥</div>
+                  <div class="stat-label">días seguidos</div>
+                </div>
+                <div class="stat">
+                  <div class="stat-val gold">${ferPrestige > 0 ? '⭐'.repeat(ferPrestige) : '—'}</div>
+                  <div class="stat-label">logros</div>
+                </div>
+              </div>
+              <div class="km-wrap">
+                <div class="km-labels"><span>${fer.km.toLocaleString()} km</span><span>🏛️ ${LONDON_KM.toLocaleString()} km</span></div>
+                <div class="km-track"><div class="km-fill fill-fer" id="fb" style="width:0%"></div></div>
+              </div>
+              <div class="journey-tag">${ferTrips > 0 ? `Viaje ${ferTrips + 1} a Londres 🚀` : 'Primer viaje a Londres 🎯'}</div>
+            </div>
+          </div>
+
+          <div class="compare">
+            <h3>Km totales recorridos</h3>
+            <div class="bar-row">
+              <div class="bar-name">Rodrigo</div>
+              <div class="bar-track"><div class="bar-inner fill-rod" id="rc" style="width:0%">${rod.km.toLocaleString()} km</div></div>
+            </div>
+            <div class="bar-row">
+              <div class="bar-name">Fernando</div>
+              <div class="bar-track"><div class="bar-inner fill-fer" id="fc" style="width:0%">${fer.km.toLocaleString()} km</div></div>
+            </div>
+          </div>
+
+          <div class="footer">Actualizado el ${now} · <a href="/">Volver a la app</a></div>
+        `;
+
+        setTimeout(() => {
+          document.getElementById('rb').style.width = Math.min(rod.km / LONDON_KM * 100, 100) + '%';
+          document.getElementById('fb').style.width = Math.min(fer.km / LONDON_KM * 100, 100) + '%';
+          document.getElementById('rc').style.width = Math.round(rod.km / total * 85) + '%';
+          document.getElementById('fc').style.width = '85%';
+        }, 150);
+
+      } catch (e) {
+        app.innerHTML = `<div class="error">No se pudo cargar 😕<br><small>${e.message}</small></div>`;
+      }
+    }
+
+    load();
+  </script>
+</body>
+</html>
