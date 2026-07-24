@@ -420,9 +420,9 @@
   .song-item-num{font-family:'Orbitron',monospace;font-size:10px;color:var(--muted);min-width:24px;}
   .song-item-title{font-weight:700;font-size:14px;color:var(--text);}
   .song-item-artist{font-size:12px;color:var(--muted);}
-  .song-screen{display:grid;grid-template-columns:200px 1fr 1fr;gap:12px;height:490px;}
+  .song-screen{display:grid;grid-template-columns:240px 1fr 1fr;gap:12px;height:600px;}
   .song-yt{grid-column:1;grid-row:1;background:var(--card);border-radius:16px;border:2px solid var(--pink);
-    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:10px;}
+    display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:5px;padding:16px 10px;overflow-y:auto;}
   .song-vocab{grid-column:2;grid-row:1;background:var(--card);border-radius:16px;border:1px solid var(--border);
     padding:12px;overflow-y:auto;}
   .song-lyrics{grid-column:3;grid-row:1;background:var(--card);border-radius:16px;border:1px solid var(--border);
@@ -2675,6 +2675,9 @@ async function showSongScreen(idx){
           ? `<div style="text-align:center;color:var(--green);font-size:12px;margin-top:6px">✓ Ya escuchada</div>`
           : `<button onclick="markSongDone(${idx})" style="margin-top:8px;width:100%;padding:8px;background:var(--green);color:#000;border:none;border-radius:10px;font-weight:700;font-size:12px;cursor:pointer">✓ Give me another!</button>`
         }
+        <div id="ss-trivia" style="margin-top:10px;padding:10px;background:var(--bg);border-radius:12px;font-size:12px;color:var(--muted);text-align:center;width:100%;min-height:48px">
+          ⏳ Cargando dato curioso...
+        </div>
       </div>
       <div class="song-vocab" id="ss-vocab">
         <div style="font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);margin-bottom:7px">VOCABULARIO</div>
@@ -2686,6 +2689,28 @@ async function showSongScreen(idx){
       </div>
     </div>`;
   _loadLyricsAndVocab(t,a);
+  _loadTrivia(t,a);
+}
+
+async function _loadTrivia(t,a){
+  const key=`jtl_trivia|${a}|${t}`.toLowerCase();
+  const el=document.getElementById('ss-trivia');
+  if(!el)return;
+  const cached=localStorage.getItem(key);
+  if(cached){
+    el.innerHTML=`<div style="font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;color:var(--muted);margin-bottom:6px">💡 DATO CURIOSO</div><div style="color:var(--text);line-height:1.5;text-align:left">${cached}</div>`;
+    return;
+  }
+  try{
+    const prompt=`Dame un dato curioso, breve y sorprendente sobre la canción "${t}" de ${a}. Algo interesante para un adolescente: la historia detrás, una conexión inesperada, o algo que no todos saben. Máximo 2 frases en español.`;
+    const fact=await callClaude(prompt,150);
+    if(fact&&el){
+      localStorage.setItem(key,fact);
+      el.innerHTML=`<div style="font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;color:var(--muted);margin-bottom:6px">💡 DATO CURIOSO</div><div style="color:var(--text);line-height:1.5;text-align:left">${fact}</div>`;
+    }
+  }catch(e){
+    if(el)el.style.display='none';
+  }
 }
 
 async function _loadLyricsAndVocab(t,a){
