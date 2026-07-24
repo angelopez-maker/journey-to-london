@@ -55,6 +55,7 @@ function rateLimit(maxPerMin) {
 
 // ── Scores API ─────────────────────────────────────────────────────────────────
 app.get('/api/scores', (req, res) => {
+  res.set('Access-Control-Allow-Origin', '*');
   res.json(readScores());
 });
 
