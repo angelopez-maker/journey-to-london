@@ -119,5 +119,9 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
+// ── Process stability ──────────────────────────────────────────────────────────
+process.on('uncaughtException',  err => console.error('[uncaughtException]', err));
+process.on('unhandledRejection', err => console.error('[unhandledRejection]', err));
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Journey to London running on port ${PORT}`));
