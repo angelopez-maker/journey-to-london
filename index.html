@@ -200,6 +200,16 @@
   .rqn-btn.watching{border-color:var(--orange);}
   .rqn-btn.watching:hover{box-shadow:0 8px 24px rgba(249,115,22,.25);}
   .rqn-btn.watching .rqn-cat{color:var(--orange);}
+  .rqn-btn.test{border-color:var(--red);} .rqn-btn.test:hover{box-shadow:0 8px 24px rgba(239,68,68,.25);}
+  .rqn-btn.test .rqn-cat{color:var(--red);}
+  .rqn-btn.versus{border-color:var(--purple);} .rqn-btn.versus:hover{box-shadow:0 8px 24px rgba(139,92,246,.25);}
+  .rqn-btn.versus .rqn-cat{color:var(--purple);}
+  .rqn-btn.showtell{border-color:var(--cyan);} .rqn-btn.showtell:hover{box-shadow:0 8px 24px rgba(6,182,212,.25);}
+  .rqn-btn.showtell .rqn-cat{color:var(--cyan);}
+  .rqn-btn.pet{border-color:var(--gold);} .rqn-btn.pet:hover{box-shadow:0 8px 24px rgba(245,158,11,.25);}
+  .rqn-btn.pet .rqn-cat{color:var(--gold2);}
+  .rqn-btn.bookclub{border-color:#4ade80;} .rqn-btn.bookclub:hover{box-shadow:0 8px 24px rgba(74,222,128,.25);}
+  .rqn-btn.bookclub .rqn-cat{color:#4ade80;}
   @media(max-width:480px){.rqn-grid{grid-template-columns:1fr;}.rqn-btn{flex-direction:row;text-align:left;gap:14px;padding:16px 18px;}
     .rqn-icon{font-size:28px;}.rqn-sub,.rqn-badge{display:none;}}
 
@@ -681,6 +691,68 @@
           <div class="rqn-title">Movies</div>
           <div class="rqn-sub">4 niveles · 60 películas</div>
           <div class="rqn-badge">Aprende viendo</div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Fernando hub: 8 módulos -->
+    <div id="fernando-quick-nav" style="display:none">
+      <div class="rqn-grid">
+        <button class="rqn-btn test" onclick="openTestTheTest()">
+          <div class="rqn-icon">📋</div>
+          <div class="rqn-cat">EXAM PREP</div>
+          <div class="rqn-title">Test the Test</div>
+          <div class="rqn-sub">Miss Kamil_IA analiza tu examen</div>
+          <div class="rqn-badge">B1 · Miss Kamila</div>
+        </button>
+        <button class="rqn-btn versus" onclick="openVersusModeF()">
+          <div class="rqn-icon">⚔️</div>
+          <div class="rqn-cat">VERSUS</div>
+          <div class="rqn-title">Versus Mode</div>
+          <div class="rqn-sub">Grammar Duels</div>
+          <div class="rqn-badge">Battle!</div>
+        </button>
+        <button class="rqn-btn watching" onclick="openModule('watching')">
+          <div class="rqn-icon">🎬</div>
+          <div class="rqn-cat">WATCHING</div>
+          <div class="rqn-title">Movies</div>
+          <div class="rqn-sub">4 niveles · 60 películas</div>
+          <div class="rqn-badge">Aprende viendo</div>
+        </button>
+        <button class="rqn-btn singing" onclick="openModule('singing')">
+          <div class="rqn-icon">🎵</div>
+          <div class="rqn-cat">SINGING</div>
+          <div class="rqn-title">Music Playlists</div>
+          <div class="rqn-sub">5 niveles · 174 canciones</div>
+          <div class="rqn-badge">L1 → L5</div>
+        </button>
+        <button class="rqn-btn showtell" onclick="openShowAndTell()">
+          <div class="rqn-icon">🖼️</div>
+          <div class="rqn-cat">SPEAKING</div>
+          <div class="rqn-title">Show & Tell</div>
+          <div class="rqn-sub">Describe images in English</div>
+          <div class="rqn-badge">4 modos · PET</div>
+        </button>
+        <button class="rqn-btn pet" onclick="openModule('pet')">
+          <div class="rqn-icon">🎯</div>
+          <div class="rqn-cat">PET TRAINING</div>
+          <div class="rqn-title">PET Training</div>
+          <div class="rqn-sub">Skills · Grammar · Vocab</div>
+          <div class="rqn-badge">B1 Level</div>
+        </button>
+        <button class="rqn-btn bookclub" onclick="openFernandoBookClub()">
+          <div class="rqn-icon">📖</div>
+          <div class="rqn-cat">READING</div>
+          <div class="rqn-title">Book Club</div>
+          <div class="rqn-sub">Tu libro actual</div>
+          <div class="rqn-badge next">Miss Kamil_IA</div>
+        </button>
+        <button class="rqn-btn libre" onclick="openFernandoLibre()">
+          <div class="rqn-icon">🌍</div>
+          <div class="rqn-cat">FREE PRACTICE</div>
+          <div class="rqn-title">Free Practice</div>
+          <div class="rqn-sub">Elige cualquier tema PET</div>
+          <div class="rqn-badge next">Gramática · Vocab · Más</div>
         </button>
       </div>
     </div>
@@ -1292,14 +1364,16 @@ function updateTopbar(){
   if(petHero)petHero.style.display=p==='fernando'?'flex':'none';
   // Rodrigo: 3-button quick nav instead of topic/duel/curriculum
   const rqn=document.getElementById('rodrigo-quick-nav');
+  const fqn=document.getElementById('fernando-quick-nav');
   const dls=document.getElementById('default-learning-sections');
   if(rqn)rqn.style.display=p==='rodrigo'?'block':'none';
-  if(dls)dls.style.display=p==='rodrigo'?'none':'block';
+  if(fqn)fqn.style.display=p==='fernando'?'block':'none';
+  if(dls)dls.style.display=(p==='rodrigo'||p==='fernando')?'none':'block';
   if(p==='rodrigo')updateRodrigoQuickNav();
-  // Rodrigo: hide modules grid and test button (everything accessible via 4 buttons)
-  ['modules-label-el','modules-grid-el','test-btn-el'].forEach(id=>{
+  // Both hubs hide modules grid, test button, and Fernando-specific elements
+  ['modules-label-el','modules-grid-el','test-btn-el','pet-btn-hero','btn-bookclub','btn-vocabeng'].forEach(id=>{
     const el=document.getElementById(id);
-    if(el)el.style.display=p==='rodrigo'?'none':'';
+    if(el)el.style.display=(p==='rodrigo'||p==='fernando')?'none':'';
   });
   // Mini mock countdown (Rodrigo only)
   updateMockCountdown(p);
@@ -1420,6 +1494,484 @@ function openMiniMockSemanal(){
   openModule('movers');
 }
 
+// ══ MISS KAMILA THEORY ══
+const MISS_KAMILA_THEORY={
+  pres_simple_cont:{title:'Present Simple vs Present Continuous',color:'var(--blue)',
+    sections:[
+      {name:'Present Simple 📌',when:'Facts · routines · habits · opinions · states',clue:'always · usually · often · every day · never',
+       ex:['I read a book every night.','Water boils at 100°C.','She always helps me.','I know the answer.']},
+      {name:'Present Continuous ⏳',when:'Actions happening NOW or temporary situations',clue:'right now · at the moment · currently · this week',
+       ex:['I am working right now.','She is looking for a new job.','We are staying with relatives this month.']},
+    ],warn:'⚠️ Stative verbs (know · understand · think · sound · seem · believe · love · hate · want · need) NEVER use -ing!'},
+  stative_verbs:{title:'Stative Verbs — NO -ing!',color:'var(--red)',
+    sections:[
+      {name:'These describe STATES, not actions 🚫',when:'NEVER use in continuous (-ing) form',clue:'',
+       ex:['✓ I don\'t understand.','✓ The job sounds interesting.','✓ Bill thinks maths is difficult.','✗ I am not understanding.','✗ The job is sounding interesting.','✗ Bill is thinking maths is difficult.']},
+    ],warn:'Stative verbs: know · understand · think (opinion) · sound · seem · believe · love · hate · want · need'},
+  past_simple_cont:{title:'Past Simple vs Past Continuous',color:'var(--green)',
+    sections:[
+      {name:'Past Simple ✅',when:'Completed action · specific time · sequence',clue:'yesterday · last week · ago · in 2020 · at 8pm',
+       ex:['I visited Barcelona last year.','She met her friends at 8 PM.','He woke up, got dressed, and went out.']},
+      {name:'Past Continuous ⏳',when:'Action in progress in the past; interrupted by another',clue:'when · while · at that moment',
+       ex:['I was making dinner when I cut my hand.','While the food was cooking, I had coffee.','She was studying when I called.']},
+    ],warn:'💡 WHEN + Past Simple (short) interrupts Past Continuous (long action already in progress)'},
+  perf_simple_cont:{title:'Present Perfect vs Present Perfect Continuous',color:'var(--purple)',
+    sections:[
+      {name:'Present Perfect 🏆',when:'Unspecified past · experiences · recent changes',clue:'ever · never · already · just · yet · for · since',
+       ex:['She has traveled to Japan.','I have just finished my homework.','He has lived here for five years.']},
+      {name:'Present Perfect Continuous ⏳',when:'Action still continuing OR recently stopped',clue:'for · since · how long · recently',
+       ex:['She has been studying for two hours.','They have been painting the house recently.','He has been training every day this week.']},
+    ],warn:'💡 Perfect Simple = completed · Perfect Continuous = still in progress or showing duration'},
+  will_going_to:{title:'Will vs Going To',color:'var(--cyan)',
+    sections:[
+      {name:'Will ⚡',when:'Spontaneous decisions · predictions without evidence · offers',clue:'I think · I\'m sure · probably',
+       ex:['I\'ll have the pizza. (decided just now)','I think it will rain tomorrow.','I\'ll help you with that!']},
+      {name:'Going To 📅',when:'Plans already decided · predictions based on visible evidence',clue:'I\'m going to · Look! · He\'s about to',
+       ex:['I\'m going to visit London next summer. (planned)','Look at those clouds — it\'s going to rain!']},
+    ],warn:''},
+  comparative_superlative:{title:'Comparatives & Superlatives',color:'var(--orange)',
+    sections:[
+      {name:'Comparatives 📊 (-er / more + than)',when:'Comparing TWO things',clue:'short adj → -er + than · long adj → more + adj + than',
+       ex:['She is taller than her brother.','This book is more interesting than that one.','My bag is heavier than yours.']},
+      {name:'Superlatives 🏆 (the -est / the most)',when:'ONE thing compared against ALL in a group',clue:'the + -est (short) · the most + adj (long)',
+       ex:['She is the tallest in the class.','This is the most interesting book I\'ve read.','Irregular: good→better→best · bad→worse→worst']},
+    ],warn:'💡 Short adjectives (1-2 syllables): -er/-est · Long adjectives (3+): more/most'},
+  zero_first_cond:{title:'Zero vs First Conditional',color:'var(--green)',
+    sections:[
+      {name:'Zero Conditional 🔬',when:'Facts · scientific truths · things that ALWAYS happen',clue:'If + Present Simple, + Present Simple',
+       ex:['If you heat water to 100°C, it boils.','If it rains, the ground gets wet.']},
+      {name:'First Conditional 🎯',when:'Real, possible future situations',clue:'If + Present Simple, + will + base verb',
+       ex:['If I study hard, I will pass the exam.','If it rains tomorrow, I won\'t go out.']},
+    ],warn:''},
+};
+
+function showMissKamilaTheory(key){
+  const t=MISS_KAMILA_THEORY[key];if(!t)return;
+  const modal=document.createElement('div');
+  modal.style.cssText='position:fixed;inset:0;background:rgba(10,10,26,.92);z-index:9000;display:flex;align-items:center;justify-content:center;padding:20px;';
+  const sectHtml=t.sections.map(s=>`<div style="background:var(--card);border:1px solid ${t.color}22;border-radius:12px;padding:14px;margin-bottom:10px">
+    <div style="font-weight:700;color:${t.color};font-size:14px;margin-bottom:4px">${s.name}</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:6px">${s.when}</div>
+    ${s.clue?`<div style="background:rgba(255,255,255,.05);border-radius:8px;padding:6px 10px;font-size:11px;color:var(--gold2);margin-bottom:8px;font-style:italic">${s.clue}</div>`:''}
+    ${s.ex.map(e=>`<div style="font-size:12px;color:var(--text);padding:3px 0;border-bottom:1px solid rgba(255,255,255,.04)">${e}</div>`).join('')}
+  </div>`).join('');
+  modal.innerHTML=`<div style="background:var(--card2);border:1px solid ${t.color}55;border-radius:18px;padding:24px;max-width:540px;width:100%;max-height:90vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div style="font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:${t.color};letter-spacing:2px">📚 MISS KAMILA</div>
+      <button onclick="this.closest('[style*=fixed]').remove()" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:2px 8px">✕</button>
+    </div>
+    <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:14px">${t.title}</div>
+    ${sectHtml}
+    ${t.warn?`<div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.3);border-radius:10px;padding:10px 14px;font-size:12px;color:var(--gold2);margin-top:4px">${t.warn}</div>`:''}
+    <button onclick="this.closest('[style*=fixed]').remove()" style="margin-top:14px;width:100%;padding:12px;background:${t.color};border:none;border-radius:10px;color:white;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;letter-spacing:1px;cursor:pointer">Got it! ✓</button>
+  </div>`;
+  document.body.appendChild(modal);
+}
+
+function openVersusModeF(){
+  openModule('movers');
+  document.getElementById('mod-title').textContent='VERSUS MODE';
+  const area=document.getElementById('module-content-area');
+  const cats=[
+    {label:'Verb Tenses ⚔️',color:'var(--blue)',duels:[
+      {val:'pres_simple_cont',label:'Present Simple ⚔️ Present Continuous',theory:'pres_simple_cont'},
+      {val:'stative_verbs',label:'Stative Verbs — NO -ing!',theory:'stative_verbs'},
+      {val:'past_simple_cont',label:'Past Simple ⚔️ Past Continuous',theory:'past_simple_cont'},
+      {val:'perf_simple_cont',label:'Present Perfect Simple ⚔️ Continuous',theory:'perf_simple_cont'},
+      {val:'will_going_to',label:'Will ⚔️ Going To',theory:'will_going_to'},
+    ]},
+    {label:'Grammar Rules 📐',color:'var(--purple)',duels:[
+      {val:'comparative_superlative',label:'Comparatives ⚔️ Superlatives',theory:'comparative_superlative'},
+      {val:'zero_first_cond',label:'Zero ⚔️ First Conditional',theory:'zero_first_cond'},
+      {val:'modal_verbs',label:'Modal Verbs (can · must · should)',theory:null},
+      {val:'passive_voice',label:'Passive Voice',theory:null},
+      {val:'question_tags',label:'Question Tags',theory:null},
+    ]},
+    {label:'Vocabulary 📝',color:'var(--green)',duels:[
+      {val:'daily_routines',label:'Daily Routines',theory:null},
+      {val:'travel_transport',label:'Travel & Transport',theory:null},
+      {val:'food_drinks',label:'Food & Drinks',theory:null},
+      {val:'school_classroom',label:'School & Classroom',theory:null},
+      {val:'hobbies',label:'Hobbies & Free Time',theory:null},
+    ]},
+    {label:'Writing Skills ✍️',color:'var(--cyan)',duels:[
+      {val:'informal_email',label:'Informal Email / Letter',theory:null},
+      {val:'describing_people',label:'Describing People',theory:null},
+      {val:'giving_opinions',label:'Giving Opinions',theory:null},
+    ]},
+  ];
+  const catHtml=cats.map(cat=>`<div style="background:var(--card);border:1px solid ${cat.color}33;border-radius:14px;padding:14px 16px;margin-bottom:10px">
+    <div style="font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:${cat.color};letter-spacing:2px;margin-bottom:10px">${cat.label}</div>
+    ${cat.duels.map(d=>`<div style="display:flex;align-items:center;gap:7px;margin-bottom:6px">
+      <button onclick="startVersusF('${d.val}')" style="flex:1;text-align:left;padding:10px 13px;background:var(--card2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:13px;cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor='${cat.color}'" onmouseout="this.style.borderColor='var(--border)'">${d.label}</button>
+      ${d.theory?`<button onclick="showMissKamilaTheory('${d.theory}')" title="Teoría Miss Kamila" style="padding:8px 10px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:8px;color:var(--gold2);font-size:13px;cursor:pointer;flex-shrink:0">📚</button>`:''}
+    </div>`).join('')}
+  </div>`).join('');
+  area.innerHTML=`<div style="max-width:680px;margin:0 auto">
+    <div style="background:rgba(139,92,246,.06);border:1px solid rgba(139,92,246,.3);border-radius:14px;padding:14px 18px;margin-bottom:18px;display:flex;align-items:center;gap:14px">
+      <div style="font-size:26px">⚔️</div>
+      <div>
+        <div style="font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:var(--purple);letter-spacing:2px">VERSUS MODE</div>
+        <div style="font-size:15px;font-weight:700;color:var(--text);margin-top:2px">Elige tu Grammar Duel</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px">📚 = Ver teoría de Miss Kamila antes de practicar</div>
+      </div>
+    </div>
+    ${catHtml}
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-top:4px">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:8px">¿No encuentras lo que buscas? Escribe tu propio tema:</div>
+      <div style="display:flex;gap:8px">
+        <input id="versus-free-input" type="text" placeholder="Ej: phrasal verbs, articles, prepositions..." style="flex:1;padding:10px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none" onkeydown="if(event.key==='Enter')startVersusFree()">
+        <button onclick="startVersusFree()" style="padding:10px 16px;background:var(--purple);border:none;border-radius:8px;color:white;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;cursor:pointer">⚔️ Go</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function startVersusF(duelVal){
+  const grammarDuels=['pres_simple_cont','past_simple_cont','stative_verbs','perf_simple_cont','comparative_superlative','will_going_to','zero_first_cond'];
+  const duelLabels={pres_simple_cont:'Present Simple vs Continuous',past_simple_cont:'Past Simple vs Continuous',stative_verbs:'Stative Verbs',perf_simple_cont:'Present Perfect',comparative_superlative:'Comparatives & Superlatives',will_going_to:'Will vs Going To',zero_first_cond:'Conditionals',modal_verbs:'Modal Verbs',passive_voice:'Passive Voice',question_tags:'Question Tags',daily_routines:'Daily Routines',travel_transport:'Travel & Transport',food_drinks:'Food & Drinks',school_classroom:'School & Classroom',hobbies:'Hobbies & Free Time',informal_email:'Informal Email Writing',describing_people:'Describing People',giving_opinions:'Giving Opinions'};
+  const sel=document.getElementById('grammar-duel-select');
+  if(sel)sel.value=grammarDuels.includes(duelVal)?duelVal:'none';
+  const topicInput=document.getElementById('topic-input');
+  if(topicInput)topicInput.value=duelLabels[duelVal]||duelVal;
+  startLesson();
+}
+
+function startVersusFree(){
+  const inp=document.getElementById('versus-free-input');
+  const topic=(inp?.value||'').trim();
+  if(!topic){inp?.focus();return;}
+  const sel=document.getElementById('grammar-duel-select');
+  const topicInput=document.getElementById('topic-input');
+  if(sel)sel.value='none';
+  if(topicInput)topicInput.value=topic;
+  startLesson();
+}
+// ── Show & Tell state ──
+let _stSeed=0,_stMode='describe',_stSelected=null;
+
+const _SPOT_SCENES=[
+  {scene1:`A busy coffee shop in the morning. There are 5 people at tables. A woman in a red jacket is reading a book by the window. A barista with a beard is making coffee. Two friends are laughing at a corner table. One person is working on a laptop near the door.`,
+   scene2:`A busy coffee shop in the morning. There are 4 people at tables. A woman in a blue jacket is reading a magazine by the window. A barista with glasses is making tea. Two friends are talking quietly at a corner table. One person is using their phone near the door.`,
+   count:6,diffs:['5 people → 4 people','red jacket → blue jacket','book → magazine','barista: beard → glasses','coffee → tea','laughing → talking quietly']},
+  {scene1:`A park on a sunny afternoon. A man is walking a brown dog on the left path. Three children are playing football near the fountain. An old woman is sitting on a green bench reading a newspaper. Two cyclists are riding on the main path. There is an ice cream stand near the entrance.`,
+   scene2:`A park on a sunny afternoon. A woman is walking a black dog on the right path. Two children are playing football near the fountain. An old man is sitting on a blue bench reading a book. One cyclist is riding on the main path. There is a coffee stand near the entrance.`,
+   count:6,diffs:['man → woman','brown dog → black dog','left path → right path','3 children → 2 children','old woman → old man','green bench → blue bench']},
+  {scene1:`A busy supermarket. A tall man with a shopping basket is looking at vegetables. A young woman with a red bag is reading labels on cereal boxes. There are 3 people in the checkout queue. The store has a big yellow sale sign. A small child is sitting in a shopping trolley.`,
+   scene2:`A busy supermarket. A short man with a shopping trolley is looking at fruit. A young woman with a blue bag is reading labels on pasta boxes. There are 2 people in the checkout queue. The store has a big red sale sign. A small child is standing next to a shopping trolley.`,
+   count:6,diffs:['tall → short','basket → trolley','vegetables → fruit','red bag → blue bag','cereal → pasta','3 people → 2 people']},
+];
+
+function openShowAndTell(){
+  _stSeed=Math.floor(Math.random()*800)+100;
+  _stMode='describe';_stSelected=null;
+  openModule('movers');
+  document.getElementById('mod-title').textContent='SHOW & TELL';
+  renderShowAndTell();
+}
+
+function renderShowAndTell(){
+  const area=document.getElementById('module-content-area');
+  const modes=[{key:'describe',icon:'🖼️',label:'Describe It'},{key:'justify',icon:'🤔',label:'Pick & Justify'},{key:'story',icon:'📖',label:'Tell the Story'},{key:'spot',icon:'🔍',label:'Spot & Describe'}];
+  const modeBar=modes.map(m=>`<button onclick="_stMode='${m.key}';_stSelected=null;renderShowAndTell()" style="flex:1;padding:8px 4px;background:${_stMode===m.key?'rgba(6,182,212,.15)':'var(--card2)'};border:${_stMode===m.key?'2px solid var(--cyan)':'2px solid transparent'};border-radius:10px;color:${_stMode===m.key?'var(--cyan)':'var(--muted)'};font-size:11px;cursor:pointer;transition:all .15s"><div style="font-size:16px">${m.icon}</div><div style="font-weight:${_stMode===m.key?700:400};margin-top:2px">${m.label}</div></button>`).join('');
+
+  let content='';
+  if(_stMode==='describe'){
+    content=`<div style="border-radius:12px;overflow:hidden;margin-bottom:12px"><img src="https://picsum.photos/seed/${_stSeed}/680/360" style="width:100%;display:block;border-radius:12px" onerror="this.src='https://picsum.photos/680/360'"></div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:8px">✍️ Describe what you see — at least 4 sentences. Think about: people, place, actions, atmosphere.</div>
+    <textarea id="st-input" placeholder="I can see... There is/are... The person is... It looks like..." style="width:100%;height:110px;background:var(--card2);border:1px solid var(--border);border-radius:10px;color:var(--text);padding:12px;font-size:13px;font-family:'Inter',sans-serif;resize:vertical;outline:none"></textarea>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button onclick="_stSeed=Math.floor(Math.random()*800)+100;renderShowAndTell()" style="padding:10px 14px;background:var(--card2);border:1px solid var(--border);border-radius:10px;color:var(--muted);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;cursor:pointer">🔄 New</button>
+      <button onclick="submitShowTell('describe')" style="flex:1;padding:10px;background:var(--cyan);border:none;border-radius:10px;color:var(--bg);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">Submit to Miss Kamil_IA →</button>
+    </div>`;
+  } else if(_stMode==='justify'){
+    const seed2=_stSeed+400;
+    content=`<div style="font-size:12px;color:var(--muted);margin-bottom:10px">🤔 Click on the image you prefer, then explain WHY (3-4 sentences).</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+      <div onclick="_stSelected='A';renderShowAndTell()" style="cursor:pointer;border-radius:12px;overflow:hidden;border:3px solid ${_stSelected==='A'?'var(--cyan)':'transparent'};transition:border .15s"><img src="https://picsum.photos/seed/${_stSeed}/340/240" style="width:100%;display:block"></div>
+      <div onclick="_stSelected='B';renderShowAndTell()" style="cursor:pointer;border-radius:12px;overflow:hidden;border:3px solid ${_stSelected==='B'?'var(--cyan)':'transparent'};transition:border .15s"><img src="https://picsum.photos/seed/${seed2}/340/240" style="width:100%;display:block"></div>
+    </div>
+    ${_stSelected?`<div style="font-size:12px;color:var(--cyan);margin-bottom:8px">✓ Image ${_stSelected} selected. Explain your choice:</div>
+    <textarea id="st-input" placeholder="I prefer image ${_stSelected} because... I think... In my opinion..." style="width:100%;height:100px;background:var(--card2);border:1px solid var(--border);border-radius:10px;color:var(--text);padding:12px;font-size:13px;font-family:'Inter',sans-serif;resize:vertical;outline:none"></textarea>
+    <button onclick="submitShowTell('justify')" style="margin-top:10px;width:100%;padding:11px;background:var(--cyan);border:none;border-radius:10px;color:var(--bg);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">Submit to Miss Kamil_IA →</button>`
+    :`<div style="text-align:center;padding:16px;color:var(--muted);font-size:13px">👆 Click an image to select it</div>`}
+    <button onclick="_stSeed=Math.floor(Math.random()*800)+100;_stSelected=null;renderShowAndTell()" style="margin-top:8px;padding:8px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:12px;cursor:pointer">🔄 New images</button>`;
+  } else if(_stMode==='story'){
+    content=`<div style="font-size:12px;color:var(--muted);margin-bottom:10px">📖 Connect these 3 images with a short story (5-6 sentences). Use Past Simple or Present tense!</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">
+      ${[0,1,2].map(i=>`<div style="border-radius:10px;overflow:hidden"><img src="https://picsum.photos/seed/${_stSeed+i*200}/220/160" style="width:100%;display:block"></div>`).join('')}
+    </div>
+    <textarea id="st-input" placeholder="First, ... Then, ... After that, ... Finally, ..." style="width:100%;height:110px;background:var(--card2);border:1px solid var(--border);border-radius:10px;color:var(--text);padding:12px;font-size:13px;font-family:'Inter',sans-serif;resize:vertical;outline:none"></textarea>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button onclick="_stSeed=Math.floor(Math.random()*800)+100;renderShowAndTell()" style="padding:10px 14px;background:var(--card2);border:1px solid var(--border);border-radius:10px;color:var(--muted);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;cursor:pointer">🔄 New</button>
+      <button onclick="submitShowTell('story')" style="flex:1;padding:10px;background:var(--cyan);border:none;border-radius:10px;color:var(--bg);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">Submit to Miss Kamil_IA →</button>
+    </div>`;
+  } else {
+    const sp=_SPOT_SCENES[Math.floor(_stSeed/100)%_SPOT_SCENES.length];
+    content=`<div style="font-size:12px;color:var(--muted);margin-bottom:10px">🔍 Read both scenes carefully. Find and describe the differences in English.</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+      <div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:12px">
+        <div style="font-family:'Orbitron',monospace;font-size:9px;color:var(--cyan);letter-spacing:2px;margin-bottom:8px">SCENE A</div>
+        <div style="font-size:12px;color:var(--text);line-height:1.7">${sp.scene1}</div>
+      </div>
+      <div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:12px">
+        <div style="font-family:'Orbitron',monospace;font-size:9px;color:var(--purple);letter-spacing:2px;margin-bottom:8px">SCENE B</div>
+        <div style="font-size:12px;color:var(--text);line-height:1.7">${sp.scene2}</div>
+      </div>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:8px">List the differences — there are ${sp.count}:</div>
+    <textarea id="st-input" placeholder="1. In Scene A... but in Scene B...\n2. The ... is different because...\n3. ..." style="width:100%;height:110px;background:var(--card2);border:1px solid var(--border);border-radius:10px;color:var(--text);padding:12px;font-size:13px;font-family:'Inter',sans-serif;resize:vertical;outline:none"></textarea>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button onclick="_stSeed=(_stSeed+100)%300+100;renderShowAndTell()" style="padding:10px 14px;background:var(--card2);border:1px solid var(--border);border-radius:10px;color:var(--muted);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;cursor:pointer">🔄 New scene</button>
+      <button onclick="submitShowTell('spot',${JSON.stringify(sp.diffs)})" style="flex:1;padding:10px;background:var(--cyan);border:none;border-radius:10px;color:var(--bg);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">Submit to Miss Kamil_IA →</button>
+    </div>`;
+  }
+
+  area.innerHTML=`<div style="max-width:680px;margin:0 auto">
+    <div style="background:rgba(6,182,212,.06);border:1px solid rgba(6,182,212,.3);border-radius:14px;padding:14px 18px;margin-bottom:14px;display:flex;align-items:center;gap:14px">
+      <div style="font-size:24px">🖼️</div>
+      <div>
+        <div style="font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:var(--cyan);letter-spacing:2px">SHOW & TELL</div>
+        <div style="font-size:14px;font-weight:700;color:var(--text);margin-top:2px">Describe in English · Miss Kamil_IA evaluates</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:14px">${modeBar}</div>
+    ${content}
+    <div id="st-result" style="margin-top:14px"></div>
+  </div>`;
+}
+
+async function submitShowTell(mode,diffs){
+  const input=document.getElementById('st-input')?.value?.trim();
+  if(!input||input.length<10){alert('Please write at least a few sentences first!');return;}
+  const btn=document.querySelector('[onclick^="submitShowTell"]');
+  if(btn){btn.disabled=true;btn.textContent='Checking...';}
+  const result=document.getElementById('st-result');
+  result.innerHTML=`<div style="text-align:center;padding:20px;color:var(--muted)"><div style="font-size:22px;margin-bottom:8px">✍️</div><div>Miss Kamil_IA is evaluating...</div></div>`;
+  const modeCtx={describe:'Describe an image in at least 4 sentences (people, place, actions, atmosphere).',justify:'Select one of two images and justify the choice in 3-4 sentences.',story:'Write a 5-6 sentence story connecting 3 images using Past Simple or Present tense.',spot:`Find and describe ${diffs?diffs.length:6} differences between two similar scene descriptions. The actual differences are: ${diffs?(Array.isArray(diffs)?diffs.join(', '):diffs):'various'}`}[mode]||mode;
+  const prompt=`You are Miss Kamil_IA, Cambridge B1 PET English teacher. Evaluate a student's response to a Show & Tell task.
+
+Task: ${modeCtx}
+
+Student response: "${input}"
+
+Evaluate at B1 PET level and respond EXACTLY like this:
+
+⭐ SCORE: [X/5]
+
+✅ WELL DONE:
+[2 specific things — good vocabulary, correct grammar, good expressions]
+
+⚠️ TO IMPROVE:
+[1-2 corrections: "Instead of '...' → say '...' because..."]
+
+💡 USEFUL EXPRESSIONS FOR THIS TASK:
+[2-3 B1 expressions useful for this type of description]
+
+Be encouraging, concise, and talk directly to Fernando.`;
+  try{
+    const raw=await callClaude(prompt,700);
+    if(btn){btn.disabled=false;btn.textContent='Submit to Miss Kamil_IA →';}
+    result.innerHTML=`<div style="background:var(--card);border:1px solid rgba(6,182,212,.3);border-radius:12px;padding:18px">
+      <div style="font-family:'Orbitron',monospace;font-size:9px;color:var(--cyan);letter-spacing:2px;margin-bottom:12px">📋 MISS KAMIL_IA</div>
+      <div style="font-size:13px;line-height:1.8;color:var(--text);white-space:pre-wrap">${raw.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+      <button onclick="document.getElementById('st-input').value='';document.getElementById('st-result').innerHTML=''" style="margin-top:12px;padding:8px 14px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:12px;cursor:pointer">Try again ↺</button>
+    </div>`;
+    addKm(60);
+  }catch(e){
+    if(btn){btn.disabled=false;btn.textContent='Submit to Miss Kamil_IA →';}
+    result.innerHTML=`<div style="color:var(--red);padding:12px;background:rgba(239,68,68,.08);border-radius:8px">⚠️ ${e.message}</div>`;
+  }
+}
+function openFernandoLibre(){
+  openModule('movers');
+  const area=document.getElementById('module-content-area');
+  document.getElementById('mod-title').textContent='FREE PRACTICE';
+  const chips=['My daily routine','My hobbies and interests','Travel and places I want to visit','My favourite food','School life','Family and friends','A book or film I enjoyed','My future plans','Sports and activities','Technology and social media'];
+  const chipsHTML=chips.map(c=>`<span onclick="setFernandoTopic(this)" style="display:inline-block;padding:8px 16px;margin:4px;background:var(--card2);border:1px solid var(--border);border-radius:20px;font-size:13px;cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor='#c084fc';this.style.color='#c084fc'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text)'">${c}</span>`).join('');
+  area.innerHTML=`<div style="max-width:680px;margin:0 auto">
+    <div style="background:rgba(192,132,252,.06);border:1px solid rgba(192,132,252,.3);border-radius:14px;padding:14px 18px;margin-bottom:18px;display:flex;align-items:center;gap:14px">
+      <div style="font-size:26px">🌍</div>
+      <div>
+        <div style="font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:#c084fc;letter-spacing:2px">FREE PRACTICE</div>
+        <div style="font-size:15px;font-weight:700;color:var(--text);margin-top:2px">Talk freely with Miss Kamil_IA</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px">Choose a conversation topic</div>
+      </div>
+    </div>
+    <div style="margin-bottom:14px">${chipsHTML}</div>
+    <div style="display:flex;gap:10px">
+      <input type="text" id="free-topic-input" placeholder="Or write your own topic..." style="flex:1;padding:11px 14px;background:var(--card2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;outline:none" onkeydown="if(event.key==='Enter')setFernandoTopic(null,this.value)">
+      <button onclick="setFernandoTopic(null,document.getElementById('free-topic-input').value)" style="padding:11px 18px;background:#c084fc;border:none;border-radius:10px;color:#0a0a1a;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">Go →</button>
+    </div>
+  </div>`;
+}
+function setFernandoTopic(el,customTopic){
+  const t=customTopic||el?.textContent||'';
+  if(!t.trim())return;
+  const topicInput=document.getElementById('topic-input');
+  if(topicInput){topicInput.value=t;startLesson();}
+}
+
+// ── Test the Test ──
+function openTestTheTest(){
+  openModule('movers');
+  document.getElementById('mod-title').textContent='TEST THE TEST';
+  const area=document.getElementById('module-content-area');
+  area.innerHTML=`<div style="max-width:680px;margin:0 auto">
+    <div style="background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.3);border-radius:14px;padding:16px 18px;margin-bottom:20px;display:flex;align-items:center;gap:14px">
+      <div style="font-size:26px">📋</div>
+      <div>
+        <div style="font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:var(--red);letter-spacing:2px">TEST THE TEST</div>
+        <div style="font-size:15px;font-weight:700;color:var(--text);margin-top:2px">Miss Kamil_IA analiza tu examen</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px">Pega tu examen → Feedback detallado → Práctica recomendada</div>
+      </div>
+    </div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:14px">
+      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px">📝 Pega tu examen aquí</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px">Copia las preguntas y tus respuestas. Miss Kamil_IA detecta errores y recomienda qué practicar.</div>
+      <textarea id="ttt-input" placeholder="Ejemplo:\n1. She ___ (play) tennis right now. → is playing\n2. I ___ (know) the answer. → am knowing\n3. We ___ (visit) Paris last year. → visited\n..." style="width:100%;height:180px;background:var(--card2);border:1px solid var(--border);border-radius:10px;color:var(--text);padding:12px;font-size:13px;font-family:'Inter',sans-serif;resize:vertical;outline:none"></textarea>
+      <button id="ttt-btn" onclick="analyzeTestTheTest()" style="margin-top:12px;width:100%;padding:13px;background:var(--red);border:none;border-radius:10px;color:white;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:15px;letter-spacing:1px;cursor:pointer">🔍 Analizar con Miss Kamil_IA</button>
+    </div>
+    <div id="ttt-result"></div>
+  </div>`;
+}
+
+async function analyzeTestTheTest(){
+  const input=document.getElementById('ttt-input')?.value?.trim();
+  if(!input||input.length<20){alert('Por favor pega tu examen completo.');return;}
+  const btn=document.getElementById('ttt-btn');
+  if(btn){btn.disabled=true;btn.textContent='Analizando...';}
+  document.getElementById('ttt-result').innerHTML=`<div style="text-align:center;padding:24px;color:var(--muted)"><div style="font-size:28px;margin-bottom:10px">🔍</div><div>Miss Kamil_IA está analizando tu examen...</div></div>`;
+  const prompt=`You are Miss Kamil_IA, a Cambridge B1 PET English teacher. A student submitted their test for review.
+
+STUDENT'S TEST:
+${input}
+
+CLASS CONTEXT — the student studies these grammar points:
+- Present Simple vs Continuous (stative verbs: know/understand/think/sound/seem/believe/love/hate/want/need NEVER take -ing)
+- Past Simple vs Past Continuous (when/while signals)
+- Present Perfect vs Present Perfect Continuous (for/since/just/already/ever)
+- Will vs Going To
+- Comparatives (-er/more+than) and Superlatives (the -est/the most)
+- Zero and First Conditionals
+
+Analyze and respond with EXACTLY this structure:
+
+📊 SCORE ESTIMATE: [X / XX] — [percentage]%
+
+✅ STRENGTHS:
+[2-3 specific things done well, with examples from the test]
+
+❌ ERRORS FOUND:
+[Each error: Wrong: "[their answer]" → Correct: "[right answer]" — [brief why]]
+
+📚 THEORY TO REVIEW:
+[The specific grammar rules to focus on, using Miss Kamila's examples]
+
+💪 NEXT STEP:
+[1-2 specific Versus Mode duels to practice the weak points]
+
+Be encouraging and clear. Speak directly to Fernando at B1 level.`;
+  try{
+    const raw=await callClaude(prompt,1800);
+    if(btn){btn.disabled=false;btn.textContent='🔍 Analizar con Miss Kamil_IA';}
+    document.getElementById('ttt-result').innerHTML=`<div style="background:var(--card);border:1px solid rgba(239,68,68,.25);border-radius:14px;padding:20px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+        <div style="font-size:20px">📋</div>
+        <div style="font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:var(--red);letter-spacing:2px">MISS KAMIL_IA — ANÁLISIS</div>
+      </div>
+      <div style="font-size:14px;line-height:1.8;color:var(--text);white-space:pre-wrap">${raw.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+      <div style="margin-top:18px;display:flex;gap:8px;flex-wrap:wrap">
+        <button onclick="openVersusModeF()" style="padding:10px 16px;background:rgba(139,92,246,.15);border:1px solid var(--purple);border-radius:10px;color:var(--purple);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;cursor:pointer">⚔️ Ir a Versus Mode</button>
+        <button onclick="openTestTheTest()" style="padding:10px 16px;background:var(--card2);border:1px solid var(--border);border-radius:10px;color:var(--muted);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;cursor:pointer">← Nuevo examen</button>
+      </div>
+    </div>`;
+    addKm(80);
+  }catch(e){
+    if(btn){btn.disabled=false;btn.textContent='🔍 Analizar con Miss Kamil_IA';}
+    document.getElementById('ttt-result').innerHTML=`<div style="color:var(--red);padding:12px;background:rgba(239,68,68,.08);border-radius:8px">⚠️ ${e.message}</div>`;
+  }
+}
+
+// ── Book Club Fernando ──
+function openFernandoBookClub(){
+  openModule('movers');
+  document.getElementById('mod-title').textContent='BOOK CLUB';
+  const area=document.getElementById('module-content-area');
+  const savedBook=localStorage.getItem('fer_current_book')||'The Lion, the Witch and the Wardrobe';
+  const savedCh=parseInt(localStorage.getItem('fer_current_chapter')||'1');
+  area.innerHTML=`<div style="max-width:680px;margin:0 auto">
+    <div style="background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.3);border-radius:14px;padding:16px 18px;margin-bottom:18px;display:flex;align-items:center;gap:14px">
+      <div style="font-size:26px">📖</div>
+      <div>
+        <div style="font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:#4ade80;letter-spacing:2px">BOOK CLUB</div>
+        <div style="font-size:14px;font-weight:700;color:var(--text);margin-top:2px">Practica inglés con tu lectura</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px">Vocabulario · Comprensión · Discusión · Escritura</div>
+      </div>
+    </div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:14px">
+      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px">📚 ¿Qué libro estás leyendo?</div>
+      <input id="bc-book" type="text" value="${savedBook}" style="width:100%;padding:11px 14px;background:var(--card2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;outline:none;margin-bottom:14px" placeholder="Título del libro">
+      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px">Capítulo</div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+        <button onclick="bcCh(-1)" style="width:40px;height:40px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:20px;cursor:pointer">−</button>
+        <input id="bc-ch" type="number" value="${savedCh}" min="1" max="99" style="flex:1;padding:9px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:20px;font-weight:700;text-align:center;outline:none">
+        <button onclick="bcCh(1)" style="width:40px;height:40px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:20px;cursor:pointer">+</button>
+      </div>
+      <button id="bc-btn" onclick="startBookClubChapter()" style="width:100%;padding:13px;background:#4ade80;border:none;border-radius:10px;color:#0a0a1a;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:15px;letter-spacing:1px;cursor:pointer">📖 Start Chapter Discussion</button>
+    </div>
+    <div id="bc-result"></div>
+  </div>`;
+}
+
+function bcCh(d){const i=document.getElementById('bc-ch');if(i)i.value=Math.max(1,parseInt(i.value||1)+d);}
+
+async function startBookClubChapter(){
+  const book=document.getElementById('bc-book')?.value?.trim()||'Unknown book';
+  const ch=parseInt(document.getElementById('bc-ch')?.value)||1;
+  localStorage.setItem('fer_current_book',book);
+  localStorage.setItem('fer_current_chapter',String(ch));
+  const btn=document.getElementById('bc-btn');
+  if(btn){btn.disabled=true;btn.textContent='Miss Kamil_IA is preparing...';}
+  document.getElementById('bc-result').innerHTML=`<div style="text-align:center;padding:24px;color:var(--muted)"><div style="font-size:26px;margin-bottom:10px">📖</div><div>Preparing Chapter ${ch} of "${book}"...</div></div>`;
+  const prompt=`You are Miss Kamil_IA, a Cambridge B1 PET English teacher. Create Book Club content for a 12-year-old student reading "${book}", Chapter ${ch}.
+
+Respond EXACTLY with this structure:
+
+📖 CHAPTER ${ch} — ${book.toUpperCase()}
+
+🎯 VOCABULARY SPOTLIGHT:
+[5 useful B1 words likely in this chapter: word — simple definition — example sentence]
+
+🤔 COMPREHENSION (answer in 1-2 sentences each):
+1. [question about what happens]
+2. [question about characters]
+3. [question about setting or events]
+
+💬 DISCUSSION (choose ONE):
+A. [opinion question about themes or characters]
+B. [personal connection question — relate to Fernando's own life]
+
+✍️ WRITING CHALLENGE:
+[Write 3-5 sentences task about a specific scene, character, or moment from the chapter]
+
+Make it engaging and appropriate for a 12-year-old B1 student.`;
+  try{
+    const raw=await callClaude(prompt,1200);
+    if(btn){btn.disabled=false;btn.textContent='📖 Start Chapter Discussion';}
+    document.getElementById('bc-result').innerHTML=`<div style="background:var(--card);border:1px solid rgba(74,222,128,.25);border-radius:14px;padding:20px">
+      <div style="font-size:13px;line-height:1.8;color:var(--text);white-space:pre-wrap">${raw.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+      <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap">
+        <button onclick="bcCh(1);startBookClubChapter()" style="padding:10px 16px;background:rgba(74,222,128,.15);border:1px solid #4ade80;border-radius:10px;color:#4ade80;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;cursor:pointer">→ Next Chapter</button>
+        <button onclick="openFernandoBookClub()" style="padding:10px 16px;background:var(--card2);border:1px solid var(--border);border-radius:10px;color:var(--muted);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;cursor:pointer">← Change book</button>
+      </div>
+    </div>`;
+    addKm(50);
+  }catch(e){
+    if(btn){btn.disabled=false;btn.textContent='📖 Start Chapter Discussion';}
+    document.getElementById('bc-result').innerHTML=`<div style="color:var(--red);padding:12px;background:rgba(239,68,68,.08);border-radius:8px">⚠️ ${e.message}</div>`;
+  }
+}
 function openPracticaLibre(){
   openModule('movers');
   const area=document.getElementById('module-content-area');
