@@ -3857,12 +3857,12 @@ function runMovers(){
   const area=document.getElementById('module-content-area');
   const activeMock=_calActive(MINI_MOCK_CALENDAR);
   const rwParts=[
-    {id:'rw1',label:'R&W Part 1',desc:'3-option multiple choice',icon:'🔤'},
-    {id:'rw2',label:'R&W Part 2',desc:'Match characters',icon:'🔗'},
-    {id:'rw3',label:'R&W Part 3',desc:'True / False',icon:'✅'},
+    {id:'rw1',label:'R&W Part 1',desc:'Match descriptions to people',icon:'🔗'},
+    {id:'rw2',label:'R&W Part 2',desc:'Dialogue gap-fill',icon:'💬'},
+    {id:'rw3',label:'R&W Part 3',desc:'Word box — fill the gaps',icon:'📦'},
     {id:'rw4',label:'R&W Part 4',desc:'Multiple choice cloze',icon:'🎯'},
-    {id:'rw5',label:'R&W Part 5',desc:'Open cloze',icon:'✏️'},
-    {id:'rw6',label:'R&W Part 6',desc:'Story — word box',icon:'📝'},
+    {id:'rw5',label:'R&W Part 5',desc:'Read story, complete sentences',icon:'✏️'},
+    {id:'rw6',label:'R&W Part 6',desc:'Story — write sentences',icon:'📝'},
   ];
   const lParts=[
     {id:'l1',label:'Listening 1',desc:'Match people',icon:'🎧'},
@@ -4054,18 +4054,31 @@ function checkMoversRW6(){
 async function runMoversRW1(){
   showLoading('Preparing Part 1...');
   const unitCtx=state.currentUnit||getUnitContext();
-  const topicHint=unitCtx?`Use the topic "${unitCtx.unitName}". Prefer vocabulary: ${unitCtx.vocab}.`:'Use Cambridge A1 Movers topics (animals, toys, food, clothes, etc).';
+  const topicHint=unitCtx?`Use the topic "${unitCtx.unitName}". Prefer vocabulary: ${unitCtx.vocab}.`:'Use Cambridge A1 Movers topics (animals, toys, food, clothes, school, etc).';
   const prompt=`You are a Cambridge A1 Movers Reading & Writing Part 1 generator.
-Create 5 picture-description multiple-choice items. Each has a short picture description and 3 word options (A, B, C). Only one is correct.
+Create a matching exercise: 8 named characters (people or animals) each with one clear characteristic sentence, and 5 clue descriptions where each clue matches exactly one of the 8 characters. The other 3 are distractors.
 ${topicHint}
-Rules: words must be A1 Movers level. All 5 answers must be different words.
+Rules: A1 Movers vocabulary. Each clue matches exactly one character. Clues must not repeat the character's characteristic word-for-word — paraphrase slightly.
 Return ONLY valid JSON:
-{"items":[
-  {"picture":"A boy is kicking a round object in the park","options":["ball","bat","kite"],"answer":"ball"},
-  ...5 items
+{"characters":[
+  {"letter":"A","name":"Tom","detail":"He has a red bicycle and loves playing football after school."},
+  {"letter":"B","name":"Sara","detail":"She has long brown hair and likes painting pictures of animals."},
+  {"letter":"C","name":"Jack","detail":"He enjoys reading books and goes to the library every Saturday."},
+  {"letter":"D","name":"Lucy","detail":"She plays the piano and practises every morning before breakfast."},
+  {"letter":"E","name":"Ben","detail":"He has a pet dog called Max and they go for walks every evening."},
+  {"letter":"F","name":"Anna","detail":"She likes cooking and helps her mum make dinner on Fridays."},
+  {"letter":"G","name":"Dan","detail":"He swims very fast and won a medal at his school last year."},
+  {"letter":"H","name":"Mia","detail":"She loves dancing and goes to dance classes on Tuesday afternoons."}
+],
+"clues":[
+  {"n":1,"text":"This person goes to the park every morning to play sport with a ball.","answer":"A"},
+  {"n":2,"text":"This person makes art and likes to draw creatures.","answer":"B"},
+  {"n":3,"text":"This person makes music at home every day before eating.","answer":"D"},
+  {"n":4,"text":"This person has an animal at home and takes it outside every day.","answer":"E"},
+  {"n":5,"text":"This person is very good at sport in water.","answer":"G"}
 ]}`;
   try{
-    const raw=await callClaude(prompt,600);
+    const raw=await callClaude(prompt,1000);
     const d=parseJSON(raw);
     renderMoversRW1(d);
   }catch(e){showError(e.message);}
@@ -4074,18 +4087,26 @@ Return ONLY valid JSON:
 function renderMoversRW1(d){
   const area=document.getElementById('module-content-area');
   window._moversRW1Data=d;
-  const itemsHTML=d.items.map((it,i)=>`
-    <div style="background:var(--card2);border-radius:12px;padding:16px;margin-bottom:12px">
-      <div style="font-size:13px;color:var(--text);margin-bottom:10px"><b>${i+1}.</b> 🖼️ ${it.picture}</div>
-      ${it.options.map((op,j)=>`<label style="display:flex;align-items:center;gap:10px;margin:6px 0;cursor:pointer;font-size:14px">
-        <input type="radio" name="rw1_${i}" value="${op}" style="accent-color:var(--blue)"> ${op}
-      </label>`).join('')}
-      <div id="rw1_fb${i}" style="font-size:12px;margin-top:6px"></div>
+  const charHTML=d.characters.map(c=>`
+    <div style="background:var(--card);border-radius:8px;padding:10px 14px;display:flex;gap:10px;align-items:flex-start">
+      <span style="font-family:'Orbitron',monospace;font-weight:700;color:#a78bfa;font-size:14px;min-width:20px">${c.letter}</span>
+      <div><span style="font-weight:700;color:var(--text)">${c.name}</span> — <span style="color:var(--muted);font-size:13px">${c.detail}</span></div>
+    </div>`).join('');
+  const clueHTML=d.clues.map(cl=>`
+    <div style="background:var(--card2);border-radius:10px;padding:14px;margin-bottom:10px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+      <div style="font-size:13px;color:var(--text);flex:1"><b>${cl.n}.</b> ${cl.text}</div>
+      <select id="rw1_sel${cl.n}" style="padding:8px 12px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px">
+        <option value="">— Letter —</option>
+        ${d.characters.map(c=>`<option value="${c.letter}">${c.letter} — ${c.name}</option>`).join('')}
+      </select>
+      <div id="rw1_fb${cl.n}" style="font-size:12px;width:100%"></div>
     </div>`).join('');
   area.innerHTML=`<div style="max-width:680px;margin:0 auto">
-    <div style="font-family:'Orbitron',monospace;font-size:12px;color:#a78bfa;margin-bottom:16px;font-weight:700">📝 R&W PART 1 — 3-OPTION MULTIPLE CHOICE</div>
-    <p style="color:var(--muted);font-size:13px;margin-bottom:16px">Look at the picture. Choose the right word. ✏️</p>
-    ${itemsHTML}
+    <div style="font-family:'Orbitron',monospace;font-size:12px;color:#a78bfa;margin-bottom:16px;font-weight:700">📝 R&W PART 1 — MATCHING</div>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:12px">Read about these people. For each clue, choose the right letter (A–H). ✏️</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px">${charHTML}</div>
+    <div style="font-family:'Orbitron',monospace;font-size:11px;color:var(--muted);margin-bottom:10px;letter-spacing:1px">CLUES</div>
+    ${clueHTML}
     <button class="submit-btn" onclick="checkMoversRW1()">Check answers ✓</button>
     <div id="rw1_result" style="margin-top:16px"></div>
   </div>`;
@@ -4094,36 +4115,48 @@ function renderMoversRW1(d){
 function checkMoversRW1(){
   const d=window._moversRW1Data;if(!d)return;
   let correct=0;
-  d.items.forEach((it,i)=>{
-    const sel=document.querySelector(`input[name="rw1_${i}"]:checked`);
-    const fb=document.getElementById('rw1_fb'+i);
-    if(sel&&sel.value===it.answer){correct++;if(fb)fb.innerHTML='<span style="color:#4ade80">✓ Correct!</span>';}
-    else{if(fb)fb.innerHTML=`<span style="color:#f87171">✗ Answer: <b>${it.answer}</b></span>`;}
+  d.clues.forEach(cl=>{
+    const sel=document.getElementById('rw1_sel'+cl.n);
+    const fb=document.getElementById('rw1_fb'+cl.n);
+    if(sel&&sel.value===cl.answer){
+      correct++;
+      if(fb)fb.innerHTML='<span style="color:#4ade80">✓ Correct!</span>';
+    } else {
+      const correctChar=d.characters.find(c=>c.letter===cl.answer);
+      if(fb)fb.innerHTML=`<span style="color:#f87171">✗ Answer: <b>${cl.answer} — ${correctChar?.name||''}</b></span>`;
+    }
   });
-  const total=d.items.length,pct=correct/total;
-  const km=Math.round(30+(pct*20));
+  const total=d.clues.length,pct=correct/total,km=Math.round(30+(pct*20));
   addKm(km);
   const res=document.getElementById('rw1_result');
-  if(res){
-    const msg=pct===1?`🏆 Perfect! ${correct}/${total} — +${km} km!`:pct>=.6?`⭐ Good! ${correct}/${total} — +${km} km!`:`💪 Keep going! ${correct}/${total} — +${km} km`;
-    res.innerHTML=`<div class="result-box" style="border-color:${pct===1?'#4ade80':pct>=.6?'var(--gold2)':'var(--red)'}">${msg}</div><button class="submit-btn" style="margin-top:10px;width:100%" onclick="runMoversRW1()">New exercise 🔄</button>`;
-  }
+  if(res)res.innerHTML=`<div class="result-box" style="border-color:${pct===1?'#4ade80':pct>=.6?'var(--gold2)':'var(--red)'}">${pct===1?'🏆 Perfect!':pct>=.6?'⭐ Good!':'💪 Keep going!'} ${correct}/${total} — +${km} km!</div><button class="submit-btn" style="margin-top:10px;width:100%" onclick="runMoversRW1()">New exercise 🔄</button>`;
   showToast(`R&W Part 1: ${correct}/${total} — +${km} km!`);
 }
 
 async function runMoversRW2(){
   showLoading('Preparing Part 2...');
   const unitCtx=state.currentUnit||getUnitContext();
-  const topicHint=unitCtx?`Topic: "${unitCtx.unitName}". Vocabulary: ${unitCtx.vocab}.`:'Use Cambridge A1 Movers topics.';
+  const topicHint=unitCtx?`Topic: "${unitCtx.unitName}". Vocabulary: ${unitCtx.vocab}.`:'Everyday topics: TV and films, hobbies, school, animals, food, sports.';
   const prompt=`You are a Cambridge A1 Movers Reading & Writing Part 2 generator.
-Create a short paragraph about a child's family or friends (4-5 characters with names). Then write 5 questions asking who did what.
+Create a short conversation between two children (give them names). One child (B) has 5 lines that are blank — the student must choose the correct response for each from 3 options. The options must be natural English at A1 Movers level; the two wrong options must be clearly wrong in context but grammatically plausible.
 ${topicHint}
-Rules: A1 Movers level. Each question has a unique answer (one of the character names).
+Rules: A1 Movers vocabulary. The dialogue must sound natural and flow logically. 5 gaps total for speaker B, with 4-5 non-gap lines for speaker A interspersed.
 Return ONLY valid JSON:
-{"passage":"Tom loves his family. His mum ...","characters":["Tom","Mum","Dad","Grandma","Uncle Jack"],
-"questions":[{"text":"This person likes cooking.","answer":"Mum"},... 5 questions]}`;
+{"topic":"Favourite TV shows","speakerA":"Alice","speakerB":"Ben",
+"dialogue":[
+  {"speaker":"A","text":"Do you like watching TV, Ben?","gap":false},
+  {"speaker":"B","text":"","gap":true,"n":1,"options":["Yes, I love it!","No, I hate reading.","I can swim very fast."],"answer":"Yes, I love it!"},
+  {"speaker":"A","text":"What is your favourite programme?","gap":false},
+  {"speaker":"B","text":"","gap":true,"n":2,"options":["I am eight years old.","My favourite is a cartoon about animals.","She likes football a lot."],"answer":"My favourite is a cartoon about animals."},
+  {"speaker":"A","text":"When do you watch it?","gap":false},
+  {"speaker":"B","text":"","gap":true,"n":3,"options":["Every evening after dinner.","My mum is very tall.","He has a red bicycle."],"answer":"Every evening after dinner."},
+  {"speaker":"A","text":"Do you watch it with your family?","gap":false},
+  {"speaker":"B","text":"","gap":true,"n":4,"options":["Yes, with my dad and my sister.","The park is near my house.","I like eating apples."],"answer":"Yes, with my dad and my sister."},
+  {"speaker":"A","text":"Which programme does your sister like?","gap":false},
+  {"speaker":"B","text":"","gap":true,"n":5,"options":["She loves cooking shows.","It is very sunny today.","The dog is under the chair."],"answer":"She loves cooking shows."}
+]}`;
   try{
-    const raw=await callClaude(prompt,700);
+    const raw=await callClaude(prompt,1100);
     const d=parseJSON(raw);
     renderMoversRW2(d);
   }catch(e){showError(e.message);}
@@ -4132,20 +4165,31 @@ Return ONLY valid JSON:
 function renderMoversRW2(d){
   const area=document.getElementById('module-content-area');
   window._moversRW2Data=d;
-  const qHTML=d.questions.map((q,i)=>`
-    <div style="background:var(--card2);border-radius:10px;padding:14px;margin-bottom:10px">
-      <div style="font-size:13px;color:var(--text);margin-bottom:8px"><b>${i+1}.</b> ${q.text}</div>
-      <select id="rw2_sel${i}" style="width:100%;padding:9px 12px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px">
-        <option value="">— Choose a name —</option>
-        ${d.characters.map(c=>`<option value="${c}">${c}</option>`).join('')}
-      </select>
-      <div id="rw2_fb${i}" style="font-size:12px;margin-top:6px"></div>
-    </div>`).join('');
+  const spA=d.speakerA||'A', spB=d.speakerB||'B';
+  const lineHTML=d.dialogue.map(line=>{
+    const isA=line.speaker==='A';
+    if(!line.gap){
+      return `<div style="display:flex;gap:12px;margin-bottom:10px;${isA?'':'flex-direction:row-reverse'}">
+        <div style="font-family:'Rajdhani',sans-serif;font-weight:700;font-size:12px;color:${isA?'#60a5fa':'#a78bfa'};min-width:56px;padding-top:10px;${isA?'text-align:left':'text-align:right'}">${isA?spA:spB}:</div>
+        <div style="background:${isA?'var(--card2)':'var(--card)'};border-radius:12px;padding:12px 16px;font-size:13px;color:var(--text);max-width:72%">${line.text}</div>
+      </div>`;
+    } else {
+      const opts=line.options.map((op,j)=>`<label style="display:block;cursor:pointer;font-size:13px;padding:8px 12px;margin:5px 0;background:var(--card2);border-radius:8px;border:1px solid var(--border);transition:border-color .2s"><input type="radio" name="rw2_g${line.n}" value="${op}" style="accent-color:#a78bfa;margin-right:8px">${String.fromCharCode(65+j)}) ${op}</label>`).join('');
+      return `<div style="display:flex;gap:12px;margin-bottom:10px;flex-direction:row-reverse">
+        <div style="font-family:'Rajdhani',sans-serif;font-weight:700;font-size:12px;color:#a78bfa;min-width:56px;padding-top:10px;text-align:right">${spB}:</div>
+        <div style="background:var(--card);border:1px dashed var(--blue);border-radius:12px;padding:12px 16px;max-width:72%">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:700">GAP ${line.n} — choose the best answer:</div>
+          ${opts}
+          <div id="rw2_fb${line.n}" style="font-size:12px;margin-top:4px"></div>
+        </div>
+      </div>`;
+    }
+  }).join('');
   area.innerHTML=`<div style="max-width:680px;margin:0 auto">
-    <div style="font-family:'Orbitron',monospace;font-size:12px;color:#a78bfa;margin-bottom:16px;font-weight:700">📝 R&W PART 2 — MATCHING</div>
-    <div style="background:var(--card2);border-radius:12px;padding:16px;margin-bottom:20px;font-size:13px;line-height:1.7;color:var(--text)">${d.passage}</div>
-    <p style="color:var(--muted);font-size:13px;margin-bottom:12px">Who does each thing? Choose a name. ✏️</p>
-    ${qHTML}
+    <div style="font-family:'Orbitron',monospace;font-size:12px;color:#a78bfa;margin-bottom:4px;font-weight:700">📝 R&W PART 2 — DIALOGUE GAP-FILL</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:16px">Topic: ${d.topic||''}</div>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:16px">Read the conversation. Choose the best answer (A, B or C) for each gap. ✏️</p>
+    <div style="margin-bottom:16px">${lineHTML}</div>
     <button class="submit-btn" onclick="checkMoversRW2()">Check answers ✓</button>
     <div id="rw2_result" style="margin-top:16px"></div>
   </div>`;
@@ -4153,14 +4197,15 @@ function renderMoversRW2(d){
 
 function checkMoversRW2(){
   const d=window._moversRW2Data;if(!d)return;
+  const gaps=d.dialogue.filter(l=>l.gap);
   let correct=0;
-  d.questions.forEach((q,i)=>{
-    const sel=document.getElementById('rw2_sel'+i);
-    const fb=document.getElementById('rw2_fb'+i);
-    if(sel&&sel.value===q.answer){correct++;if(fb)fb.innerHTML='<span style="color:#4ade80">✓ Correct!</span>';}
-    else{if(fb)fb.innerHTML=`<span style="color:#f87171">✗ Answer: <b>${q.answer}</b></span>`;}
+  gaps.forEach(g=>{
+    const sel=document.querySelector(`input[name="rw2_g${g.n}"]:checked`);
+    const fb=document.getElementById('rw2_fb'+g.n);
+    if(sel&&sel.value===g.answer){correct++;if(fb)fb.innerHTML='<span style="color:#4ade80">✓ Correct!</span>';}
+    else{if(fb)fb.innerHTML=`<span style="color:#f87171">✗ Answer: <b>${g.answer}</b></span>`;}
   });
-  const total=d.questions.length,pct=correct/total,km=Math.round(30+(pct*20));
+  const total=gaps.length,pct=correct/total,km=Math.round(30+(pct*20));
   addKm(km);
   const res=document.getElementById('rw2_result');
   if(res)res.innerHTML=`<div class="result-box" style="border-color:${pct===1?'#4ade80':pct>=.6?'var(--gold2)':'var(--red)'}">${pct===1?'🏆 Perfect!':pct>=.6?'⭐ Good!':'💪 Keep going!'} ${correct}/${total} — +${km} km!</div><button class="submit-btn" style="margin-top:10px;width:100%" onclick="runMoversRW2()">New exercise 🔄</button>`;
@@ -4170,14 +4215,15 @@ function checkMoversRW2(){
 async function runMoversRW3(){
   showLoading('Preparing Part 3...');
   const unitCtx=state.currentUnit||getUnitContext();
-  const topicHint=unitCtx?`Topic: "${unitCtx.unitName}". Vocabulary: ${unitCtx.vocab}.`:'Use Cambridge A1 Movers topics.';
+  const topicHint=unitCtx?`Topic: "${unitCtx.unitName}". Vocabulary: ${unitCtx.vocab}.`:'Topics: animals, nature, food, school, sports, weather.';
   const prompt=`You are a Cambridge A1 Movers Reading & Writing Part 3 generator.
-Write a short story (60-80 words, A1 Movers level). Then write 6 True/False statements about it.
+Write a short factual or story paragraph (55-75 words, A1 Movers level) with exactly 8 numbered gaps __(1)__ to __(8)__. Provide a word box of exactly 10 words: the 8 correct answers plus 2 distractors that are plausible but wrong in context. Each word in the word box is used at most once.
 ${topicHint}
+Rules: A1 Movers vocabulary only. Gaps should test a variety of word types (nouns, verbs, adjectives, prepositions). The 2 distractor words must belong to the same topic and feel natural but not fit any gap.
 Return ONLY valid JSON:
-{"story":"Last Saturday, Emma went to the park...","statements":[{"text":"Emma went to the park on Friday.","answer":"false"},... 6 items]}`;
+{"topic":"Dolphins","paragraph":"Dolphins are very __(1)__ animals. They __(2)__ in the __(3)__ and can swim very __(4)__. Dolphins eat __(5)__ and they __(6)__ together in big groups. They are very __(7)__ and sometimes help people who are in __(8)__ in the water.","wordbox":["clever","live","sea","fast","fish","play","friendly","danger","swim","kind"],"gaps":[{"n":1,"answer":"clever"},{"n":2,"answer":"live"},{"n":3,"answer":"sea"},{"n":4,"answer":"fast"},{"n":5,"answer":"fish"},{"n":6,"answer":"play"},{"n":7,"answer":"friendly"},{"n":8,"answer":"danger"}]}`;
   try{
-    const raw=await callClaude(prompt,700);
+    const raw=await callClaude(prompt,1000);
     const d=parseJSON(raw);
     renderMoversRW3(d);
   }catch(e){showError(e.message);}
@@ -4186,19 +4232,24 @@ Return ONLY valid JSON:
 function renderMoversRW3(d){
   const area=document.getElementById('module-content-area');
   window._moversRW3Data=d;
-  const stHTML=d.statements.map((st,i)=>`
-    <div style="background:var(--card2);border-radius:10px;padding:14px;margin-bottom:10px">
-      <div style="font-size:13px;color:var(--text);margin-bottom:8px"><b>${i+1}.</b> ${st.text}</div>
-      <label style="margin-right:20px;cursor:pointer;font-size:14px"><input type="radio" name="rw3_${i}" value="true" style="accent-color:#4ade80"> True</label>
-      <label style="cursor:pointer;font-size:14px"><input type="radio" name="rw3_${i}" value="false" style="accent-color:#f87171"> False</label>
-      <div id="rw3_fb${i}" style="font-size:12px;margin-top:6px"></div>
-    </div>`).join('');
+  const shuffled=[...d.wordbox].sort(()=>Math.random()-0.5);
+  let displayText=d.paragraph;
+  d.gaps.forEach(g=>{
+    displayText=displayText.replace(`__(${g.n})__`,
+      `<select id="rw3_sel${g.n}" style="padding:3px 8px;background:var(--card);border:1px solid var(--blue);border-radius:6px;color:var(--text);font-size:13px"><option value="">__(${g.n})__</option>${shuffled.map(w=>`<option value="${w}">${w}</option>`).join('')}</select>`);
+  });
+  const wordBoxHTML=shuffled.map(w=>`<span style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:13px;color:var(--text)">${w}</span>`).join('');
   area.innerHTML=`<div style="max-width:680px;margin:0 auto">
-    <div style="font-family:'Orbitron',monospace;font-size:12px;color:#a78bfa;margin-bottom:16px;font-weight:700">📝 R&W PART 3 — TRUE / FALSE</div>
-    <div style="background:var(--card2);border-radius:12px;padding:16px;margin-bottom:20px;font-size:13px;line-height:1.7;color:var(--text)">${d.story}</div>
-    <p style="color:var(--muted);font-size:13px;margin-bottom:12px">Read the story. Are these sentences true or false? ✏️</p>
-    ${stHTML}
-    <button class="submit-btn" onclick="checkMoversRW3()">Check answers ✓</button>
+    <div style="font-family:'Orbitron',monospace;font-size:12px;color:#a78bfa;margin-bottom:4px;font-weight:700">📝 R&W PART 3 — WORD BOX</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:16px">Topic: ${d.topic||''}</div>
+    <div style="background:var(--card2);border-radius:12px;padding:14px;margin-bottom:16px">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:10px;letter-spacing:1px">WORD BOX — choose from these words:</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">${wordBoxHTML}</div>
+    </div>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:12px">Choose the best word from the word box for each gap. ✏️</p>
+    <div style="background:var(--card2);border-radius:12px;padding:20px;font-size:14px;line-height:2.6;color:var(--text)">${displayText}</div>
+    <div id="rw3_fbs" style="margin-top:10px"></div>
+    <button class="submit-btn" style="margin-top:16px" onclick="checkMoversRW3()">Check answers ✓</button>
     <div id="rw3_result" style="margin-top:16px"></div>
   </div>`;
 }
@@ -4206,13 +4257,15 @@ function renderMoversRW3(d){
 function checkMoversRW3(){
   const d=window._moversRW3Data;if(!d)return;
   let correct=0;
-  d.statements.forEach((st,i)=>{
-    const sel=document.querySelector(`input[name="rw3_${i}"]:checked`);
-    const fb=document.getElementById('rw3_fb'+i);
-    if(sel&&sel.value===st.answer){correct++;if(fb)fb.innerHTML='<span style="color:#4ade80">✓ Correct!</span>';}
-    else{if(fb)fb.innerHTML=`<span style="color:#f87171">✗ Answer: <b>${st.answer==='true'?'True':'False'}</b></span>`;}
+  const fbLines=d.gaps.map(g=>{
+    const sel=document.getElementById('rw3_sel'+g.n);
+    const ok=sel&&sel.value===g.answer;
+    if(ok)correct++;
+    if(sel)sel.style.borderColor=ok?'#4ade80':'#f87171';
+    return `<div style="font-size:12px;margin:3px 0">${ok?'✅':'❌'} Gap (${g.n}): <b>${g.answer}</b>${ok?'':' — you chose: "'+(sel?.value||'nothing')+'"'}</div>`;
   });
-  const total=d.statements.length,pct=correct/total,km=Math.round(30+(pct*20));
+  document.getElementById('rw3_fbs').innerHTML=fbLines.join('');
+  const total=d.gaps.length,pct=correct/total,km=Math.round(30+(pct*20));
   addKm(km);
   const res=document.getElementById('rw3_result');
   if(res)res.innerHTML=`<div class="result-box" style="border-color:${pct===1?'#4ade80':pct>=.6?'var(--gold2)':'var(--red)'}">${pct===1?'🏆 Perfect!':pct>=.6?'⭐ Good!':'💪 Keep going!'} ${correct}/${total} — +${km} km!</div><button class="submit-btn" style="margin-top:10px;width:100%" onclick="runMoversRW3()">New exercise 🔄</button>`;
@@ -4224,10 +4277,10 @@ async function runMoversRW4(){
   const unitCtx=state.currentUnit||getUnitContext();
   const topicHint=unitCtx?`Topic: "${unitCtx.unitName}". Vocabulary: ${unitCtx.vocab}.`:'Use Cambridge A1 Movers topics.';
   const prompt=`You are a Cambridge A1 Movers Reading & Writing Part 4 generator.
-Write a short informational text (50-70 words) with 5 numbered gaps __(1)__ to __(5)__. For each gap provide 3 options (A, B, C) where only one is correct.
+Write a short informational or narrative text (60-80 words, A1 Movers level) with exactly 6 numbered gaps __(1)__ to __(6)__. For each gap provide 3 options (A, B, C) where only one is grammatically and contextually correct. The wrong options must be the same word class as the correct answer.
 ${topicHint}
 Return ONLY valid JSON:
-{"text":"Dolphins are very __(1)__ animals. They can __(2)__ very fast in the water.","gaps":[{"n":1,"options":["clever","slowly","heavy"],"answer":"clever"},... 5 gaps]}`;
+{"text":"Dolphins are very __(1)__ animals. They __(2)__ in the sea and can swim very __(3)__.","gaps":[{"n":1,"options":["clever","slowly","heavy"],"answer":"clever"},... 6 gaps]}`;
   try{
     const raw=await callClaude(prompt,700);
     const d=parseJSON(raw);
@@ -4276,15 +4329,22 @@ function checkMoversRW4(){
 async function runMoversRW5(){
   showLoading('Preparing Part 5...');
   const unitCtx=state.currentUnit||getUnitContext();
-  const topicHint=unitCtx?`Topic: "${unitCtx.unitName}". Vocabulary: ${unitCtx.vocab}.`:'Use Cambridge A1 Movers topics.';
+  const topicHint=unitCtx?`Topic: "${unitCtx.unitName}". Vocabulary: ${unitCtx.vocab}.`:'Use Cambridge A1 Movers topics (weather, animals, outdoor activities, school, food, etc.).';
   const prompt=`You are a Cambridge A1 Movers Reading & Writing Part 5 generator.
-Write a short story (60-80 words, A1 Movers level) with 6 numbered gaps __(1)__ to __(6)__. Each gap must be filled with exactly ONE common English word.
+Write a short story (55-70 words, A1 Movers level). Then write 6 separate sentence-completion items about the story. Each item is an incomplete sentence with exactly ONE word missing, shown as ___. The student reads the story and writes the missing word.
 ${topicHint}
-Rules: gaps should test common words (articles, prepositions, verbs, adjectives). Not proper nouns.
+Rules: Each answer is exactly one common English word that appears in or is clearly supported by the story. No proper nouns as answers. Vary the word types tested (nouns, verbs, adjectives, prepositions, adverbs).
 Return ONLY valid JSON:
-{"story":"Tom __(1)__ to school every day. He __(2)__ his bag and puts __(3)__ his shoes.","gaps":[{"n":1,"answer":"goes"},... 6 gaps]}`;
+{"story":"Last Sunday, Emma went to the park with her dog Max. It was a sunny day. They played with a red ball and Max ran very fast. After that, they sat under a big tree and had some sandwiches. Emma was very happy.","sentences":[
+  {"n":1,"text":"Emma went to the ___ last Sunday.","answer":"park"},
+  {"n":2,"text":"The weather was very ___.","answer":"sunny"},
+  {"n":3,"text":"Emma and Max played with a ___ ball.","answer":"red"},
+  {"n":4,"text":"Max ran very ___.","answer":"fast"},
+  {"n":5,"text":"They sat under a big ___.","answer":"tree"},
+  {"n":6,"text":"They ate ___ under the tree.","answer":"sandwiches"}
+]}`;
   try{
-    const raw=await callClaude(prompt,600);
+    const raw=await callClaude(prompt,900);
     const d=parseJSON(raw);
     renderMoversRW5(d);
   }catch(e){showError(e.message);}
@@ -4293,17 +4353,22 @@ Return ONLY valid JSON:
 function renderMoversRW5(d){
   const area=document.getElementById('module-content-area');
   window._moversRW5Data=d;
-  let displayStory=d.story;
-  d.gaps.forEach(g=>{
-    displayStory=displayStory.replace(`__(${g.n})__`,
-      `<input type="text" id="rw5_inp${g.n}" placeholder="(${g.n})" style="width:80px;padding:4px 8px;background:var(--card);border:1px solid var(--blue);border-radius:6px;color:var(--text);font-size:14px;text-align:center">`);
-  });
+  const sentHTML=d.sentences.map(s=>{
+    const parts=s.text.split('___');
+    return `<div style="background:var(--card2);border-radius:10px;padding:14px;margin-bottom:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <span style="font-weight:700;color:var(--muted);font-size:13px;min-width:20px">${s.n}.</span>
+      <span style="font-size:14px;color:var(--text)">${parts[0]||''}</span>
+      <input type="text" id="rw5_inp${s.n}" placeholder="???" style="width:100px;padding:6px 10px;background:var(--card);border:1px solid var(--blue);border-radius:6px;color:var(--text);font-size:14px;text-align:center">
+      <span style="font-size:14px;color:var(--text)">${parts[1]||''}</span>
+      <div id="rw5_fb${s.n}" style="font-size:12px;width:100%;margin-top:2px"></div>
+    </div>`;
+  }).join('');
   area.innerHTML=`<div style="max-width:680px;margin:0 auto">
-    <div style="font-family:'Orbitron',monospace;font-size:12px;color:#a78bfa;margin-bottom:16px;font-weight:700">📝 R&W PART 5 — OPEN CLOZE</div>
-    <p style="color:var(--muted);font-size:13px;margin-bottom:16px">Read the story. Write ONE word in each gap. ✏️</p>
-    <div style="background:var(--card2);border-radius:12px;padding:20px;font-size:14px;line-height:2.2;color:var(--text)">${displayStory}</div>
-    <div id="rw5_fbs" style="margin-top:12px"></div>
-    <button class="submit-btn" style="margin-top:16px" onclick="checkMoversRW5()">Check answers ✓</button>
+    <div style="font-family:'Orbitron',monospace;font-size:12px;color:#a78bfa;margin-bottom:16px;font-weight:700">📝 R&W PART 5 — SENTENCE COMPLETION</div>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:12px">Read the story. Then complete each sentence with ONE word. ✏️</p>
+    <div style="background:var(--card2);border-radius:12px;padding:20px;font-size:13px;line-height:1.9;color:var(--text);margin-bottom:20px">${d.story}</div>
+    ${sentHTML}
+    <button class="submit-btn" onclick="checkMoversRW5()">Check answers ✓</button>
     <div id="rw5_result" style="margin-top:16px"></div>
   </div>`;
 }
@@ -4311,16 +4376,15 @@ function renderMoversRW5(d){
 function checkMoversRW5(){
   const d=window._moversRW5Data;if(!d)return;
   let correct=0;
-  const fbLines=d.gaps.map(g=>{
-    const inp=document.getElementById('rw5_inp'+g.n);
-    const user=_normAns(inp?inp.value:'');
-    const ok=user===_normAns(g.answer);
+  d.sentences.forEach(s=>{
+    const inp=document.getElementById('rw5_inp'+s.n);
+    const fb=document.getElementById('rw5_fb'+s.n);
+    const ok=_normAns(inp?.value||'')===_normAns(s.answer);
     if(ok)correct++;
     if(inp)inp.style.borderColor=ok?'#4ade80':'#f87171';
-    return `<div style="font-size:12px;margin:3px 0">${ok?'✅':'❌'} Gap (${g.n}): <b>${g.answer}</b>${ok?'':' — you wrote: "'+(_normAns(inp?.value||'')||'?')+'"'}</div>`;
+    if(fb)fb.innerHTML=ok?'<span style="color:#4ade80">✓ Correct!</span>':`<span style="color:#f87171">✗ Answer: <b>${s.answer}</b></span>`;
   });
-  document.getElementById('rw5_fbs').innerHTML=fbLines.join('');
-  const total=d.gaps.length,pct=correct/total,km=Math.round(30+(pct*20));
+  const total=d.sentences.length,pct=correct/total,km=Math.round(30+(pct*20));
   addKm(km);
   const res=document.getElementById('rw5_result');
   if(res)res.innerHTML=`<div class="result-box" style="border-color:${pct===1?'#4ade80':pct>=.6?'var(--gold2)':'var(--red)'}">${pct===1?'🏆 Perfect!':pct>=.6?'⭐ Good!':'💪 Keep going!'} ${correct}/${total} — +${km} km!</div><button class="submit-btn" style="margin-top:10px;width:100%" onclick="runMoversRW5()">New exercise 🔄</button>`;
