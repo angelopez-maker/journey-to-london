@@ -1401,12 +1401,12 @@ const MINI_MOCK_CALENDAR=[
 ];
 
 const MOCK_PART_INFO={
-  rw1:{label:'R&W Part 1',desc:'3-option multiple choice',icon:'🔤'},
-  rw2:{label:'R&W Part 2',desc:'Match characters to descriptions',icon:'🔗'},
-  rw3:{label:'R&W Part 3',desc:'True / False story questions',icon:'✅'},
+  rw1:{label:'R&W Part 1',desc:'Match descriptions to people (A–H)',icon:'🔗'},
+  rw2:{label:'R&W Part 2',desc:'Dialogue gap-fill — best reply',icon:'💬'},
+  rw3:{label:'R&W Part 3',desc:'Word box — fill the gaps',icon:'📦'},
   rw4:{label:'R&W Part 4',desc:'Multiple choice cloze (A/B/C)',icon:'🎯'},
-  rw5:{label:'R&W Part 5',desc:'Open cloze — fill one word',icon:'✏️'},
-  rw6:{label:'R&W Part 6',desc:'Story completion — word box',icon:'📝'},
+  rw5:{label:'R&W Part 5',desc:'Read story, complete sentences',icon:'✏️'},
+  rw6:{label:'R&W Part 6',desc:'Story — write sentences from pictures',icon:'📝'},
   l1: {label:'Listening Part 1',desc:'Match people to activities',icon:'🎧'},
   l2: {label:'Listening Part 2',desc:'Listen and write information',icon:'🎧'},
   l3: {label:'Listening Part 3',desc:'Listen and choose the picture',icon:'🎧'},
@@ -1768,7 +1768,7 @@ Evaluate at B1 PET level and respond EXACTLY like this:
 💡 USEFUL EXPRESSIONS FOR THIS TASK:
 [2-3 B1 expressions useful for this type of description]
 
-Be encouraging, concise, and talk directly to Fernando.`;
+Be encouraging, concise, and talk directly to ${getStudentName()}.`;
   try{
     const raw=await callClaude(prompt,700);
     if(btn){btn.disabled=false;btn.textContent='Submit to Miss Kamil_IA →';}
@@ -1896,7 +1896,7 @@ Analyze the test and respond with EXACTLY this structure:
 💪 NEXT STEP:
 [1-2 specific Versus Mode duels to practice the weak points]
 
-Be encouraging and clear. Speak directly to Fernando at B1 level.`;
+Be encouraging and clear. Speak directly to ${getStudentName()} at B1 level.`;
 
   try{
     let messages;
@@ -1981,7 +1981,7 @@ async function startBookClubChapter(){
   const btn=document.getElementById('bc-btn');
   if(btn){btn.disabled=true;btn.textContent='Miss Kamil_IA is preparing...';}
   document.getElementById('bc-result').innerHTML=`<div style="text-align:center;padding:24px;color:var(--muted)"><div style="font-size:26px;margin-bottom:10px">📖</div><div>Preparing Chapter ${ch} of "${book}"...</div></div>`;
-  const prompt=`You are Miss Kamil_IA, a Cambridge B1 PET English teacher. Create Book Club content for a 12-year-old student reading "${book}", Chapter ${ch}.
+  const prompt=`You are Miss Kamil_IA, a Cambridge B1 PET English teacher. Create Book Club content for a ${getAge()}-year-old student reading "${book}", Chapter ${ch}.
 
 Respond EXACTLY with this structure:
 
@@ -2002,7 +2002,7 @@ B. [personal connection question — relate to Fernando's own life]
 ✍️ WRITING CHALLENGE:
 [Write 3-5 sentences task about a specific scene, character, or moment from the chapter]
 
-Make it engaging and appropriate for a 12-year-old B1 student.`;
+Make it engaging and appropriate for a ${getAge()}-year-old B1 student.`;
   try{
     const raw=await callClaude(prompt,1200);
     if(btn){btn.disabled=false;btn.textContent='📖 Start Chapter Discussion';}
@@ -2281,7 +2281,16 @@ function onCurriculumUnitChange(silent=false){
   if(!silent)showToast('📚 '+unit.name+' loaded!');
 }
 
-function getAge(){return state.profile==='rodrigo'?9:12;}
+function getAge(){
+  // Birth dates — ages auto-calculate every year
+  const dobs={rodrigo:'2016-09-18',fernando:'2013-10-29'};
+  const dob=dobs[state.profile];
+  if(!dob)return 12;
+  const d=new Date(dob),now=new Date();
+  let age=now.getFullYear()-d.getFullYear();
+  if(now<new Date(now.getFullYear(),d.getMonth(),d.getDate()))age--;
+  return age;
+}
 function getLevelDesc(){return {normal:'beginner A1-A2, keep it very simple and encouraging',pro:'intermediate B1, moderately challenging',goat:'advanced B2-C1, challenging like a native speaker'}[state.level];}
 
 // ══ KM + PRESTIGE ══
@@ -3726,7 +3735,7 @@ async function runVocabMatch(){
   if(unitCtx&&unitCtx.vocab){
     const allWords=unitCtx.vocab.split(',').map(w=>w.trim()).filter(Boolean);
     const chosen=allWords.sort(()=>Math.random()-0.5).slice(0,5);
-    prompt=`Translate these English words to Spanish for a 9-year-old Chilean child.
+    prompt=`Translate these English words to Spanish for a ${getAge()}-year-old Chilean child.
 Words: ${chosen.join(', ')}
 Return ONLY this JSON (no markdown):
 {"pairs":[{"en":"word","es":"traducción"},...]}`;
@@ -3737,7 +3746,7 @@ Return ONLY this JSON (no markdown):
     }catch(e){showError('Could not load vocabulary. '+e.message);}
   } else {
     const topic=getTopic();
-    prompt=`Generate 5 English-Spanish vocabulary pairs for a 9-year-old studying "${topic}".
+    prompt=`Generate 5 English-Spanish vocabulary pairs for a ${getAge()}-year-old studying "${topic}".
 Use simple, concrete A1 words a Chilean child would know in Spanish.
 Return ONLY this JSON (no markdown):
 {"pairs":[{"en":"word","es":"traducción"},{"en":"word","es":"traducción"},{"en":"word","es":"traducción"},{"en":"word","es":"traducción"},{"en":"word","es":"traducción"}]}`;
@@ -3899,7 +3908,7 @@ Prefer vocabulary from this list where natural: ${unitCtx.vocab}.`;
     topicHint='Use everyday A1 topics (food, animals, family, school, weather, body, clothes).';
   }
 
-  const prompt=`You are creating a Cambridge A1 Movers Reading & Writing Part 6 exercise for a 9-year-old Spanish-speaking child.
+  const prompt=`You are creating a Cambridge A1 Movers Reading & Writing Part 6 exercise for a ${getAge()}-year-old Spanish-speaking child.
 
 TASK FORMAT: A short story (8-10 sentences) with exactly 8 numbered gaps [(1) through (8)]. Below the story is a word box with 10 words: the 8 correct answers plus 2 distractors. Students choose words from the box to fill each gap.
 
@@ -4548,6 +4557,197 @@ let _petTimerMinutes=0;
 let _petSessionScore=0;
 let _petListeningScripts=[]; // store scripts to avoid JSON-in-onclick
 
+// ── Fernando's PET Profile (from May 2026 school test — 37/59, Band 3 Writing) ──
+const FER_PET_PROFILE={
+  name:'Fernando', level:'B1 PET', grade:'7° Básico',
+  school:'Colegio Pumahue Peñalolén', testScore:'37/59', testDate:'Mayo 2026', writingBand:3,
+  weakAreas:[
+    'Past Simple & Passive — "was born", not "born"',
+    'Articles and prepositions (frequently omitted)',
+    'Inference in long informational texts (scientific topics)',
+    'Listening Part 1 — picture selection under time pressure',
+    'Spanish interference in vocabulary and sentence structure',
+  ],
+  strongAreas:[
+    'Listening gap-fill — extracts specific information well',
+    'Writing content — covers all required task points',
+    'Communicates ideas even when grammar is imperfect',
+  ],
+  teacherNote:'"You are doing better, keep going!" — Miss Kamila, Mayo 2026',
+  rubricDimensions:['Content','Communicative Achievement','Organisation','Language'],
+};
+
+// ── Pre-section strategy tips ─────────────────────────────────────────────────
+const PET_SECTION_TIPS={
+  rp1:'📌 <strong>Strategy:</strong> Read each sign or notice fully before looking at the question. The answer is always IN the text. Watch out for distractors that use the same words but mean something different.',
+  rp2:'📌 <strong>Strategy:</strong> Read all 5 people\'s needs first. Then skim the texts for keywords. Cross out texts already used — each is only used once.',
+  rp3:'📌 <strong>Strategy:</strong> Find the EXACT part of the passage that confirms or contradicts each statement. Don\'t rely on general knowledge.',
+  rp4:'📌 <strong>Strategy:</strong> Read the whole sentence, not just the gap. Think about grammar AND meaning. What word type fits (noun, verb, adjective)?',
+  rp5:'📌 <strong>Strategy:</strong> Read the full sentence for each gap. Check if you need an article, preposition, verb or conjunction.',
+  wp1:'📌 <strong>Strategy:</strong> Both sentences must mean EXACTLY the same thing. Check the grammar transformation: active↔passive, affirmative↔negative, tense changes.',
+  wp2:'📌 <strong>Strategy:</strong> Cover ALL bullet points — missing even one costs marks. Count your words. Target: 35–45 words.',
+  wp3:'📌 <strong>Strategy:</strong> Plan first: introduction + 2 body paragraphs + conclusion. Vary your grammar and vocabulary — avoid repeating the same words.',
+  lp1:'📌 <strong>Strategy:</strong> Listen for the FINAL decision — speakers often mention wrong options before the correct one. Don\'t choose the first thing you hear.',
+  lp2:'📌 <strong>Strategy:</strong> The answers are spoken clearly. Write only what you hear — 1 or 2 words max per gap. Check spelling.',
+  lp3:'📌 <strong>Strategy:</strong> Read the questions and options BEFORE the recording plays. Focus on key words. Correct answers often paraphrase what\'s said.',
+  lp4:'📌 <strong>Strategy:</strong> Listen for opinions and attitudes, not just facts. The answer won\'t be word-for-word from the recording.',
+  sp1:'📌 <strong>Strategy:</strong> Give full answers — not just "Yes" or "No". Add a detail or reason. Use correct tenses: present for habits, past for experiences.',
+  sp2:'📌 <strong>Strategy:</strong> Describe systematically: who, where, what they\'re doing. Use present continuous (is doing, are wearing). Add your opinion at the end.',
+  sp3:'📌 <strong>Strategy:</strong> Make suggestions and respond to ideas. Use: "What about...?", "I think... because...", "That\'s good, but..."',
+  sp4:'📌 <strong>Strategy:</strong> Give reasons for opinions. Use: "In my opinion...", "I believe...", "On the other hand..."',
+};
+
+// ── Student profile helpers — profile-agnostic engine ────────────────────────
+// ROD_MOVERS_PROFILE: stub for Rodrigo — will be enriched after first mock exam
+const ROD_MOVERS_PROFILE={
+  name:'Rodrigo', level:'A1 Movers', grade:'4° Básico',
+  school:'Colegio Pumahue Peñalolén',
+  testScore:'—', testDate:'—', writingBand:null,
+  weakAreas:[], strongAreas:[],
+  teacherNote:'¡Keep going, Rodrigo!',
+  rubricDimensions:['Content','Language','Organisation'],
+};
+
+function getStudentProfile(){
+  return state.profile==='rodrigo'?ROD_MOVERS_PROFILE:FER_PET_PROFILE;
+}
+function getStudentName(){
+  return getStudentProfile().name||'Student';
+}
+
+// ── Comodín (lifeline) system ─────────────────────────────────────────────────
+function _petComodinReset(){
+  window._petComodines={hint:true,eliminate:true,strategy:true};
+  window._petCurrentQuestions=[];
+  window._petSessionErrors=[];
+}
+_petComodinReset();
+
+function petComodinBtns(qIdx){
+  const c=window._petComodines||{hint:true,eliminate:true,strategy:true};
+  return [
+    {key:'hint',icon:'💡',name:'Hint',tip:'A clue without the answer'},
+    {key:'eliminate',icon:'✂️',name:'Eliminate',tip:'Remove one wrong option'},
+    {key:'strategy',icon:'🔍',name:'Strategy',tip:'What skill is tested?'},
+  ].map(t=>`<button onclick="petComodin('${t.key}',${qIdx})" title="${t.tip}"
+    style="font-size:11px;padding:3px 8px;border-radius:6px;border:1px solid ${c[t.key]?'rgba(245,158,11,.5)':'var(--border)'};
+      background:${c[t.key]?'rgba(245,158,11,.1)':'transparent'};color:${c[t.key]?'var(--gold2)':'var(--muted)'};
+      cursor:${c[t.key]?'pointer':'not-allowed'};opacity:${c[t.key]?'1':'.35'};font-family:'Rajdhani',sans-serif;font-weight:700"
+    ${c[t.key]?'':'disabled'}>${t.icon} ${t.name}</button>`).join('');
+}
+
+function petComodinBarHTML(){
+  const c=window._petComodines||{hint:true,eliminate:true,strategy:true};
+  return [
+    {key:'hint',icon:'💡',name:'Hint',desc:'Clue only'},
+    {key:'eliminate',icon:'✂️',name:'Eliminate',desc:'Cut 1 wrong option'},
+    {key:'strategy',icon:'🔍',name:'Strategy',desc:'Skill explained'},
+  ].map(t=>`<div style="display:flex;align-items:center;gap:5px;opacity:${c[t.key]?'1':'.35'}">
+    <span style="font-size:15px">${t.icon}</span>
+    <div><div style="font-size:11px;font-weight:700;color:${c[t.key]?'var(--gold2)':'var(--muted)'}">${t.name}</div>
+    <div style="font-size:9px;color:var(--muted)">${c[t.key]?t.desc:'Used'}</div></div>
+  </div>`).join('');
+}
+
+async function petComodin(type,qIdx){
+  const c=window._petComodines||{};
+  if(!c[type]){showToast('You already used this lifeline!');return;}
+  const q=(window._petCurrentQuestions||[])[qIdx];
+  if(!q){showToast('Question not available.');return;}
+  c[type]=false;window._petComodines=c;
+  // Refresh all comodín buttons
+  document.querySelectorAll('.pet-cmd-row').forEach(el=>{
+    const i=parseInt(el.dataset.qidx);el.innerHTML=petComodinBtns(i);
+  });
+  const ind=document.getElementById('pet-comodin-indicators');
+  if(ind)ind.innerHTML=petComodinBarHTML();
+
+  const typeLabel={hint:'💡 Hint',eliminate:'✂️ Eliminate',strategy:'🔍 Strategy'}[type];
+  const modal=document.createElement('div');
+  modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
+  modal.innerHTML=`<div style="background:var(--card);border:2px solid var(--gold);border-radius:18px;padding:24px;max-width:460px;width:100%;">
+    <div style="font-family:'Orbitron',monospace;font-size:10px;color:var(--gold2);letter-spacing:2px;margin-bottom:12px">${typeLabel} — QUESTION ${qIdx+1}</div>
+    <div id="pet-cmd-body" class="loading-text">Miss Kamil_IA is thinking...</div>
+  </div>`;
+  document.body.appendChild(modal);
+  modal.addEventListener('click',e=>{if(e.target===modal)modal.remove();});
+
+  const prms={
+    hint:`You are a warm English tutor helping ${getStudentName()} (${getAge()} years old, Chilean student).
+Question type: ${q.partType}
+Question: "${q.question}"
+Options: ${(q.options||[]).join(' | ')}
+${getStudentProfile().weakAreas.length?`${getStudentName()}'s weak areas: ${getStudentProfile().weakAreas.slice(0,2).join('; ')}.`:''}
+Give a 2-3 sentence HINT that guides toward the answer WITHOUT revealing it. Focus on the keyword or strategy to use. Be warm and encouraging. Write in English.`,
+    eliminate:`You are an English tutor helping ${getStudentName()} (${getAge()}).
+Question type: ${q.partType}
+Question: "${q.question}"
+Options: ${(q.options||[]).join(' | ')}
+Correct answer: ${q.answer}
+Identify ONE clearly wrong option and explain in 2 sentences why it cannot be correct. Do NOT reveal the right answer. Be friendly and brief.`,
+    strategy:`You are an English tutor. Help ${getStudentName()} (${getAge()}) understand the skill this question tests.
+Question type: ${q.partType}
+Question: "${q.question}"
+${getStudentProfile().weakAreas.length?`${getStudentName()}'s weak areas: ${getStudentProfile().weakAreas.slice(0,2).join('; ')}.`:''}
+Answer in 3 sentences: (1) what specific skill is being tested, (2) the most common mistake students make, (3) what ${getStudentName()} should focus on right now.`,
+  };
+  try{
+    const resp=await callClaude(prms[type],350);
+    const body=document.getElementById('pet-cmd-body');
+    if(body)body.parentElement.innerHTML=`
+      <div style="font-family:'Orbitron',monospace;font-size:10px;color:var(--gold2);letter-spacing:2px;margin-bottom:14px">${typeLabel} — QUESTION ${qIdx+1}</div>
+      <div style="font-size:14px;line-height:1.75;color:var(--text);margin-bottom:20px">${resp}</div>
+      <button onclick="this.closest('[style*=position:fixed]').remove()" class="submit-btn" style="width:100%">Got it! ✓</button>`;
+  }catch(e){
+    modal.remove();showToast('Lifeline failed. Try again.');
+    c[type]=true;window._petComodines=c;
+    // Restore visual state
+    document.querySelectorAll('.pet-cmd-row').forEach(el=>{
+      const i=parseInt(el.dataset.qidx);el.innerHTML=petComodinBtns(i);
+    });
+    const ind2=document.getElementById('pet-comodin-indicators');
+    if(ind2)ind2.innerHTML=petComodinBarHTML();
+  }
+}
+
+function showPETSessionCard(sectionTitle,score,total,sectionId){
+  const pct=total>0?Math.round(score/total*100):0;
+  const errors=(window._petSessionErrors||[]).slice(0,3);
+  const grade=pct===100?'🏆 Perfect!':pct>=80?'⭐ Excellent!':pct>=60?'👍 Good job!':pct>=40?'💪 Keep going!':'📚 More practice needed';
+  const pepMsg=pct>=70?'"Great focus today! You\'re building that B1 muscle."':
+    pct>=50?'"Getting there — consistency beats perfection."':
+    '"Every mistake is a lesson. Miss Kamila says: keep going!"';
+  const profile=getStudentProfile();
+  const weakMatch=profile.weakAreas.find(w=>errors.some(e=>e&&w&&e.toLowerCase().includes(w.toLowerCase().split(/\s+/)[0])));
+  const modal=document.createElement('div');
+  modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:9998;display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto;';
+  modal.innerHTML=`<div style="background:var(--card);border:2px solid var(--gold);border-radius:20px;padding:28px;max-width:500px;width:100%;max-height:90vh;overflow-y:auto;">
+    <div style="font-family:'Orbitron',monospace;font-size:10px;color:var(--gold2);letter-spacing:2px;margin-bottom:18px">📊 SESSION REPORT — ${sectionTitle.toUpperCase()}</div>
+    <div style="text-align:center;background:var(--card2);border-radius:16px;padding:20px;margin-bottom:18px;">
+      <div style="font-family:'Orbitron',monospace;font-size:44px;font-weight:900;color:${pct>=60?'#4ade80':'#f87171'}">${score}/${total}</div>
+      <div style="font-size:14px;color:var(--muted);margin-top:6px">${pct}% · ${grade}</div>
+    </div>
+    ${errors.length?`<div style="margin-bottom:16px;">
+      <div style="font-size:10px;font-weight:700;color:#f87171;letter-spacing:1px;margin-bottom:8px;">⚠️ REVIEW THESE</div>
+      ${errors.map(e=>`<div style="font-size:12px;color:var(--muted);padding:7px 12px;background:rgba(248,113,113,.07);border-radius:8px;margin-bottom:5px;">• ${e}</div>`).join('')}
+    </div>`:''}
+    ${score===total?`<div style="background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.3);border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:#4ade80;">🌟 Perfect score! Fernando nailed every single one!</div>`:''}
+    ${weakMatch?`<div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.3);border-radius:12px;padding:14px 16px;margin-bottom:16px;">
+      <div style="font-size:10px;font-weight:700;color:var(--gold2);margin-bottom:6px;">💊 MICRO-LESSON</div>
+      <div style="font-size:13px;color:var(--text);line-height:1.7;">This connects to a pattern we have seen before: <strong>${weakMatch}</strong>. Next time you see this type of question, pause and apply that rule consciously before answering.</div>
+    </div>`:''}
+    <div style="background:rgba(139,92,246,.07);border:1px solid rgba(139,92,246,.25);border-radius:12px;padding:12px 16px;margin-bottom:22px;font-size:13px;color:var(--muted);">
+      🕷️ <em>Pepe Grillo says:</em> ${pepMsg}
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button onclick="this.closest('[style*=position:fixed]').remove()" class="submit-btn" style="flex:1">Close ✓</button>
+      ${sectionId?`<button onclick="this.closest('[style*=position:fixed]').remove();runPETSection('${sectionId}')" class="pron-hint-btn" style="flex:1;font-family:'Rajdhani',sans-serif;font-weight:700;">Try again 🔄</button>`:''}
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
+  modal.addEventListener('click',e=>{if(e.target===modal)modal.remove();});
+}
+
 function petTimerTick(){
   if(_petTimerRemaining>0)_petTimerRemaining--;
   const el=document.getElementById('pet-timer');
@@ -4566,7 +4766,7 @@ const PET_SECTIONS = [
   {id:'rp3', part:'Reading', num:3, title:'True/False',                     desc:'Read a longer text. Decide if 10 statements are True or False.',  km:100, time:20},
   {id:'rp4', part:'Reading', num:4, title:'Multiple choice (longer text)',  desc:'Read a longer text. Choose A, B, C or D for 5 questions.',        km:100, time:20},
   {id:'rp5', part:'Reading', num:5, title:'Multiple choice cloze',          desc:'Choose the correct word (A, B, C or D) for 10 gaps.',             km:100, time:15},
-  {id:'wp1', part:'Writing', num:1, title:'Sentence transformation',        desc:'Complete 5 sentences so they mean the same as the original.',      km:100, time:15},
+  {id:'wp1', part:'Writing', num:1, title:'Sentence transformation',        desc:'Complete 6 sentences so they mean the same as the original.',      km:100, time:15},
   {id:'wp2', part:'Writing', num:2, title:'Short message (35–45 words)',    desc:'Write a short message (email, note or postcard).',                 km:100, time:20},
   {id:'wp3', part:'Writing', num:3, title:'Longer piece (100 words)',       desc:'Write an article, story, or informal letter.',                     km:100, time:45},
   {id:'lp1', part:'Listening', num:1, title:'Short recordings',             desc:'Listen to 7 short recordings. Choose A, B or C.',                  km:100, time:10},
@@ -4586,16 +4786,59 @@ function runPET(){
   const partColors={Reading:'var(--blue)',Writing:'var(--gold)',Listening:'var(--purple)',Speaking:'var(--green)'};
   const partIcons={Reading:'📖',Writing:'✏️',Listening:'🎧',Speaking:'🎤'};
 
+  const examModes=[
+    {label:'Normal',sub:'Free practice',icon:'📚',mins:0},
+    {label:'B1 Candidate',sub:'120 min',icon:'⏱',mins:120},
+    {label:'B1 Pro',sub:'100 min',icon:'⚡',mins:100},
+    {label:'B1 Expert',sub:'90 min',icon:'🏆',mins:90},
+  ];
   area.innerHTML=`
     <div style="max-width:720px;margin:0 auto">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:8px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
         <span style="font-family:'Orbitron',monospace;font-size:13px;color:var(--gold2);letter-spacing:2px">📝 PET B1 TRAINING</span>
-        <div style="display:flex;gap:8px;align-items:center">
-          <span style="font-size:12px;color:var(--muted)">Full exam timer:</span>
-          ${[180,150,120,100].map(t=>`<button class="pron-hint-btn" onclick="runPETFull(${t})" style="color:var(--gold2);border-color:rgba(245,158,11,.4)">${t} min</button>`).join('')}
+      </div>
+
+      <!-- Pepe Grillo profile card -->
+      ${(()=>{const p=getStudentProfile();return `
+      <div style="background:linear-gradient(135deg,rgba(139,92,246,.1),rgba(245,158,11,.07));
+        border:1px solid rgba(139,92,246,.3);border-radius:16px;padding:16px 20px;margin-bottom:20px;">
+        <div style="display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap">
+          <div style="font-size:32px">🕷️</div>
+          <div style="flex:1;min-width:200px">
+            <div style="font-family:'Orbitron',monospace;font-size:10px;color:var(--gold2);letter-spacing:2px;margin-bottom:2px">PEPE GRILLO — YOUR STUDY COACH</div>
+            <div style="font-size:13px;color:var(--text);margin-bottom:10px">
+              <strong>${p.name}</strong> · ${p.grade} · ${p.school}
+              ${p.testScore&&p.testScore!=='—'?`<span style="color:var(--muted);margin-left:8px">Last test: ${p.testScore} (${p.testDate})</span>`:''}
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <div>
+                <div style="font-size:10px;font-weight:700;color:#f87171;letter-spacing:1px;margin-bottom:5px">⚠️ WORK ON THESE</div>
+                ${p.weakAreas.length?p.weakAreas.map(w=>`<div style="font-size:11px;color:var(--muted);margin-bottom:3px;line-height:1.4">• ${w}</div>`).join(''):'<div style="font-size:11px;color:var(--muted)">Coming soon after first test</div>'}
+              </div>
+              <div>
+                <div style="font-size:10px;font-weight:700;color:#4ade80;letter-spacing:1px;margin-bottom:5px">✅ YOUR STRENGTHS</div>
+                ${p.strongAreas.length?p.strongAreas.map(s=>`<div style="font-size:11px;color:var(--muted);margin-bottom:3px;line-height:1.4">• ${s}</div>`).join(''):'<div style="font-size:11px;color:var(--muted)">Coming soon after first test</div>'}
+              </div>
+            </div>
+            <div style="margin-top:10px;font-size:12px;color:rgba(139,92,246,.8);font-style:italic">${p.teacherNote}</div>
+          </div>
+        </div>
+      </div>`;})()}
+
+      <!-- Exam Simulator modes -->
+      <div style="margin-bottom:20px">
+        <div style="font-family:'Orbitron',monospace;font-size:10px;letter-spacing:3px;color:var(--muted);margin-bottom:10px">🎯 EXAM SIMULATOR</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px">
+          ${examModes.map(m=>`<button class="module-btn" style="--mc:var(--gold);text-align:center;padding:12px 10px"
+            onclick="${m.mins?`runPETFull(${m.mins})`:`showToast('Free practice: pick any section below ↓')`}">
+            <div style="font-size:18px;margin-bottom:4px">${m.icon}</div>
+            <div style="font-family:'Orbitron',monospace;font-size:10px;color:var(--gold2);letter-spacing:1px">${m.label}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px">${m.sub}</div>
+          </button>`).join('')}
         </div>
       </div>
-      <p style="font-size:13px;color:var(--muted);margin-bottom:20px">Choose a section to practise, or start a timed full exam.</p>
+
+      <!-- Section grid -->
       ${Object.entries(byPart).map(([part,sections])=>`
         <div style="margin-bottom:20px">
           <div style="font-family:'Orbitron',monospace;font-size:10px;letter-spacing:3px;color:${partColors[part]};margin-bottom:10px">${partIcons[part]} ${part.toUpperCase()}</div>
@@ -4621,49 +4864,73 @@ async function runPETSection(sectionId){
   showLoading(`Preparing ${s.part} Part ${s.num}...`);
 
   const prompts={
-    'rp1':`Create a Cambridge B1 PET Reading Part 1 exercise for a 12-year-old. ${topicHint}
+    'rp1':`Create a Cambridge B1 PET Reading Part 1 exercise for a ${getAge()}-year-old Chilean student. ${topicHint}
 5 short texts (signs, notices, messages, labels — 15-30 words each) with one 3-option multiple choice question each.
 Return JSON: {"title":"Part 1 — Multiple Choice","items":[{"text":"sign text","question":"What does this say?","options":["A","B","C"],"answer":"A"},...]}`,
 
-    'rp2':`Create a Cambridge B1 PET Reading Part 2 exercise for a 12-year-old. ${topicHint}
+    'rp2':`Create a Cambridge B1 PET Reading Part 2 exercise for a ${getAge()}-year-old Chilean student. ${topicHint}
 5 people with a need/preference + 8 short text descriptions. Match each person to the best text. 3 texts are not used.
 Return JSON: {"title":"Part 2 — Matching","people":[{"name":"Name","need":"description"},...5],"texts":[{"label":"A","text":"..."},...8],"answers":{"1":"C","2":"F",...}}`,
 
-    'rp3':`Create a Cambridge B1 PET Reading Part 3 exercise for a 12-year-old. ${topicHint}
+    'rp3':`Create a Cambridge B1 PET Reading Part 3 exercise for a ${getAge()}-year-old Chilean student. ${topicHint}
 A factual or narrative text (200-250 words) + 10 True/False statements.
 Return JSON: {"title":"Part 3 — True/False","passage":"...","items":[{"statement":"...","answer":"True"},...]10 items}`,
 
-    'wp1':`Create a Cambridge B1 PET Writing Part 1 exercise for a 12-year-old. ${topicHint}
-5 sentence transformation pairs. Each has a complete sentence and a gapped version (1-3 word gap).
-Return JSON: {"title":"Part 1 — Sentence Transformations","items":[{"original":"She was too tired to go out.","gapped":"She didn't ___ because she was too tired.","answer":"go out"},...5]}`,
+    'wp1':`Create a Cambridge B1 PET Writing Part 1 exercise for a ${getAge()}-year-old Chilean student. ${topicHint}
+6 sentence transformation pairs. Each has a complete sentence and a gapped version requiring 1-3 words to complete. Vary the grammar: passive↔active, affirmative↔negative, comparatives, reported speech, modal verbs.
+Return JSON: {"title":"Part 1 — Sentence Transformations","items":[{"original":"She was too tired to go out.","gapped":"She didn't ___ because she was too tired.","answer":"go out","grammar":"negative + infinitive"},...6 items]}`,
 
-    'wp2':`Create a Cambridge B1 PET Writing Part 2 task for a 12-year-old. ${topicHint}
+    'wp2':`Create a Cambridge B1 PET Writing Part 2 task for a ${getAge()}-year-old Chilean student. ${topicHint}
 A prompt for a short message (email, note, or postcard) of 35-45 words covering 3 specific points.
 Return JSON: {"title":"Part 2 — Short Message","scenario":"Your friend Sam couldn't come to your party...","points":["Thank Sam for the gift","Tell Sam what happened at the party","Suggest meeting next week"],"sampleAnswer":"..."}`,
 
-    'wp3':`Create a Cambridge B1 PET Writing Part 3 task for a 12-year-old. ${topicHint}
+    'wp3':`Create a Cambridge B1 PET Writing Part 3 task for a ${getAge()}-year-old Chilean student. ${topicHint}
 Either a story starting with a given sentence OR an article on a topic. 100 words. Include a model answer.
 Return JSON: {"title":"Part 3 — Longer Writing","type":"story OR article","prompt":"...","modelAnswer":"...~100 words"}`,
 
-    'lp1':`Create a Cambridge B1 PET Listening Part 1 exercise for a 12-year-old. ${topicHint}
+    'lp1':`Create a Cambridge B1 PET Listening Part 1 exercise for a ${getAge()}-year-old Chilean student. ${topicHint}
 7 short dialogue/monologue scripts + a 3-option question for each. Describe what would be said as scene scripts.
 Return JSON: {"title":"Listening Part 1 — Short Recordings","items":[{"script":"[Speaker A]: ... [Speaker B]: ...","question":"...","options":["A: text","B: text","C: text"],"answer":"B"},...7]}`,
 
-    'sp1':`Create a Cambridge B1 PET Speaking Part 1 interview for a 12-year-old. ${topicHint}
+    'sp1':`Create a Cambridge B1 PET Speaking Part 1 interview for a ${getAge()}-year-old Chilean student. ${topicHint}
 8 examiner questions about the student's life, opinions, and experiences. Mix of factual and opinion questions.
 Return JSON: {"title":"Speaking Part 1 — Interview","questions":["Tell me about your family.","What do you like doing at weekends?",...8 total]}`,
 
-    'sp2':`Create a Cambridge B1 PET Speaking Part 2 task for a 12-year-old. ${topicHint}
+    'sp2':`Create a Cambridge B1 PET Speaking Part 2 task for a ${getAge()}-year-old Chilean student. ${topicHint}
 Describe a photo scenario (describe what you'd see). Include examiner instructions + 3 follow-up questions.
 Return JSON: {"title":"Speaking Part 2 — Photo Description","photoDescription":"[Describe the scene the photo would show, e.g.: Two teenagers are sitting in a café...]","instructions":"Describe this photo. Talk about what you can see, who the people are, and what is happening.","followUp":["What do you think the people are talking about?","Do you enjoy going to places like this?","Describe a similar experience you've had."]}`,
 
-    'sp3':`Create a Cambridge B1 PET Speaking Part 3 collaborative task for a 12-year-old. ${topicHint}
+    'sp3':`Create a Cambridge B1 PET Speaking Part 3 collaborative task for a ${getAge()}-year-old Chilean student. ${topicHint}
 A scenario where two students discuss options and reach a decision. Include the situation, 5 visual prompt descriptions, and the task.
 Return JSON: {"title":"Speaking Part 3 — Collaborative Task","situation":"You and your friend are planning a birthday party for a classmate...","prompts":["A: Outdoor barbecue","B: Cinema trip","C: Bowling","D: Home party","E: Restaurant"],"task":"Discuss the options and decide which two would be most suitable.","followUp":["Which two did you choose and why?","Would your classmate prefer something else?"]}`,
+
+    'rp4':`Create a Cambridge B1 PET Reading Part 4 exercise for a ${getAge()}-year-old Chilean student. ${topicHint}
+A longer text (200-250 words, narrative or descriptive) followed by 5 multiple-choice questions with 4 options each (A/B/C/D). Questions test inference, detail, main idea, and vocabulary in context.
+Return JSON: {"title":"Part 4 — Multiple Choice","passage":"...200-250 words...","items":[{"question":"What does the writer suggest about...?","options":["A: ...","B: ...","C: ...","D: ..."],"answer":"B","explanation":"The text says '...' which means..."},...5 items]}`,
+
+    'rp5':`Create a Cambridge B1 PET Reading Part 5 exercise for a ${getAge()}-year-old Chilean student. ${topicHint}
+A short text (60-80 words) with exactly 6 numbered gaps (1)-(6). Each gap has 4 options (A/B/C/D) — focus on grammar words: articles, prepositions, conjunctions, auxiliary verbs, pronouns.
+Return JSON: {"title":"Part 5 — Multiple Choice Cloze","passage":"The world (1)____ changing faster than ever. Scientists (2)____ been working...","items":[{"number":1,"context":"The world (1)____ changing faster than ever","options":["A: is","B: are","C: was","D: were"],"answer":"A","explanation":"Present continuous with singular subject"},...6 items]}`,
+
+    'lp2':`Create a Cambridge B1 PET Listening Part 2 exercise for a ${getAge()}-year-old Chilean student. ${topicHint}
+A monologue script (150-200 words, e.g. a guide, announcement, or talk) with 6 information gaps to complete (1-2 words each). Gaps test specific factual details: numbers, names, times, places.
+Return JSON: {"title":"Listening Part 2 — Notes","script":"Good morning everyone. Welcome to the Greenfield Nature Reserve. The reserve covers (1)____ hectares...","gaps":[{"n":1,"context":"The reserve covers _____ hectares","answer":"350","sentence":"The reserve covers ___ hectares."},...6 gaps]}`,
+
+    'lp3':`Create a Cambridge B1 PET Listening Part 3 exercise for a ${getAge()}-year-old Chilean student. ${topicHint}
+A longer conversation between two speakers (250-300 words) followed by 6 multiple-choice questions (3 options each: A/B/C). Questions test opinions, feelings, and specific information.
+Return JSON: {"title":"Listening Part 3 — Longer Conversation","conversation":"[Alex]: Hi Maria, did you enjoy the camping trip?\n[Maria]: Well, it was interesting...","items":[{"question":"How did Maria feel about the camping trip?","options":["A: She loved it","B: She found it interesting but tiring","C: She didn't enjoy it at all"],"answer":"B","explanation":"Maria says 'it was interesting' but mentions being tired"},...6 items]}`,
+
+    'lp4':`Create a Cambridge B1 PET Listening Part 4 exercise for a ${getAge()}-year-old Chilean student. ${topicHint}
+A longer interview or conversation (200-250 words). 6 statements that are either True or False based on what is said. Answers must be clearly grounded in the text.
+Return JSON: {"title":"Listening Part 4 — True/False Statements","conversation":"[Interviewer]: So, you've been running the community garden for three years now...\n[Guest]: That's right...","items":[{"statement":"The community garden has been running for more than two years.","answer":"True","evidence":"The guest says 'three years'"},...6 items]}`,
+
+    'sp4':`Create a Cambridge B1 PET Speaking Part 4 discussion for a ${getAge()}-year-old Chilean student. ${topicHint}
+A follow-up discussion based on the Part 3 topic. 5 opinion questions that require extended answers and personal views. Mix of general and personal questions.
+Return JSON: {"title":"Speaking Part 4 — Discussion","questions":["Do you think it's important for young people to spend time outdoors? Why / Why not?","How has technology changed the way young people spend their free time?","Do you prefer spending time with friends or alone? Tell me more.","What would you say is the most important skill for young people to learn today?","If you could change one thing about your school, what would it be and why?"],"tips":["Use: In my opinion... / I believe... / On the other hand...","Give a reason for every opinion","Try to speak for at least 30 seconds per answer"]}`,
   };
 
   // Default prompt for sections without a specific one
-  const prompt=prompts[sectionId]||`Create a Cambridge B1 PET ${s.part} Part ${s.num} (${s.title}) exercise for a 12-year-old. ${topicHint}
+  const prompt=prompts[sectionId]||`Create a Cambridge B1 PET ${s.part} Part ${s.num} (${s.title}) exercise for a ${getAge()}-year-old Chilean student. ${topicHint}
 Return a JSON object with "title" and all content needed to practise this part.`;
 
   try{
@@ -4678,11 +4945,21 @@ function renderPETSection(s,d){
   _petCurrentData=d;
   _petCurrentSection=s;
   _petListeningScripts=[];
+  _petComodinReset(); // fresh lifelines per section
 
   const area=document.getElementById('module-content-area');
   const partColors={Reading:'var(--blue)',Writing:'var(--gold)',Listening:'var(--purple)',Speaking:'var(--green)'};
   const col=partColors[s.part]||'var(--text)';
   const backFn=_petFullExamActive?'runPETFull()':'runPET()';
+
+  // Pre-populate _petCurrentQuestions for comodín system
+  const items=d.items||d.gaps||d.questions||d.people||[];
+  window._petCurrentQuestions=items.map((it,i)=>({
+    partType:`${s.part} Part ${s.num} — ${s.title}`,
+    question:it.question||it.statement||it.original||it.need||`Question ${i+1}`,
+    options:Array.isArray(it.options)?it.options:[],
+    answer:it.answer||it.correct||'',
+  }));
 
   // Timer bar (only during full exam)
   let timerBar='';
@@ -4699,13 +4976,29 @@ function renderPETSection(s,d){
     </div>`;
   }
 
+  // Strategy tip for this section
+  const tipHTML=PET_SECTION_TIPS[s.id]?`<div style="background:rgba(59,130,246,.07);border:1px solid rgba(59,130,246,.25);
+    border-radius:12px;padding:11px 16px;margin-bottom:14px;font-size:13px;color:var(--muted);line-height:1.6">
+    ${PET_SECTION_TIPS[s.id]}
+  </div>`:'';
+
+  // Comodín bar
+  const comodinBar=`<div id="pet-comodin-bar" style="display:flex;gap:16px;align-items:center;
+    background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px 16px;margin-bottom:16px;flex-wrap:wrap">
+    <span style="font-family:'Orbitron',monospace;font-size:9px;color:var(--muted);letter-spacing:2px;white-space:nowrap">LIFELINES</span>
+    <div id="pet-comodin-indicators" style="display:flex;gap:16px;flex-wrap:wrap">${petComodinBarHTML()}</div>
+    <span style="font-size:11px;color:var(--muted);margin-left:auto">1 use each · shown per question ↓</span>
+  </div>`;
+
   let html=`<div style="max-width:700px;margin:0 auto">
     ${timerBar}
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap">
       <button class="pron-hint-btn" onclick="${backFn}">← Back</button>
       <span style="font-family:'Orbitron',monospace;font-size:11px;color:${col};letter-spacing:2px">${s.part.toUpperCase()} — PART ${s.num}</span>
       <span style="font-size:12px;color:var(--muted)">${s.title}</span>
-    </div>`;
+    </div>
+    ${tipHTML}
+    ${comodinBar}`;
 
   // ── Reading Part 1 & 4: Multiple Choice ──
   if((s.id==='rp1'||s.id==='rp4')&&d.items){
@@ -4725,6 +5018,7 @@ function renderPETSection(s,d){
           }).join('')}
         </div>
         <div id="${prefix}_fb${i}" style="font-size:13px;margin-top:6px;min-height:20px"></div>
+        <div class="pet-cmd-row" data-qidx="${i}" style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">${petComodinBtns(i)}</div>
       </div>`).join('');
     html+=`<button class="submit-btn" style="width:100%;margin-top:8px" onclick="checkPETMC('${prefix}')">Check answers ✓</button>`;
 
@@ -4760,14 +5054,17 @@ function renderPETSection(s,d){
     html+=`<div class="writing-prompt" style="font-size:15px;line-height:1.8;margin-bottom:16px">${d.passage}</div>`;
     html+=`<div style="display:flex;flex-direction:column;gap:8px">`;
     html+=d.items.map((it,i)=>`
-      <div style="display:flex;align-items:flex-start;gap:10px;padding:10px;background:var(--card);border-radius:10px;border:1px solid var(--border)">
-        <span style="font-family:'Orbitron',monospace;font-size:11px;color:${col};min-width:20px">${i+1}</span>
-        <span style="flex:1;font-size:14px">${it.statement}</span>
-        <div style="display:flex;gap:6px;white-space:nowrap">
-          <label style="cursor:pointer"><input type="radio" name="rp3_q${i}" value="True" style="accent-color:${col}"> True</label>
-          <label style="cursor:pointer"><input type="radio" name="rp3_q${i}" value="False" style="accent-color:${col}"> False</label>
+      <div style="padding:10px 12px;background:var(--card);border-radius:10px;border:1px solid var(--border);margin-bottom:6px">
+        <div style="display:flex;align-items:flex-start;gap:10px">
+          <span style="font-family:'Orbitron',monospace;font-size:11px;color:${col};min-width:20px">${i+1}</span>
+          <span style="flex:1;font-size:14px">${it.statement}</span>
+          <div style="display:flex;gap:6px;white-space:nowrap">
+            <label style="cursor:pointer"><input type="radio" name="rp3_q${i}" value="True" style="accent-color:${col}"> True</label>
+            <label style="cursor:pointer"><input type="radio" name="rp3_q${i}" value="False" style="accent-color:${col}"> False</label>
+          </div>
+          <div id="rp3_fb${i}" style="font-size:12px;min-width:20px"></div>
         </div>
-        <div id="rp3_fb${i}" style="font-size:12px;min-width:20px"></div>
+        <div class="pet-cmd-row" data-qidx="${i}" style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;padding-left:28px">${petComodinBtns(i)}</div>
       </div>`).join('');
     html+=`</div><button class="submit-btn" style="width:100%;margin-top:12px" onclick="checkPETTF()">Check ✓</button>`;
 
@@ -4808,6 +5105,7 @@ function renderPETSection(s,d){
           })()}
         </div>
         <div id="rp5_fb${i}" style="font-size:12px;margin-top:4px;min-height:16px"></div>
+        <div class="pet-cmd-row" data-qidx="${i}" style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">${petComodinBtns(i)}</div>
       </div>`;
     }).join('');
     html+=`<button class="submit-btn" style="width:100%;margin-top:8px" onclick="checkPETMC('rp5')">Check ✓</button>`;
@@ -4824,6 +5122,7 @@ function renderPETSection(s,d){
             onkeydown="if(event.key==='Enter')checkPETWp1()">`)}
         </div>
         <div id="wp1_fb${i}" style="font-size:13px;margin-top:6px;min-height:20px"></div>
+        <div class="pet-cmd-row" data-qidx="${i}" style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">${petComodinBtns(i)}</div>
       </div>`).join('');
     html+=`<button class="submit-btn" style="width:100%;margin-top:8px" onclick="checkPETWp1()">Check ✓</button>`;
 
@@ -4869,6 +5168,7 @@ function renderPETSection(s,d){
           }).join('')}
         </div>
         <div id="lp1_fb${i}" style="font-size:13px;margin-top:6px;min-height:20px"></div>
+        <div class="pet-cmd-row" data-qidx="${i}" style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">${petComodinBtns(i)}</div>
         <div id="lp1_script${i}" style="display:none;font-size:12px;color:var(--muted);
           padding:8px 10px;background:rgba(255,255,255,.04);border-radius:8px;margin-top:8px;line-height:1.6">
           📄 ${it.script||''}
@@ -4889,12 +5189,13 @@ function renderPETSection(s,d){
       <span style="font-size:13px;color:var(--muted)">Listen and complete the notes</span>
     </div>
     <div class="writing-prompt" style="margin-bottom:16px">
-      ${gaps.map((g,i)=>`<div style="margin-bottom:10px;font-size:14px">
+      ${gaps.map((g,i)=>`<div style="margin-bottom:14px;font-size:14px">
         ${g.context||g.sentence||`Gap ${i+1}`}:
         <input id="lp2_${i}" type="text" class="blank-input"
           style="width:160px;font-size:14px;padding:4px 10px;margin-left:6px"
           autocomplete="off" spellcheck="false">
         <span id="lp2_fb${i}" style="font-size:12px;margin-left:8px"></span>
+        <div class="pet-cmd-row" data-qidx="${i}" style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">${petComodinBtns(i)}</div>
       </div>`).join('')}
     </div>
     <button class="submit-btn" style="width:100%" onclick="checkPETLp2()">Check ✓</button>`;
@@ -4922,6 +5223,7 @@ function renderPETSection(s,d){
           }).join('')}
         </div>
         <div id="${pfx}_fb${i}" style="font-size:13px;margin-top:6px;min-height:20px"></div>
+        <div class="pet-cmd-row" data-qidx="${i}" style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">${petComodinBtns(i)}</div>
       </div>`).join('');
     html+=`<button class="submit-btn" style="width:100%;margin-top:8px" onclick="checkPETMC('${pfx}')">Check ✓</button>`;
 
@@ -4976,8 +5278,13 @@ function renderPETSection(s,d){
     const qs=d.questions||d.topics||[];
     html+=`<div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.3);
       border-radius:12px;padding:12px 16px;margin-bottom:14px;font-size:13px;color:var(--muted)">
-      🎤 Discuss these topics and give your opinions aloud.
+      🎤 Discuss these topics and give your opinions aloud. Aim for 30+ seconds per answer.
     </div>`;
+    if((d.tips||[]).length){html+=`<div style="background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.25);
+      border-radius:10px;padding:10px 14px;margin-bottom:14px">
+      <div style="font-size:10px;font-weight:700;color:var(--gold2);letter-spacing:1px;margin-bottom:6px">💡 USEFUL PHRASES</div>
+      ${d.tips.map(t=>`<div style="font-size:12px;color:var(--muted);margin-bottom:3px">• ${t}</div>`).join('')}
+    </div>`;}
     html+=qs.map((q,i)=>`
       <div class="writing-prompt" style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px">
         <span style="font-family:'Orbitron',monospace;font-size:11px;color:${col};min-width:22px;padding-top:3px">${i+1}</span>
@@ -5007,169 +5314,304 @@ function checkPETMC(prefix){
   const items=_petCurrentData?.items||_petCurrentData?.gaps||_petCurrentData?.questions||[];
   if(!items.length){showToast('No answers to check.');return;}
   let score=0;
+  const errors=window._petSessionErrors||[];
   items.forEach((it,i)=>{
     const sel=document.querySelector(`input[name="${prefix}_q${i}"]:checked`);
     const fb=document.getElementById(`${prefix}_fb${i}`);
     if(!fb)return;
     const ans=(it.answer||'').charAt(0).toUpperCase();
+    const correctOpt=it.options?it.options[ans.charCodeAt(0)-65]:'';
     if(sel&&sel.value.toUpperCase()===ans){
       score++;
-      fb.innerHTML=`<span style="color:#4ade80">✅ Correct!</span>`;
-      sel.closest('label')&&(sel.closest('label').style.borderColor='#4ade80');
+      const rule=it.grammar_note||it.note||'';
+      fb.innerHTML=`<div style="color:#4ade80;font-size:13px;margin-top:4px">✅ Correct!${rule?` <span style="color:rgba(74,222,128,.7);font-size:11px">— ${rule}</span>`:''}</div>`;
+      document.querySelectorAll(`input[name="${prefix}_q${i}"]`).forEach(r=>{
+        if(r.value.toUpperCase()===ans)r.closest('label')&&(r.closest('label').style.borderColor='#4ade80');
+      });
     } else {
-      fb.innerHTML=`<span style="color:#f87171">✗ ${ans}</span>`;
+      const wrong=sel?it.options?.[sel.value.charCodeAt(0)-65]:'':'(no answer)';
+      errors.push(`Q${i+1}: chose "${wrong||sel?.value}" — answer is "${correctOpt||ans}"`);
+      const why=it.explanation||it.why||'';
+      fb.innerHTML=`<div style="color:#f87171;font-size:13px;margin-top:4px">✗ The answer is <strong>${ans}: ${correctOpt||''}</strong>${why?`<br><span style="font-size:11px;color:rgba(248,113,113,.8)">→ ${why}</span>`:''}</div>`;
       if(sel)sel.closest('label')&&(sel.closest('label').style.borderColor='#f87171');
+      document.querySelectorAll(`input[name="${prefix}_q${i}"]`).forEach(r=>{
+        if(r.value.toUpperCase()===ans)r.closest('label')&&(r.closest('label').style.borderColor='#4ade80');
+      });
     }
   });
+  window._petSessionErrors=errors;
   const km=score*10;addKm(km);
   _petSessionScore+=km;
   showToast(`✅ ${score}/${items.length} — +${km} km!`);
+  setTimeout(()=>showPETSessionCard(_petCurrentSection?.title||prefix,score,items.length,_petCurrentSection?.id),600);
 }
 
 // Reading Part 2: Matching
 function checkPETRp2(){
   const people=_petCurrentData?.people||[];
   const answers=_petCurrentData?.answers||{};
+  const texts=_petCurrentData?.texts||[];
   let score=0;
+  const errors=window._petSessionErrors||[];
   people.forEach((p,i)=>{
     const sel=document.getElementById(`rp2_q${i}`)?.value;
     const fb=document.getElementById(`rp2_fb${i}`);
     if(!fb)return;
     const correct=answers[String(i+1)]||answers[p.name]||'';
+    const correctText=texts.find(t=>t.label===correct);
     if(sel&&sel.toUpperCase()===correct.toUpperCase()){
-      score++;fb.innerHTML=`<span style="color:#4ade80">✅</span>`;
+      score++;
+      fb.innerHTML=`<span style="color:#4ade80">✅ Correct!</span>`;
+      document.getElementById(`rp2_q${i}`)&&(document.getElementById(`rp2_q${i}`).style.borderColor='#4ade80');
     } else {
-      fb.innerHTML=`<span style="color:#f87171">✗ ${correct}</span>`;
+      errors.push(`${p.name}: chose "${sel||'nothing'}" — answer is "${correct}"${correctText?` (${correctText.text.substring(0,40)}...)`:''}`);
+      fb.innerHTML=`<span style="color:#f87171">✗ Answer: <strong>${correct}</strong>${correctText?` — "${correctText.text.substring(0,30)}..."`:''}</span>`;
+      document.getElementById(`rp2_q${i}`)&&(document.getElementById(`rp2_q${i}`).style.borderColor='#f87171');
     }
   });
+  window._petSessionErrors=errors;
   const km=score*10;addKm(km);_petSessionScore+=km;
   showToast(`📖 Matching: ${score}/${people.length} — +${km} km!`);
+  setTimeout(()=>showPETSessionCard('Reading Part 2 — Matching',score,people.length,'rp2'),600);
 }
 
 // Reading Part 3: True/False
 function checkPETTF(){
   const items=_petCurrentData?.items||[];
   let score=0;
+  const errors=window._petSessionErrors||[];
   items.forEach((it,i)=>{
     const sel=document.querySelector(`input[name="rp3_q${i}"]:checked`);
     const fb=document.getElementById(`rp3_fb${i}`);
-    const row=sel?.closest('div[style]');
+    const card=document.querySelector(`[data-qidx="${i}"]`)?.closest('.writing-prompt,[style*=background:var(--card)]')||sel?.closest('div');
     const ans=(it.answer||it.correct||'True');
     if(sel&&_normAns(sel.value)===_normAns(ans)){
       score++;
-      if(row)row.style.borderColor='#4ade80';
-      if(fb)fb.innerHTML='✅';
+      if(card)card.style.borderColor='#4ade80';
+      if(fb)fb.innerHTML=`<span style="color:#4ade80">✅</span>`;
     } else {
-      if(row)row.style.borderColor='#f87171';
-      if(fb)fb.innerHTML=`<span style="color:#f87171">${ans}</span>`;
+      const evidence=it.evidence||it.reason||'';
+      errors.push(`Statement ${i+1}: chose "${sel?.value||'nothing'}" — it is ${ans}${evidence?'. '+evidence:''}`);
+      if(card)card.style.borderColor='#f87171';
+      if(fb)fb.innerHTML=`<div style="color:#f87171;font-size:12px"><strong>${ans}</strong>${evidence?`<br><span style="font-size:11px;opacity:.8">→ ${evidence}</span>`:''}</div>`;
     }
   });
+  window._petSessionErrors=errors;
   const km=score*8;addKm(km);_petSessionScore+=km;
   showToast(`📖 True/False: ${score}/${items.length} — +${km} km!`);
+  setTimeout(()=>showPETSessionCard('Reading Part 3 — True/False',score,items.length,'rp3'),600);
 }
 
 // Writing Part 1: Sentence Transformations (flexible matching)
 function checkPETWp1(){
   const items=_petCurrentData?.items||[];
   let score=0;
+  const errors=window._petSessionErrors||[];
   items.forEach((it,i)=>{
     const inp=document.getElementById(`wp1_${i}`);
     const fb=document.getElementById(`wp1_fb${i}`);
     if(!inp||!fb)return;
     const userVal=_normAns(inp.value);
     const correct=_normAns(it.answer);
-    // Accept if user answer contains the key phrase or vice versa
     const isOk=userVal===correct||userVal.includes(correct)||correct.includes(userVal);
     if(isOk){
       score++;
-      fb.innerHTML=`<span style="color:#4ade80">✅ Correct! (${it.answer})</span>`;
+      const grammarNote=it.grammar||it.rule||'';
+      fb.innerHTML=`<div style="color:#4ade80;font-size:13px">✅ Correct! <em style="color:rgba(74,222,128,.7)">${it.answer}</em>${grammarNote?` — <span style="font-size:11px">${grammarNote}</span>`:''}</div>`;
       inp.style.borderColor='#4ade80';
     } else {
-      fb.innerHTML=`<span style="color:#f87171">✗ Answer: <em>${it.answer}</em></span>`;
+      const why=it.grammar||it.rule||'Check the grammatical transformation required.';
+      errors.push(`Transformation ${i+1}: wrote "${inp.value||'nothing'}" — answer: "${it.answer}"`);
+      fb.innerHTML=`<div style="color:#f87171;font-size:13px">✗ Answer: <strong>${it.answer}</strong><br><span style="font-size:11px;opacity:.8">→ ${why}</span></div>`;
       inp.style.borderColor='#f87171';
     }
   });
+  window._petSessionErrors=errors;
   const km=score*15;addKm(km);_petSessionScore+=km;
   showToast(`✏️ Transformations: ${score}/${items.length} — +${km} km!`);
+  setTimeout(()=>showPETSessionCard('Writing Part 1 — Transformations',score,items.length,'wp1'),600);
 }
 
 // Listening Part 1: reveal scripts after checking
 function checkPETLp1(){
   const items=_petCurrentData?.items||[];
   let score=0;
+  const errors=window._petSessionErrors||[];
   items.forEach((it,i)=>{
     const sel=document.querySelector(`input[name="lp1_q${i}"]:checked`);
     const fb=document.getElementById(`lp1_fb${i}`);
     const scriptEl=document.getElementById(`lp1_script${i}`);
     if(!fb)return;
     const ans=(it.answer||'').charAt(0).toUpperCase();
+    const correctOpt=it.options?.[ans.charCodeAt(0)-65]||ans;
     if(sel&&sel.value.toUpperCase()===ans){
-      score++;fb.innerHTML=`<span style="color:#4ade80">✅ Correct!</span>`;
+      score++;
+      fb.innerHTML=`<div style="color:#4ade80;font-size:13px">✅ Correct! <span style="font-size:11px;opacity:.7">The final answer speakers settle on is the key — don't be tricked by early mentions.</span></div>`;
+      document.querySelectorAll(`input[name="lp1_q${i}"]`).forEach(r=>{
+        if(r.value.toUpperCase()===ans)r.closest('label')&&(r.closest('label').style.borderColor='#4ade80');
+      });
     } else {
-      fb.innerHTML=`<span style="color:#f87171">✗ ${ans}</span>`;
+      const wrongOpt=it.options?.[sel?.value.charCodeAt(0)-65]||sel?.value||'(no answer)';
+      errors.push(`Recording ${i+1}: chose "${wrongOpt}" — correct is "${correctOpt}"`);
+      fb.innerHTML=`<div style="color:#f87171;font-size:13px">✗ Answer: <strong>${ans}: ${correctOpt}</strong><br><span style="font-size:11px;opacity:.8">→ Remember: speakers often mention wrong options first. Listen for the FINAL decision.</span></div>`;
+      if(sel)sel.closest('label')&&(sel.closest('label').style.borderColor='#f87171');
+      document.querySelectorAll(`input[name="lp1_q${i}"]`).forEach(r=>{
+        if(r.value.toUpperCase()===ans)r.closest('label')&&(r.closest('label').style.borderColor='#4ade80');
+      });
     }
     if(scriptEl)scriptEl.style.display=''; // reveal transcript
   });
+  window._petSessionErrors=errors;
   const km=score*10;addKm(km);_petSessionScore+=km;
   showToast(`🎧 Listening Part 1: ${score}/${items.length} — +${km} km!`);
+  setTimeout(()=>showPETSessionCard('Listening Part 1',score,items.length,'lp1'),600);
 }
 
 // Listening Part 2: Notes completion
 function checkPETLp2(){
   const gaps=_petCurrentData?.items||_petCurrentData?.gaps||[];
   let score=0;
+  const errors=window._petSessionErrors||[];
   gaps.forEach((g,i)=>{
     const inp=document.getElementById(`lp2_${i}`);
     const fb=document.getElementById(`lp2_fb${i}`);
     if(!inp||!fb)return;
     const userVal=_normAns(inp.value);
     const correct=_normAns(g.answer||g.correct||'');
+    const correctRaw=g.answer||g.correct||'';
     if(userVal===correct||correct.includes(userVal)){
-      score++;fb.innerHTML=`<span style="color:#4ade80">✅</span>`;inp.style.borderColor='#4ade80';
+      score++;
+      fb.innerHTML=`<span style="color:#4ade80">✅ ${correctRaw}</span>`;
+      inp.style.borderColor='#4ade80';
     } else {
-      fb.innerHTML=`<span style="color:#f87171">${g.answer||g.correct||''}</span>`;inp.style.borderColor='#f87171';
+      errors.push(`Gap ${i+1}: wrote "${inp.value||'nothing'}" — answer: "${correctRaw}"`);
+      fb.innerHTML=`<span style="color:#f87171">✗ <strong>${correctRaw}</strong></span>`;
+      inp.style.borderColor='#f87171';
     }
   });
+  window._petSessionErrors=errors;
   const km=score*12;addKm(km);_petSessionScore+=km;
   showToast(`🎧 Listening Part 2: ${score}/${gaps.length} — +${km} km!`);
+  setTimeout(()=>showPETSessionCard('Listening Part 2 — Notes',score,gaps.length,'lp2'),600);
 }
 
-async function evaluatePETWriting(){
+async function evaluatePETWriting(isRevision){
   const d=_petCurrentData||{};
   const s=_petCurrentSection||{};
-  const text=document.getElementById('pet-writing-area')?.value?.trim();
+  const areaId=isRevision?'pet-revision-area':'pet-writing-area';
+  const text=document.getElementById(areaId)?.value?.trim();
   if(!text){showToast('Write something first!');return;}
   const wc=text.split(/\s+/).length;
   const target=s.id==='wp2'?'35–45':'around 100';
   const fb=document.getElementById('pet-writing-fb');
-  fb.innerHTML=`<div class="loading-text" style="padding:12px">Evaluating your writing...</div>`;
+  fb.innerHTML=`<div class="loading-text" style="padding:12px">Miss Kamil_IA is reading your work...</div>`;
 
-  const prompt=`You are a Cambridge B1 PET examiner evaluating a 12-year-old's writing.
+  const profile=getStudentProfile();
+  const weakCtx=profile.weakAreas.slice(0,3).join('; ');
+  const prompt=`You are a Cambridge B1 PET examiner evaluating a ${getAge()}-year-old Chilean student (${getStudentName()}).
+Task type: ${s.title||'PET Writing'}
 Task: ${d.scenario||d.prompt||'Writing task'}
-${d.points?'Points to cover: '+d.points.join(', '):''}
+${d.points?'Required points: '+d.points.join(', '):''}
 Student's answer (${wc} words): "${text}"
 Target length: ${target} words.
+Known weak areas: ${weakCtx||'—'}
 
-Give brief feedback (3-4 sentences) covering:
-1. Content & task achievement
-2. Language accuracy (grammar, vocab)
-3. One specific improvement tip
-
-Return ONLY this JSON: {"band":"A/B/C/D","feedback":"...","tip":"..."}`;
+Assess using the official Cambridge PET rubric (Bands 0–5) across 4 dimensions.
+Return ONLY valid JSON:
+{
+  "band": 3,
+  "dimensions": {
+    "content": 3,
+    "communicativeAchievement": 3,
+    "organisation": 2,
+    "language": 2
+  },
+  "strengths": ["strength 1 (1 sentence)","strength 2"],
+  "corrections": [
+    {"wrong":"incorrect phrase","correct":"corrected version","rule":"grammar rule in 1 line"},
+    {"wrong":"...","correct":"...","rule":"..."}
+  ],
+  "feedback": "2-sentence overall comment",
+  "tip": "One specific actionable tip for Fernando",
+  "canRevise": true
+}
+Provide 2-3 corrections max. Be encouraging but precise.`;
 
   try{
-    const raw=await callClaude(prompt,600);
+    const raw=await callClaude(prompt,700);
     const ev=parseJSON(raw);
-    const bandColors={'A':'#4ade80','B':'#a3e635','C':'var(--gold2)','D':'#f87171'};
-    const bc=bandColors[ev.band]||'var(--muted)';
-    const km=ev.band==='A'?100:ev.band==='B'?80:ev.band==='C'?60:40;
+    const band=typeof ev.band==='number'?ev.band:parseInt(ev.band)||3;
+    const dim=ev.dimensions||{content:band,communicativeAchievement:band,organisation:band,language:band};
+    const dimColors=[null,'#f87171','#fb923c','var(--gold2)','#a3e635','#4ade80'];
+    const bandColor=dimColors[Math.min(5,band)]||'var(--muted)';
+    const km=band>=5?120:band===4?100:band===3?75:band===2?50:30;
     addKm(km);_petSessionScore+=km;
-    fb.innerHTML=`<div class="result-box" style="border-color:${bc};background:rgba(0,0,0,.1)">
-      <div style="font-family:'Orbitron',monospace;font-size:18px;color:${bc};margin-bottom:8px">Band ${ev.band} · +${km} km</div>
-      <p style="font-size:14px;line-height:1.7;margin-bottom:8px">${ev.feedback}</p>
-      <p style="font-size:13px;color:var(--gold2)">💡 ${ev.tip}</p>
+
+    const dimBar=(label,val)=>{
+      const pct=Math.round((val/5)*100);
+      const c=dimColors[Math.min(5,val)]||'var(--muted)';
+      return `<div style="margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px">
+          <span style="color:var(--muted)">${label}</span><span style="color:${c};font-weight:700">${val}/5</span>
+        </div>
+        <div style="height:6px;background:var(--card2);border-radius:3px;overflow:hidden">
+          <div style="height:100%;width:${pct}%;background:${c};border-radius:3px;transition:width .5s"></div>
+        </div>
+      </div>`;
+    };
+
+    const revisionId='pet-revision-area';
+    fb.innerHTML=`<div class="result-box" style="border-color:${bandColor}">
+      <!-- Band header -->
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px">
+        <div style="text-align:center;background:var(--card2);border-radius:12px;padding:12px 20px;min-width:80px">
+          <div style="font-family:'Orbitron',monospace;font-size:28px;font-weight:900;color:${bandColor}">${band}</div>
+          <div style="font-size:10px;color:var(--muted);letter-spacing:1px">BAND / 5</div>
+        </div>
+        <div style="flex:1">
+          ${dimBar('Content',dim.content||dim.Content||band)}
+          ${dimBar('Communicative Achievement',dim.communicativeAchievement||dim['Communicative Achievement']||band)}
+          ${dimBar('Organisation',dim.organisation||dim.Organisation||band)}
+          ${dimBar('Language',dim.language||dim.Language||band)}
+        </div>
+      </div>
+      <!-- Strengths -->
+      ${(ev.strengths||[]).length?`<div style="margin-bottom:14px">
+        <div style="font-size:10px;font-weight:700;color:#4ade80;letter-spacing:1px;margin-bottom:6px">✅ STRENGTHS</div>
+        ${(ev.strengths||[]).map(str=>`<div style="font-size:13px;color:var(--text);padding:5px 10px;background:rgba(74,222,128,.07);border-radius:8px;margin-bottom:4px">• ${str}</div>`).join('')}
+      </div>`:''}
+      <!-- Corrections -->
+      ${(ev.corrections||[]).length?`<div style="margin-bottom:14px">
+        <div style="font-size:10px;font-weight:700;color:#f87171;letter-spacing:1px;margin-bottom:6px">✏️ CORRECTIONS</div>
+        ${(ev.corrections||[]).map(c=>`<div style="font-size:13px;padding:8px 12px;background:rgba(248,113,113,.06);border-radius:8px;margin-bottom:5px;line-height:1.7">
+          <span style="color:#f87171;text-decoration:line-through">${c.wrong}</span>
+          <span style="color:var(--muted)"> → </span>
+          <span style="color:#4ade80;font-weight:700">${c.correct}</span>
+          ${c.rule?`<br><span style="font-size:11px;color:var(--muted)">📌 ${c.rule}</span>`:''}
+        </div>`).join('')}
+      </div>`:''}
+      <!-- Feedback + tip -->
+      <p style="font-size:14px;line-height:1.7;margin-bottom:8px;color:var(--text)">${ev.feedback}</p>
+      ${ev.tip?`<p style="font-size:13px;color:var(--gold2)">💡 ${ev.tip}</p>`:''}
+      <!-- Pepe Grillo -->
+      <div style="margin-top:14px;font-size:12px;color:rgba(139,92,246,.8);font-style:italic;border-top:1px solid var(--border);padding-top:12px">
+        🕷️ ${band>=4?'"Excellent work! This is B1 quality."':band===3?'"Good effort — now try the revision to push it to the next band."':'"Keep going! Every rewrite makes you stronger."'}
+      </div>
+      <!-- Revision mode (only on first evaluation) -->
+      ${!isRevision&&ev.canRevise!==false?`<div style="margin-top:18px">
+        <div style="font-size:11px;font-weight:700;color:var(--gold2);letter-spacing:1px;margin-bottom:8px">🔄 REVISE YOUR ANSWER — apply the corrections above:</div>
+        <textarea id="${revisionId}" class="writing-area" rows="6"
+          placeholder="Rewrite your answer here, applying the feedback...">${text}</textarea>
+        <button class="submit-btn" style="width:100%;margin-top:8px" onclick="evaluatePETWriting(true)">Submit revised version ✓</button>
+      </div>`:''}
+      ${isRevision?`<div style="margin-top:12px;padding:10px 14px;background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.25);border-radius:10px;font-size:13px;color:#4ade80">
+        ✅ Revision complete! Band ${band}/5 · +${km} km added.</div>`:`<div style="font-size:12px;color:var(--muted);margin-top:8px">+${km} km added</div>`}
     </div>`;
-    showToast(`✏️ Writing: Band ${ev.band} — +${km} km!`);
+
+    showToast(`✏️ Writing: Band ${band}/5 — +${km} km!`);
+    if(isRevision){
+      setTimeout(()=>showPETSessionCard(_petCurrentSection?.title||'Writing',band,5,_petCurrentSection?.id),700);
+    }
   }catch(e){fb.innerHTML=`<div class="error-box">Evaluation failed. ${e.message}</div>`;}
 }
 
@@ -5209,7 +5651,7 @@ function runPETFull(minutes){
       padding:14px 18px;background:var(--card);border-radius:14px;border:1px solid var(--border)">
       <div>
         <div style="font-family:'Orbitron',monospace;font-size:11px;color:var(--muted);letter-spacing:2px">FULL PET EXAM</div>
-        <div style="font-size:13px;color:var(--muted);margin-top:2px">${_petTimerMinutes} min · Session score: ${_petSessionScore} km</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:2px">${_petTimerMinutes===120?'B1 Candidate':_petTimerMinutes===100?'B1 Pro':_petTimerMinutes===90?'B1 Expert':_petTimerMinutes+' min'} · Session score: ${_petSessionScore} km</div>
       </div>
       <div style="text-align:center">
         <div style="font-family:'Orbitron',monospace;font-size:32px;font-weight:900;
@@ -5345,7 +5787,7 @@ async function openBookChapter(bookId,chNum){
   if(!book||!ch)return;
   showLoading(`Loading Chapter ${chNum}...`);
 
-  const prompt=`You are helping a 12-year-old Chilean student practice English reading comprehension for "${book.title}" by C.S. Lewis, Chapter ${chNum}: "${ch.title}".
+  const prompt=`You are helping a ${getAge()}-year-old Chilean student practice English reading comprehension for "${book.title}" by C.S. Lewis, Chapter ${chNum}: "${ch.title}".
 
 Create a comprehension exercise where Fernando must identify WHICH summary is the accurate description of the chapter. Only someone who actually READ the chapter carefully can answer correctly.
 
@@ -5466,7 +5908,7 @@ async function runVocabEng(){
   const unitCtx=state.currentUnit||getUnitContext();
   let topicHint=unitCtx?`topic "${unitCtx.unitName}" (${unitCtx.topic})`:`topic "${getTopic()}"`;
 
-  const prompt=`Generate 6 B1-level English vocabulary words for a 12-year-old studying ${topicHint}.
+  const prompt=`Generate 6 B1-level English vocabulary words for a ${getAge()}-year-old studying ${topicHint}.
 For each word, provide:
 - The word in English
 - Its definition in simple English (1 sentence, max 12 words)
