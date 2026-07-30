@@ -1849,6 +1849,7 @@ function getQACycle(){try{return JSON.parse(localStorage.getItem('jtl_qa_cycle')
 function saveQACycle(s){localStorage.setItem('jtl_qa_cycle',JSON.stringify(s))}
 
 function openQATrivia(){
+  qaRemoveSpaceListeners();
   openModule('movers');
   document.getElementById('mod-icon').textContent='⚡';
   document.getElementById('mod-title').textContent='Q&A TRIVIA';
@@ -1933,7 +1934,7 @@ function renderQAQuestion(idx){
       <div style="background:#2b2d31;border-radius:10px;padding:14px;border:1px solid #3d4045">
         <div id="qa-transcript" style="min-height:38px;color:#8b949e;font-size:13px;font-style:italic;margin-bottom:10px;padding:8px;background:#1e1f22;border-radius:6px">Your answer will appear here...</div>
         <div style="display:flex;gap:8px;margin-bottom:8px">
-          <button id="qa-mic-btn" onmousedown="qaStartListening()" onmouseup="qaStopListening()" ontouchstart="qaStartListening()" ontouchend="qaStopListening()" style="flex:1;padding:11px;background:${s.topic.colorBg};border:2px solid ${s.topic.colorBorder};border-radius:8px;color:${s.topic.color};font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">🎤 Hold to Speak</button>
+          <button id="qa-mic-btn" onmousedown="qaStartListening()" onmouseup="qaStopListening()" ontouchstart="qaStartListening()" ontouchend="qaStopListening()" style="flex:1;padding:11px;background:${s.topic.colorBg};border:2px solid ${s.topic.colorBorder};border-radius:8px;color:${s.topic.color};font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">🎤 Hold / Space</button>
           <button onclick="qaSubmitAnswer(${idx})" style="padding:11px 18px;background:${s.topic.color};border:none;border-radius:8px;color:#0a0a1a;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">Send →</button>
         </div>
         <input type="text" id="qa-text-input" placeholder="Or type your answer here..." onkeydown="if(event.key==='Enter')qaSubmitAnswer(${idx})" style="width:100%;padding:9px 12px;background:#1e1f22;border:1px solid #3d4045;border-radius:8px;color:#c9d1d9;font-size:13px;outline:none;box-sizing:border-box">
@@ -1942,6 +1943,8 @@ function renderQAQuestion(idx){
     </div>
   </div>`;
   oliverSpeak(`Question ${idx+1}. ${q.question}. Hint: use ${q.hint_tense||'the correct tense'}. Example: ${q.hint_example||''}`);
+  qaRemoveSpaceListeners();
+  qaAddSpaceListeners();
 }
 
 let _qaRec=null;
@@ -1957,8 +1960,13 @@ function qaStartListening(){
 function qaStopListening(){
   if(_qaRec){_qaRec.stop();_qaRec=null;}
   const btn=document.getElementById('qa-mic-btn'),s=window._qaSession;
-  if(btn&&s){btn.style.background=s.topic.colorBg;btn.style.borderColor=s.topic.colorBorder;btn.textContent='🎤 Hold to Speak';}
+  if(btn&&s){btn.style.background=s.topic.colorBg;btn.style.borderColor=s.topic.colorBorder;btn.textContent='🎤 Hold / Space';}
 }
+let _qaSpaceHeld=false;
+function qaSpaceDown(e){if(e.code==='Space'&&!_qaSpaceHeld&&document.getElementById('qa-mic-btn')){e.preventDefault();_qaSpaceHeld=true;qaStartListening();}}
+function qaSpaceUp(e){if(e.code==='Space'&&document.getElementById('qa-mic-btn')){e.preventDefault();_qaSpaceHeld=false;qaStopListening();}}
+function qaAddSpaceListeners(){document.addEventListener('keydown',qaSpaceDown);document.addEventListener('keyup',qaSpaceUp);}
+function qaRemoveSpaceListeners(){document.removeEventListener('keydown',qaSpaceDown);document.removeEventListener('keyup',qaSpaceUp);_qaSpaceHeld=false;}
 
 async function qaSubmitAnswer(idx){
   const s=window._qaSession;if(!s)return;
@@ -2005,6 +2013,7 @@ No markdown. Only the JSON object.`;
 }
 
 function endQASession(){
+  qaRemoveSpaceListeners();
   const s=window._qaSession;if(!s)return;
   const cycle=getQACycle();cycle[s.topicId]=true;saveQACycle(cycle);
   const correct=s.results.filter(r=>r.correct).length;
@@ -2042,22 +2051,27 @@ function endQASession(){
   oliverSpeak(closing);
 }
 
+function getBestMaleVoice(){
+  const vv=window.speechSynthesis.getVoices();
+  if(!vv.length)return null;
+  // Known male names across Windows/macOS/Chrome
+  const maleNames=/\b(david|mark|guy|daniel|alex|tom|fred|ralph|zarvox|reed|liam|eric|brian|ryan|richard)\b/i;
+  // Known female voices to exclude — includes "Google US English" which IS female in Chrome
+  const femaleExclude=/zira|hazel|susan|karen|samantha|victoria|moira|tessa|fiona|aria|jenny|sonia|libby|clara|neerja|heera|raveena|female|google us english/i;
+  return vv.find(v=>maleNames.test(v.name))||
+         vv.find(v=>v.lang==='en-GB'&&/google uk english male/i.test(v.name))||
+         vv.find(v=>v.lang==='en-US'&&!femaleExclude.test(v.name))||
+         vv.find(v=>v.lang==='en-GB'&&!femaleExclude.test(v.name))||
+         vv.find(v=>v.lang.startsWith('en')&&!femaleExclude.test(v.name))||
+         vv.find(v=>v.lang.startsWith('en'));
+}
+
 function oliverSpeak(text){
   if(!window.speechSynthesis)return;
   window.speechSynthesis.cancel();
   const u=new SpeechSynthesisUtterance(text);
   u.lang='en-US';u.rate=0.92;u.pitch=1.0;
-  const loadVoice=()=>{
-    const vv=window.speechSynthesis.getVoices();
-    // Priority: known male US voices in Chrome/Windows
-    const male=vv.find(v=>/david|mark|guy|aaron|fred|ralph|zarvox/i.test(v.name))||
-               vv.find(v=>v.lang==='en-US'&&/google us english/i.test(v.name))||
-               vv.find(v=>v.lang==='en-GB'&&/google uk english male/i.test(v.name))||
-               vv.find(v=>v.lang==='en-US'&&!/zira|hazel|susan|karen|samantha|victoria|moira|tessa|fiona|female/i.test(v.name))||
-               vv.find(v=>v.lang==='en-US');
-    if(male)u.voice=male;
-    window.speechSynthesis.speak(u);
-  };
+  const loadVoice=()=>{const v=getBestMaleVoice();if(v)u.voice=v;window.speechSynthesis.speak(u);};
   if(window.speechSynthesis.getVoices().length)loadVoice();
   else{window.speechSynthesis.onvoiceschanged=loadVoice;}
 }
@@ -6535,17 +6549,7 @@ function speakTutor(text,onDone){
   u.lang='en-GB';u.rate=0.9;u.pitch=0.9;
   u.onend=()=>{isTutorSpeaking=false;if(onDone)onDone();};
   u.onerror=()=>{isTutorSpeaking=false;if(onDone)onDone();};
-  const loadVoice=()=>{
-    const vv=window.speechSynthesis.getVoices();
-    const male=vv.find(v=>/daniel|mark|david|guy|aaron|fred|ralph|zarvox/i.test(v.name))||
-               vv.find(v=>v.lang==='en-GB'&&/google uk english male/i.test(v.name))||
-               vv.find(v=>v.lang==='en-US'&&/google us english/i.test(v.name))||
-               vv.find(v=>v.lang==='en-GB'&&!/zira|hazel|susan|karen|samantha|victoria|moira|tessa|fiona|female/i.test(v.name))||
-               vv.find(v=>v.lang.startsWith('en')&&!/zira|hazel|susan|karen|samantha|victoria|moira|tessa|fiona|female/i.test(v.name))||
-               vv.find(v=>v.lang.startsWith('en'));
-    if(male)u.voice=male;
-    window.speechSynthesis.speak(u);
-  };
+  const loadVoice=()=>{const v=getBestMaleVoice();if(v)u.voice=v;window.speechSynthesis.speak(u);};
   if(window.speechSynthesis.getVoices().length)loadVoice();
   else{window.speechSynthesis.onvoiceschanged=loadVoice;}
 }
