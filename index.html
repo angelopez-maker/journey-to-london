@@ -695,6 +695,9 @@
       </div>
     </div>
 
+    <!-- Fernando weekly skill card -->
+    <div id="fer-week-card" style="display:none;margin-bottom:12px"></div>
+
     <!-- Fernando hub: 8 módulos -->
     <div id="fernando-quick-nav" style="display:none">
       <div class="rqn-grid">
@@ -718,6 +721,13 @@
           <div class="rqn-title">Show & Tell</div>
           <div class="rqn-sub">Describe images in English</div>
           <div class="rqn-badge">4 modos · PET</div>
+        </button>
+        <button class="rqn-btn" onclick="openQATrivia()" style="border-color:rgba(139,92,246,.4);background:rgba(139,92,246,.06)">
+          <div class="rqn-icon">⚡</div>
+          <div class="rqn-cat" style="color:#a78bfa">Q&A TRIVIA</div>
+          <div class="rqn-title">Oliver Blackwood</div>
+          <div class="rqn-sub">World Cup · Games · Trivia</div>
+          <div class="rqn-badge" style="background:rgba(139,92,246,.15);color:#a78bfa;border-color:rgba(139,92,246,.3)">Speak in English ⚡</div>
         </button>
         <button class="rqn-btn" onclick="showToast('🏆 Earn your first trophy to unlock Talking!')" style="border-color:rgba(255,255,255,.1);opacity:.45;cursor:not-allowed;filter:grayscale(.6)">
           <div class="rqn-icon">🎤</div>
@@ -1377,6 +1387,7 @@ function updateTopbar(){
   if(fqn)fqn.style.display=p==='fernando'?'block':'none';
   if(dls)dls.style.display=(p==='rodrigo'||p==='fernando')?'none':'block';
   if(p==='rodrigo')updateRodrigoQuickNav();
+  if(p==='fernando')updateFerWeekCard();
   // Both hubs hide modules grid, test button, and Fernando-specific elements
   ['modules-label-el','modules-grid-el','test-btn-el','pet-btn-hero','btn-bookclub','btn-vocabeng'].forEach(id=>{
     const el=document.getElementById(id);
@@ -1425,6 +1436,31 @@ function _calToday(){return new Date().toLocaleDateString('en-CA');}
 function _calActive(cal){const t=_calToday();return cal.find(w=>w.start<=t&&t<=w.end)||null;}
 function _calNext(cal){const t=_calToday();return cal.find(w=>w.start>t)||null;}
 function _calFmt(iso){const d=new Date(iso+'T12:00:00');return d.toLocaleDateString('es-CL',{day:'numeric',month:'short'});}
+
+function updateFerWeekCard(){
+  const card=document.getElementById('fer-week-card');
+  if(!card)return;
+  // Week of month: day 1-7=W1, 8-14=W2, 15-21=W3, 22+=W4
+  const day=new Date().getDate();
+  const wk=day<=7?1:day<=14?2:day<=21?3:4;
+  const skills=[null,
+    {label:'Reading',icon:'📖',color:'#3b82f6',colorBg:'rgba(59,130,246,.08)',colorBorder:'rgba(59,130,246,.3)',module:'PET Training → Reading sections',onclick:"openModule('pet')"},
+    {label:'Listening',icon:'🎧',color:'#8b5cf6',colorBg:'rgba(139,92,246,.08)',colorBorder:'rgba(139,92,246,.3)',module:'PET Training → Listening sections',onclick:"openModule('pet')"},
+    {label:'Writing',icon:'✏️',color:'#ec4899',colorBg:'rgba(236,72,153,.08)',colorBorder:'rgba(236,72,153,.3)',module:'Show & Tell + PET Writing',onclick:"openShowAndTell()"},
+    {label:'Speaking',icon:'🎤',color:'#22c55e',colorBg:'rgba(34,197,94,.08)',colorBorder:'rgba(34,197,94,.3)',module:'Q&A Trivia con Oliver Blackwood',onclick:"openQATrivia()"}
+  ];
+  const s=skills[wk];
+  card.style.display='block';
+  card.innerHTML=`<div onclick="${s.onclick}" style="display:flex;align-items:center;gap:14px;padding:13px 16px;background:${s.colorBg};border:1px solid ${s.colorBorder};border-radius:12px;cursor:pointer;transition:all .15s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+    <div style="font-size:26px">${s.icon}</div>
+    <div style="flex:1">
+      <div style="font-family:'Orbitron',monospace;font-size:9px;font-weight:700;color:${s.color};letter-spacing:2px;margin-bottom:3px">THIS WEEK — WEEK ${wk}</div>
+      <div style="font-weight:700;color:var(--text);font-size:15px">${s.label}</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:1px">${s.module}</div>
+    </div>
+    <div style="color:${s.color};font-size:20px">→</div>
+  </div>`;
+}
 
 function updateRodrigoQuickNav(){
   // Spelling
@@ -1790,6 +1826,239 @@ Be encouraging, concise, and talk directly to ${getStudentName()}.`;
     result.innerHTML=`<div style="color:var(--red);padding:12px;background:rgba(239,68,68,.08);border-radius:8px">⚠️ ${e.message}</div>`;
   }
 }
+// ══ Q&A TRIVIA — OLIVER BLACKWOOD ══
+const QA_TOPICS={
+  worldcup:{id:'worldcup',icon:'⚽',label:'World Cup',color:'#22c55e',colorBg:'rgba(34,197,94,.08)',colorBorder:'rgba(34,197,94,.3)',desc:'Football history · Past tenses · Numbers',grammar:'Past Simple & Present Perfect',
+    prompt:`You are Oliver Blackwood, a 5th year Ravenclaw student at Hogwarts. Generate exactly 7 World Cup football trivia questions for a ${getAge()}-year-old English learner (B1 PET level). Mix easy and medium difficulty. Cover different World Cups (1966-2022).
+Return ONLY a valid JSON array of 7 objects, each with these exact keys:
+"question" (the trivia question), "answer" (correct answer), "hint_tense" (e.g. "Past Simple"), "hint_example" (e.g. "Brazil won the 1970 World Cup."), "hp_correct" (short Harry Potter-flavored praise), "hp_wrong" (short encouraging HP-flavored hint).
+No markdown. No explanation. Only the JSON array.`},
+  videogames:{id:'videogames',icon:'🎮',label:'Video Games',color:'#a78bfa',colorBg:'rgba(167,139,250,.08)',colorBorder:'rgba(167,139,250,.3)',desc:'Minecraft · Fortnite · FNAF · TF2 · Brawl Stars',grammar:'Present Simple & Comparatives',
+    prompt:`You are Oliver Blackwood, a 5th year Ravenclaw student at Hogwarts. Generate exactly 7 video game trivia questions for a ${getAge()}-year-old English learner (B1 PET level). Focus on: Minecraft, Fortnite, Five Nights at Freddy's (FNAF), Team Fortress 2, Brawl Stars. Mix easy and medium difficulty.
+Return ONLY a valid JSON array of 7 objects, each with these exact keys:
+"question" (the trivia question), "answer" (correct answer), "hint_tense" (e.g. "Present Simple"), "hint_example" (e.g. "Minecraft HAS more players than Fortnite."), "hp_correct" (short Harry Potter-flavored praise), "hp_wrong" (short encouraging HP-flavored hint).
+No markdown. No explanation. Only the JSON array.`},
+  generalTrivia:{id:'generalTrivia',icon:'🌍',label:'General Trivia',color:'#f59e0b',colorBg:'rgba(245,158,11,.08)',colorBorder:'rgba(245,158,11,.3)',desc:'Animals · Geography · Nature · Films',grammar:'Mixed PET tenses',
+    prompt:`You are Oliver Blackwood, a 5th year Ravenclaw student at Hogwarts. Generate exactly 7 general knowledge trivia questions for a ${getAge()}-year-old English learner (B1 PET level). Cover: animals, geography, nature, science, popular films. These topics appear in Cambridge PET exams.
+Return ONLY a valid JSON array of 7 objects, each with these exact keys:
+"question" (the trivia question), "answer" (correct answer), "hint_tense" (e.g. "Present Simple"), "hint_example" (e.g. "The Amazon river flows through Brazil."), "hp_correct" (short Harry Potter-flavored praise), "hp_wrong" (short encouraging HP-flavored hint).
+No markdown. No explanation. Only the JSON array.`}
+};
+
+function getQACycle(){try{return JSON.parse(localStorage.getItem('jtl_qa_cycle')||'{}')}catch{return{}}}
+function saveQACycle(s){localStorage.setItem('jtl_qa_cycle',JSON.stringify(s))}
+
+function openQATrivia(){
+  openModule('movers');
+  document.getElementById('mod-icon').textContent='⚡';
+  document.getElementById('mod-title').textContent='Q&A TRIVIA';
+  document.getElementById('mod-sub').textContent='Oliver Blackwood · Ravenclaw · Hogwarts';
+  let cycle=getQACycle();
+  const allDone=['worldcup','videogames','generalTrivia'].every(k=>cycle[k]);
+  if(allDone){saveQACycle({});cycle={};showToast('🔄 New cycle! All topics unlocked.');}
+  const area=document.getElementById('module-content-area');
+  area.innerHTML=`<div style="max-width:600px;margin:0 auto;font-family:'Inter',sans-serif">
+    <div style="background:#2b2d31;border-radius:12px;padding:16px;margin-bottom:16px;border:1px solid #1e1f22">
+      <div style="display:flex;align-items:flex-start;gap:12px">
+        <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#1e3a5f,#4a6fa5);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">🧙</div>
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <span style="font-weight:700;color:#c9d1d9;font-size:14px">Oliver Blackwood</span>
+            <span style="background:#1e3a5f;color:#7aa2d4;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:700">RAVENCLAW</span>
+            <span style="background:#2d4a1e;color:#5cb85c;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:700">TRIVIA MASTER</span>
+          </div>
+          <div style="color:#8b949e;font-size:13px;line-height:1.6">Hey ${getStudentName()}! 👋 Oliver Blackwood here, 5th year Ravenclaw. Ready for some trivia? Pick a topic — you'll need to complete all three before repeating. <em>Choose wisely.</em> ⚡</div>
+        </div>
+      </div>
+    </div>
+    <div style="color:#555;font-size:11px;font-weight:700;letter-spacing:1px;margin-bottom:8px;padding-left:2px">CHOOSE YOUR TOPIC</div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      ${Object.values(QA_TOPICS).map(t=>{const done=cycle[t.id];return`<button onclick="${done?`showToast('✅ Done this cycle — try another topic first!')`:`startQASession('${t.id}')`}" style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:${done?'#1e1f22':t.colorBg};border:1px solid ${done?'#2d2f33':t.colorBorder};border-radius:10px;cursor:${done?'not-allowed':'pointer'};text-align:left;width:100%;opacity:${done?'.4':'1'};transition:all .15s">
+        <div style="font-size:28px">${t.icon}</div>
+        <div style="flex:1">
+          <div style="font-weight:700;color:${done?'#444':t.color};font-size:14px">${t.label}${done?' ✅':''}</div>
+          <div style="color:#8b949e;font-size:12px;margin-top:2px">${t.desc}</div>
+          <div style="color:#555;font-size:11px;margin-top:3px">Grammar focus: ${t.grammar}</div>
+        </div>
+        <div style="color:${done?'#444':t.color};font-size:18px">${done?'✓':'→'}</div>
+      </button>`}).join('')}
+    </div>
+    <div style="margin-top:14px;padding:10px 14px;background:#1e1f22;border-radius:8px;display:flex;align-items:center;gap:10px">
+      <span style="font-size:12px;color:#555">Cycle:</span>
+      ${Object.values(QA_TOPICS).map(t=>`<span style="font-size:18px;${cycle[t.id]?'':'filter:grayscale(.8);opacity:.35'}">${t.icon}</span>`).join('')}
+      <span style="font-size:11px;color:#555;margin-left:4px">${Object.values(cycle).filter(Boolean).length}/3 done</span>
+    </div>
+  </div>`;
+}
+
+async function startQASession(topicId){
+  const topic=QA_TOPICS[topicId];
+  const area=document.getElementById('module-content-area');
+  area.innerHTML=`<div style="max-width:600px;margin:0 auto"><div style="background:#2b2d31;border-radius:12px;padding:16px;border:1px solid #1e1f22"><div style="display:flex;align-items:center;gap:12px"><div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#1e3a5f,#4a6fa5);display:flex;align-items:center;justify-content:center;font-size:22px">🧙</div><div><div style="font-weight:700;color:#c9d1d9;font-size:14px">Oliver Blackwood</div><div style="color:#8b949e;font-size:13px">Consulting the Hogwarts library... ⚡</div></div></div></div></div>`;
+  try{
+    const raw=await callClaude(topic.prompt);
+    const questions=parseJSON(raw);
+    if(!Array.isArray(questions)||questions.length===0)throw new Error('bad');
+    window._qaSession={questions,topicId,topic,results:[]};
+    renderQAQuestion(0);
+  }catch(e){area.innerHTML=`<div class="error-box">⚠️ Oliver couldn't reach the library. Try again!<br><br><button class="submit-btn" onclick="openQATrivia()">← Back</button></div>`;}
+}
+
+function renderQAQuestion(idx){
+  const s=window._qaSession;
+  if(!s||idx>=s.questions.length){endQASession();return;}
+  const q=s.questions[idx];
+  const area=document.getElementById('module-content-area');
+  const pct=Math.round((idx/s.questions.length)*100);
+  area.innerHTML=`<div style="max-width:600px;margin:0 auto;font-family:'Inter',sans-serif">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <div style="flex:1;height:4px;background:#1e1f22;border-radius:2px"><div style="height:100%;width:${pct}%;background:${s.topic.color};border-radius:2px;transition:width .3s"></div></div>
+      <span style="font-size:11px;color:#555;font-family:'Orbitron',monospace">${idx+1}/${s.questions.length}</span>
+    </div>
+    <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px">
+      <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#1e3a5f,#4a6fa5);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">🧙</div>
+      <div style="flex:1">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+          <span style="font-weight:700;color:#c9d1d9;font-size:13px">Oliver Blackwood</span>
+          <span style="background:#1e3a5f;color:#7aa2d4;font-size:10px;padding:1px 5px;border-radius:3px">RAVENCLAW</span>
+        </div>
+        <div style="background:#2b2d31;border-radius:0 10px 10px 10px;padding:12px 14px;color:#c9d1d9;font-size:14px;line-height:1.5">${s.topic.icon} <strong>Question ${idx+1}:</strong> ${q.question}</div>
+      </div>
+    </div>
+    <div style="margin-left:52px;margin-bottom:14px;border-left:4px solid ${s.topic.color};background:#1e1f22;border-radius:0 8px 8px 0;padding:10px 14px">
+      <div style="font-size:10px;font-weight:700;color:${s.topic.color};letter-spacing:.5px;margin-bottom:4px">✨ GRAMMAR HINT — ${q.hint_tense||s.topic.grammar}</div>
+      <div style="font-size:13px;color:#8b949e;font-style:italic">"${q.hint_example||'Use the correct tense.'}"</div>
+    </div>
+    <div style="margin-left:52px">
+      <div style="background:#2b2d31;border-radius:10px;padding:14px;border:1px solid #3d4045">
+        <div id="qa-transcript" style="min-height:38px;color:#8b949e;font-size:13px;font-style:italic;margin-bottom:10px;padding:8px;background:#1e1f22;border-radius:6px">Your answer will appear here...</div>
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <button id="qa-mic-btn" onmousedown="qaStartListening()" onmouseup="qaStopListening()" ontouchstart="qaStartListening()" ontouchend="qaStopListening()" style="flex:1;padding:11px;background:${s.topic.colorBg};border:2px solid ${s.topic.colorBorder};border-radius:8px;color:${s.topic.color};font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">🎤 Hold to Speak</button>
+          <button onclick="qaSubmitAnswer(${idx})" style="padding:11px 18px;background:${s.topic.color};border:none;border-radius:8px;color:#0a0a1a;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">Send →</button>
+        </div>
+        <input type="text" id="qa-text-input" placeholder="Or type your answer here..." onkeydown="if(event.key==='Enter')qaSubmitAnswer(${idx})" style="width:100%;padding:9px 12px;background:#1e1f22;border:1px solid #3d4045;border-radius:8px;color:#c9d1d9;font-size:13px;outline:none;box-sizing:border-box">
+      </div>
+      <div id="qa-feedback" style="margin-top:10px"></div>
+    </div>
+  </div>`;
+  oliverSpeak(`Question ${idx+1}. ${q.question}. Hint: use ${q.hint_tense||'the correct tense'}. Example: ${q.hint_example||''}`);
+}
+
+let _qaRec=null;
+function qaStartListening(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){document.getElementById('qa-transcript').textContent='Mic not available — type below.';return;}
+  _qaRec=new SR();_qaRec.lang='en-US';_qaRec.continuous=false;_qaRec.interimResults=true;
+  const btn=document.getElementById('qa-mic-btn'),s=window._qaSession;
+  if(btn){btn.style.background='rgba(239,68,68,.2)';btn.style.borderColor='#ef4444';btn.textContent='🔴 Listening...';}
+  _qaRec.onresult=e=>{const t=Array.from(e.results).map(r=>r[0].transcript).join('');const el=document.getElementById('qa-transcript');if(el)el.textContent=t;};
+  _qaRec.start();
+}
+function qaStopListening(){
+  if(_qaRec){_qaRec.stop();_qaRec=null;}
+  const btn=document.getElementById('qa-mic-btn'),s=window._qaSession;
+  if(btn&&s){btn.style.background=s.topic.colorBg;btn.style.borderColor=s.topic.colorBorder;btn.textContent='🎤 Hold to Speak';}
+}
+
+async function qaSubmitAnswer(idx){
+  const s=window._qaSession;if(!s)return;
+  const transcript=(document.getElementById('qa-transcript')?.textContent||'').trim();
+  const typed=(document.getElementById('qa-text-input')?.value||'').trim();
+  const answer=(transcript&&transcript!=='Your answer will appear here...')?transcript:typed;
+  if(!answer){showToast('Speak or type your answer first!');return;}
+  const q=s.questions[idx];
+  const fb=document.getElementById('qa-feedback');
+  if(fb)fb.innerHTML=`<div style="color:#555;font-size:13px;padding:8px 0">⚡ Oliver is thinking...</div>`;
+  const micBtn=document.getElementById('qa-mic-btn');if(micBtn)micBtn.disabled=true;
+  try{
+    const evalPrompt=`You are Oliver Blackwood, a Ravenclaw student at Hogwarts, giving feedback to a ${getAge()}-year-old English learner.
+Question: "${q.question}"
+Correct answer: "${q.answer}"
+Grammar focus: ${q.hint_tense||'correct tense'}
+Student answered: "${answer}"
+Evaluate and return ONLY valid JSON with these exact keys:
+"correct" (boolean: was the meaning right, even if phrased differently?),
+"grammar_ok" (boolean: did they use ${q.hint_tense||'an appropriate tense'} correctly?),
+"feedback" (string: 2-3 sentences, Harry Potter-flavored, warm and encouraging. If wrong, explain gently. If grammar was off, show the correct form.),
+"ideal" (string: the ideal 1-sentence answer using ${q.hint_tense||'the correct tense'})
+No markdown. Only the JSON object.`;
+    const raw=await callClaude(evalPrompt);
+    const ev=parseJSON(raw);
+    const pts=ev.correct?(ev.grammar_ok?15:10):0;
+    if(pts>0)addKm(pts);
+    s.results.push({correct:ev.correct,grammar_ok:ev.grammar_ok,points:pts});
+    const col=ev.correct?'#22c55e':'#f59e0b';
+    if(fb)fb.innerHTML=`<div style="background:#2b2d31;border-radius:10px;padding:14px;border:1px solid ${col}33">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <span style="font-size:18px">${ev.correct?'✅':'💡'}</span>
+        <span style="font-weight:700;color:${col};font-size:13px">${pts>0?`+${pts} km`:'Keep going!'}</span>
+        ${ev.grammar_ok?`<span style="background:rgba(34,197,94,.15);color:#22c55e;font-size:10px;padding:2px 6px;border-radius:4px">Grammar ✓</span>`:''}
+      </div>
+      <div style="color:#c9d1d9;font-size:13px;line-height:1.5;margin-bottom:${(!ev.correct||!ev.grammar_ok)?'10px':'0'}">${ev.feedback}</div>
+      ${(!ev.correct||!ev.grammar_ok)?`<div style="border-left:3px solid ${col};padding:6px 10px;background:#1e1f22;border-radius:0 6px 6px 0;color:#8b949e;font-size:12px;font-style:italic">💬 "${ev.ideal}"</div>`:''}
+      <button onclick="renderQAQuestion(${idx+1})" style="margin-top:12px;width:100%;padding:11px;background:${col};border:none;border-radius:8px;color:#0a0a1a;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">
+        ${idx+1>=s.questions.length?'📊 See Results':'Next Question →'}
+      </button>
+    </div>`;
+    oliverSpeak(ev.feedback);
+  }catch(e){if(fb)fb.innerHTML=`<div class="error-box">Error — <button onclick="qaSubmitAnswer(${idx})">Try again</button></div>`;}
+}
+
+function endQASession(){
+  const s=window._qaSession;if(!s)return;
+  const cycle=getQACycle();cycle[s.topicId]=true;saveQACycle(cycle);
+  const correct=s.results.filter(r=>r.correct).length;
+  const gramOk=s.results.filter(r=>r.grammar_ok).length;
+  const totalKm=s.results.reduce((sum,r)=>sum+r.points,0);
+  const bonus=correct===s.results.length?20:0;
+  if(bonus>0)addKm(bonus);
+  const allDone=['worldcup','videogames','generalTrivia'].every(k=>getQACycle()[k]);
+  const area=document.getElementById('module-content-area');
+  const col=s.topic.color;
+  const closing=correct>=6?'⚡ Outstanding! The Sorting Hat would be proud. You\'ve earned your place in Ravenclaw today!':correct>=4?'Good work! A solid performance — even Hermione had off days. Keep practising!':'Don\'t worry — every wizard starts somewhere. The important thing is you showed up. 🧙';
+  area.innerHTML=`<div style="max-width:600px;margin:0 auto;font-family:'Inter',sans-serif">
+    <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:16px">
+      <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#1e3a5f,#4a6fa5);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">🧙</div>
+      <div style="flex:1">
+        <div style="font-weight:700;color:#c9d1d9;font-size:13px;margin-bottom:4px">Oliver Blackwood</div>
+        <div style="background:#2b2d31;border-radius:0 10px 10px 10px;padding:12px 14px;color:#c9d1d9;font-size:14px;line-height:1.5">${closing}</div>
+      </div>
+    </div>
+    <div style="background:#1e1f22;border-radius:10px;padding:16px;border:1px solid ${col}44;margin-bottom:14px">
+      <div style="font-size:10px;font-weight:700;color:${col};letter-spacing:1px;margin-bottom:12px">📊 SESSION RESULTS — ${s.topic.label.toUpperCase()}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:${bonus||allDone?'10px':'0'}">
+        <div style="text-align:center;background:#2b2d31;border-radius:8px;padding:10px"><div style="font-size:22px;font-weight:700;color:${col}">${correct}/${s.results.length}</div><div style="font-size:11px;color:#555;margin-top:2px">Correct</div></div>
+        <div style="text-align:center;background:#2b2d31;border-radius:8px;padding:10px"><div style="font-size:22px;font-weight:700;color:#22c55e">${gramOk}/${s.results.length}</div><div style="font-size:11px;color:#555;margin-top:2px">Grammar ✓</div></div>
+        <div style="text-align:center;background:#2b2d31;border-radius:8px;padding:10px"><div style="font-size:22px;font-weight:700;color:var(--gold2)">${totalKm+bonus}</div><div style="font-size:11px;color:#555;margin-top:2px">km earned</div></div>
+      </div>
+      ${bonus>0?`<div style="background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.3);border-radius:8px;padding:8px 12px;text-align:center;color:var(--gold2);font-size:13px;font-weight:700;margin-bottom:8px">⭐ Perfect session! +${bonus} km bonus</div>`:''}
+      ${allDone?`<div style="background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.3);border-radius:8px;padding:8px 12px;text-align:center;color:#a78bfa;font-size:13px">🔄 Full cycle complete! All topics reset next time.</div>`:''}
+    </div>
+    <div style="display:flex;gap:10px">
+      <button onclick="openQATrivia()" style="flex:1;padding:12px;background:${s.topic.colorBg};border:1px solid ${s.topic.colorBorder};border-radius:8px;color:${s.topic.color};font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">← Topics</button>
+      <button onclick="showScreen('screen-dashboard')" style="flex:1;padding:12px;background:#2b2d31;border:1px solid #3d4045;border-radius:8px;color:#c9d1d9;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">🏠 Hub</button>
+    </div>
+  </div>`;
+  oliverSpeak(closing);
+}
+
+function oliverSpeak(text){
+  if(!window.speechSynthesis)return;
+  window.speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang='en-US';u.rate=0.92;u.pitch=1.0;
+  const loadVoice=()=>{
+    const vv=window.speechSynthesis.getVoices();
+    const male=vv.find(v=>v.lang==='en-US'&&/david|mark|guy|male/i.test(v.name))||
+               vv.find(v=>v.lang==='en-US'&&/google/i.test(v.name)&&!/female/i.test(v.name))||
+               vv.find(v=>v.lang==='en-US');
+    if(male)u.voice=male;
+    window.speechSynthesis.speak(u);
+  };
+  if(window.speechSynthesis.getVoices().length)loadVoice();
+  else{window.speechSynthesis.onvoiceschanged=loadVoice;}
+}
+
 function openFernandoLibre(){
   openModule('movers');
   const area=document.getElementById('module-content-area');
