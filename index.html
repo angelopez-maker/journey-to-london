@@ -1831,17 +1831,17 @@ const QA_TOPICS={
   worldcup:{id:'worldcup',icon:'⚽',label:'World Cup',color:'#22c55e',colorBg:'rgba(34,197,94,.08)',colorBorder:'rgba(34,197,94,.3)',desc:'Football history · Past tenses · Numbers',grammar:'Past Simple & Present Perfect',
     prompt:`You are Oliver Blackwood, a 5th year Ravenclaw student at Hogwarts. Generate exactly 7 World Cup football trivia questions for a ${getAge()}-year-old English learner (B1 PET level). Mix easy and medium difficulty. Cover different World Cups (1966-2022).
 Return ONLY a valid JSON array of 7 objects, each with these exact keys:
-"question" (the trivia question), "answer" (correct answer), "hint_tense" (e.g. "Past Simple"), "hint_example" (e.g. "Brazil won the 1970 World Cup."), "hp_correct" (short Harry Potter-flavored praise), "hp_wrong" (short encouraging HP-flavored hint).
+"question" (the trivia question), "answer" (correct answer), "hint_tense" (e.g. "Past Simple"), "hint_example" (a short Harry Potter quote or fact using the required tense — ALWAYS from the HP universe, NEVER from football/games/trivia, e.g. "Harry won the Quidditch match." or "Hermione has read every book in the library."), "hp_correct" (short Harry Potter-flavored praise), "hp_wrong" (short encouraging HP-flavored hint).
 No markdown. No explanation. Only the JSON array.`},
   videogames:{id:'videogames',icon:'🎮',label:'Video Games',color:'#a78bfa',colorBg:'rgba(167,139,250,.08)',colorBorder:'rgba(167,139,250,.3)',desc:'Minecraft · Fortnite · FNAF · TF2 · Brawl Stars',grammar:'Present Simple & Comparatives',
     prompt:`You are Oliver Blackwood, a 5th year Ravenclaw student at Hogwarts. Generate exactly 7 video game trivia questions for a ${getAge()}-year-old English learner (B1 PET level). Focus on: Minecraft, Fortnite, Five Nights at Freddy's (FNAF), Team Fortress 2, Brawl Stars. Mix easy and medium difficulty.
 Return ONLY a valid JSON array of 7 objects, each with these exact keys:
-"question" (the trivia question), "answer" (correct answer), "hint_tense" (e.g. "Present Simple"), "hint_example" (e.g. "Minecraft HAS more players than Fortnite."), "hp_correct" (short Harry Potter-flavored praise), "hp_wrong" (short encouraging HP-flavored hint).
+"question" (the trivia question), "answer" (correct answer), "hint_tense" (e.g. "Present Simple"), "hint_example" (a short Harry Potter quote or fact using the required tense — ALWAYS from the HP universe, NEVER from the question topic, e.g. "Dumbledore speaks twelve languages." or "Hermione has studied every spell."), "hp_correct" (short Harry Potter-flavored praise), "hp_wrong" (short encouraging HP-flavored hint).
 No markdown. No explanation. Only the JSON array.`},
   generalTrivia:{id:'generalTrivia',icon:'🌍',label:'General Trivia',color:'#f59e0b',colorBg:'rgba(245,158,11,.08)',colorBorder:'rgba(245,158,11,.3)',desc:'Animals · Geography · Nature · Films',grammar:'Mixed PET tenses',
     prompt:`You are Oliver Blackwood, a 5th year Ravenclaw student at Hogwarts. Generate exactly 7 general knowledge trivia questions for a ${getAge()}-year-old English learner (B1 PET level). Cover: animals, geography, nature, science, popular films. These topics appear in Cambridge PET exams.
 Return ONLY a valid JSON array of 7 objects, each with these exact keys:
-"question" (the trivia question), "answer" (correct answer), "hint_tense" (e.g. "Present Simple"), "hint_example" (e.g. "The Amazon river flows through Brazil."), "hp_correct" (short Harry Potter-flavored praise), "hp_wrong" (short encouraging HP-flavored hint).
+"question" (the trivia question), "answer" (correct answer), "hint_tense" (e.g. "Present Simple"), "hint_example" (a short Harry Potter quote or fact using the required tense — ALWAYS from the HP universe, NEVER from the question topic, e.g. "Dumbledore speaks twelve languages." or "Hermione has studied every spell."), "hp_correct" (short Harry Potter-flavored praise), "hp_wrong" (short encouraging HP-flavored hint).
 No markdown. No explanation. Only the JSON array.`}
 };
 
@@ -1857,10 +1857,10 @@ function openQATrivia(){
   const allDone=['worldcup','videogames','generalTrivia'].every(k=>cycle[k]);
   if(allDone){saveQACycle({});cycle={};showToast('🔄 New cycle! All topics unlocked.');}
   const area=document.getElementById('module-content-area');
-  area.innerHTML=`<div style="max-width:600px;margin:0 auto;font-family:'Inter',sans-serif">
+  area.innerHTML=`<div style="max-width:600px;margin:0 auto;font-family:'Inter',sans-serif;background:#111214;border-radius:14px;padding:16px">
     <div style="background:#2b2d31;border-radius:12px;padding:16px;margin-bottom:16px;border:1px solid #1e1f22">
       <div style="display:flex;align-items:flex-start;gap:12px">
-        <img src="Avatar/Oliver Blackwood.png" style="width:44px;height:44px;border-radius:50%;object-fit:cover;flex-shrink:0" alt="Oliver Blackwood">
+        <img src="Avatar/oliver-blackwood.png" style="width:44px;height:44px;border-radius:50%;object-fit:cover;flex-shrink:0" alt="Oliver Blackwood">
         <div style="flex:1">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
             <span style="font-weight:700;color:#c9d1d9;font-size:14px">Oliver Blackwood</span>
@@ -1894,7 +1894,7 @@ function openQATrivia(){
 async function startQASession(topicId){
   const topic=QA_TOPICS[topicId];
   const area=document.getElementById('module-content-area');
-  area.innerHTML=`<div style="max-width:600px;margin:0 auto"><div style="background:#2b2d31;border-radius:12px;padding:16px;border:1px solid #1e1f22"><div style="display:flex;align-items:center;gap:12px"><div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#1e3a5f,#4a6fa5);display:flex;align-items:center;justify-content:center;font-size:22px">🧙</div><div><div style="font-weight:700;color:#c9d1d9;font-size:14px">Oliver Blackwood</div><div style="color:#8b949e;font-size:13px">Consulting the Hogwarts library... ⚡</div></div></div></div></div>`;
+  area.innerHTML=`<div style="max-width:600px;margin:0 auto;background:#111214;border-radius:14px;padding:16px"><div style="background:#2b2d31;border-radius:12px;padding:16px;border:1px solid #1e1f22"><div style="display:flex;align-items:center;gap:12px"><img src="Avatar/oliver-blackwood.png" style="width:44px;height:44px;border-radius:50%;object-fit:cover;flex-shrink:0" alt="Oliver"><div><div style="font-weight:700;color:#c9d1d9;font-size:14px">Oliver Blackwood</div><div style="color:#8b949e;font-size:13px">Consulting the Hogwarts library... ⚡</div></div></div></div></div>`;
   try{
     const raw=await callClaude(topic.prompt);
     const questions=parseJSON(raw);
@@ -1910,13 +1910,13 @@ function renderQAQuestion(idx){
   const q=s.questions[idx];
   const area=document.getElementById('module-content-area');
   const pct=Math.round((idx/s.questions.length)*100);
-  area.innerHTML=`<div style="max-width:600px;margin:0 auto;font-family:'Inter',sans-serif">
+  area.innerHTML=`<div style="max-width:600px;margin:0 auto;font-family:'Inter',sans-serif;background:#111214;border-radius:14px;padding:16px">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
       <div style="flex:1;height:4px;background:#1e1f22;border-radius:2px"><div style="height:100%;width:${pct}%;background:${s.topic.color};border-radius:2px;transition:width .3s"></div></div>
       <span style="font-size:11px;color:#555;font-family:'Orbitron',monospace">${idx+1}/${s.questions.length}</span>
     </div>
     <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px">
-      <img src="Avatar/Oliver Blackwood.png" style="width:40px;height:40px;border-radius:50%;object-fit:cover;flex-shrink:0" alt="Oliver Blackwood">
+      <img src="Avatar/oliver-blackwood.png" style="width:40px;height:40px;border-radius:50%;object-fit:cover;flex-shrink:0" alt="Oliver Blackwood">
       <div style="flex:1">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
           <span style="font-weight:700;color:#c9d1d9;font-size:13px">Oliver Blackwood</span>
@@ -2016,9 +2016,9 @@ function endQASession(){
   const area=document.getElementById('module-content-area');
   const col=s.topic.color;
   const closing=correct>=6?'⚡ Outstanding! The Sorting Hat would be proud. You\'ve earned your place in Ravenclaw today!':correct>=4?'Good work! A solid performance — even Hermione had off days. Keep practising!':'Don\'t worry — every wizard starts somewhere. The important thing is you showed up. 🧙';
-  area.innerHTML=`<div style="max-width:600px;margin:0 auto;font-family:'Inter',sans-serif">
+  area.innerHTML=`<div style="max-width:600px;margin:0 auto;font-family:'Inter',sans-serif;background:#111214;border-radius:14px;padding:16px">
     <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:16px">
-      <img src="Avatar/Oliver Blackwood.png" style="width:40px;height:40px;border-radius:50%;object-fit:cover;flex-shrink:0" alt="Oliver Blackwood">
+      <img src="Avatar/oliver-blackwood.png" style="width:40px;height:40px;border-radius:50%;object-fit:cover;flex-shrink:0" alt="Oliver Blackwood">
       <div style="flex:1">
         <div style="font-weight:700;color:#c9d1d9;font-size:13px;margin-bottom:4px">Oliver Blackwood</div>
         <div style="background:#2b2d31;border-radius:0 10px 10px 10px;padding:12px 14px;color:#c9d1d9;font-size:14px;line-height:1.5">${closing}</div>
@@ -2049,8 +2049,11 @@ function oliverSpeak(text){
   u.lang='en-US';u.rate=0.92;u.pitch=1.0;
   const loadVoice=()=>{
     const vv=window.speechSynthesis.getVoices();
-    const male=vv.find(v=>v.lang==='en-US'&&/david|mark|guy|male/i.test(v.name))||
-               vv.find(v=>v.lang==='en-US'&&/google/i.test(v.name)&&!/female/i.test(v.name))||
+    // Priority: known male US voices in Chrome/Windows
+    const male=vv.find(v=>/david|mark|guy|aaron|fred|ralph|zarvox/i.test(v.name))||
+               vv.find(v=>v.lang==='en-US'&&/google us english/i.test(v.name))||
+               vv.find(v=>v.lang==='en-GB'&&/google uk english male/i.test(v.name))||
+               vv.find(v=>v.lang==='en-US'&&!/zira|hazel|susan|karen|samantha|victoria|moira|tessa|fiona|female/i.test(v.name))||
                vv.find(v=>v.lang==='en-US');
     if(male)u.voice=male;
     window.speechSynthesis.speak(u);
@@ -6530,10 +6533,21 @@ function speakTutor(text,onDone){
   window.speechSynthesis.cancel();
   const u=new SpeechSynthesisUtterance(text);
   u.lang='en-GB';u.rate=0.9;u.pitch=0.9;
-  const v=getBestVoice();if(v)u.voice=v;
   u.onend=()=>{isTutorSpeaking=false;if(onDone)onDone();};
   u.onerror=()=>{isTutorSpeaking=false;if(onDone)onDone();};
-  window.speechSynthesis.speak(u);
+  const loadVoice=()=>{
+    const vv=window.speechSynthesis.getVoices();
+    const male=vv.find(v=>/daniel|mark|david|guy|aaron|fred|ralph|zarvox/i.test(v.name))||
+               vv.find(v=>v.lang==='en-GB'&&/google uk english male/i.test(v.name))||
+               vv.find(v=>v.lang==='en-US'&&/google us english/i.test(v.name))||
+               vv.find(v=>v.lang==='en-GB'&&!/zira|hazel|susan|karen|samantha|victoria|moira|tessa|fiona|female/i.test(v.name))||
+               vv.find(v=>v.lang.startsWith('en')&&!/zira|hazel|susan|karen|samantha|victoria|moira|tessa|fiona|female/i.test(v.name))||
+               vv.find(v=>v.lang.startsWith('en'));
+    if(male)u.voice=male;
+    window.speechSynthesis.speak(u);
+  };
+  if(window.speechSynthesis.getVoices().length)loadVoice();
+  else{window.speechSynthesis.onvoiceschanged=loadVoice;}
 }
 
 async function sendUserMessage(text){
