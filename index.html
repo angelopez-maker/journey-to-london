@@ -714,10 +714,17 @@
         </button>
         <button class="rqn-btn showtell" onclick="openShowAndTell()">
           <div class="rqn-icon">🖼️</div>
-          <div class="rqn-cat">SPEAKING</div>
+          <div class="rqn-cat">WRITING</div>
           <div class="rqn-title">Show & Tell</div>
           <div class="rqn-sub">Describe images in English</div>
           <div class="rqn-badge">4 modos · PET</div>
+        </button>
+        <button class="rqn-btn" onclick="showToast('🏆 Earn your first trophy to unlock Talking!')" style="border-color:rgba(255,255,255,.1);opacity:.45;cursor:not-allowed;filter:grayscale(.6)">
+          <div class="rqn-icon">🎤</div>
+          <div class="rqn-cat" style="color:rgba(255,255,255,.3)">TALKING</div>
+          <div class="rqn-title" style="color:rgba(255,255,255,.4)">English Tutor</div>
+          <div class="rqn-sub" style="color:rgba(255,255,255,.3)">Conversación en vivo</div>
+          <div class="rqn-badge" style="background:rgba(255,255,255,.06);color:rgba(255,255,255,.35);border-color:rgba(255,255,255,.1)">🏆 First trophy</div>
         </button>
         <button class="rqn-btn bookclub" onclick="openFernandoBookClub()">
           <div class="rqn-icon">📖</div>
@@ -2074,8 +2081,8 @@ function renderModuleHub(icon,title,color,backFn,inPlace=false){
     {id:'pronunciation',icon:'🗣️',label:'Pronun.',km:'15 km / word'},
     {id:'vocabmatch',icon:'🔗',label:'Vocab Match',km:'20 km / pair'},
     {id:'playing',  icon:'🎮',label:'Playing',    km:'20 km / ✓'},
-    {id:'singing',  icon:'🎵',label:'Singing',    km:'100 km'},
-    {id:'watching', icon:'🎬',label:'Watching',   km:'100 km'},
+    {id:'singing',  icon:'🎵',label:'Singing',    km:'Explora y disfruta'},
+    {id:'watching', icon:'🎬',label:'Watching',   km:'Explora y disfruta'},
   ];
   const modsHTML=modules.map(m=>`<button class="module-btn" style="--mc:${color};text-align:left;padding:14px" onclick="openModule('${m.id}')">
     <div style="font-size:22px;margin-bottom:4px">${m.icon}</div>
