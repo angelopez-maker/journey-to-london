@@ -2238,6 +2238,7 @@ function getTopic(){
   }
   return 'General English';
 }
+function startLesson(){openModule('learning');}
 function getUnitContext(){
   const unitSel=document.getElementById('curriculum-unit-select');
   if(!unitSel||!unitSel.value)return null;
