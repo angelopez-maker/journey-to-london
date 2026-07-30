@@ -5329,7 +5329,7 @@ function checkPETMC(prefix){
         if(r.value.toUpperCase()===ans)r.closest('label')&&(r.closest('label').style.borderColor='#4ade80');
       });
     } else {
-      const wrong=sel?it.options?.[sel.value.charCodeAt(0)-65]:'':'(no answer)';
+      const wrong=sel?(it.options?.[sel.value.charCodeAt(0)-65]??''):'(no answer)';
       errors.push(`Q${i+1}: chose "${wrong||sel?.value}" — answer is "${correctOpt||ans}"`);
       const why=it.explanation||it.why||'';
       fb.innerHTML=`<div style="color:#f87171;font-size:13px;margin-top:4px">✗ The answer is <strong>${ans}: ${correctOpt||''}</strong>${why?`<br><span style="font-size:11px;color:rgba(248,113,113,.8)">→ ${why}</span>`:''}</div>`;
