@@ -650,6 +650,20 @@
     <!-- Rodrigo Quick Nav — 3 big buttons (Rodrigo only) -->
     <div id="rodrigo-quick-nav" style="display:none">
       <div class="rqn-grid">
+        <button class="rqn-btn singing" onclick="openModule('singing')">
+          <div class="rqn-icon">🎵</div>
+          <div class="rqn-cat">SINGING</div>
+          <div class="rqn-title">Music Playlists</div>
+          <div class="rqn-sub">5 niveles · 174 canciones</div>
+          <div class="rqn-badge">L1 → L5</div>
+        </button>
+        <button class="rqn-btn watching" onclick="openModule('watching')">
+          <div class="rqn-icon">🎬</div>
+          <div class="rqn-cat">WATCHING</div>
+          <div class="rqn-title">Movies</div>
+          <div class="rqn-sub">4 niveles · 60 películas</div>
+          <div class="rqn-badge">Aprende viendo</div>
+        </button>
         <button class="rqn-btn spelling" onclick="openSpellingSemanal()">
           <div class="rqn-icon">🔤</div>
           <div class="rqn-cat">MOVERS</div>
@@ -664,13 +678,6 @@
           <div class="rqn-sub" id="rqn-mock-sub">Cargando...</div>
           <div class="rqn-badge" id="rqn-mock-badge"></div>
         </button>
-        <button class="rqn-btn libro" onclick="openLibroRodrigo()">
-          <div class="rqn-icon">📚</div>
-          <div class="rqn-cat">LIBRO</div>
-          <div class="rqn-title">Learning Lands 4</div>
-          <div class="rqn-sub">Elige un capítulo</div>
-          <div class="rqn-badge next">Cap. 6 activo</div>
-        </button>
         <button class="rqn-btn libre" onclick="openPracticaLibre()">
           <div class="rqn-icon">🌍</div>
           <div class="rqn-cat">PRÁCTICA LIBRE</div>
@@ -678,19 +685,12 @@
           <div class="rqn-sub">Elige cualquier tema</div>
           <div class="rqn-badge next">Gramática · Vocab · Más</div>
         </button>
-        <button class="rqn-btn singing" onclick="openModule('singing')">
-          <div class="rqn-icon">🎵</div>
-          <div class="rqn-cat">SINGING</div>
-          <div class="rqn-title">Music Playlists</div>
-          <div class="rqn-sub">5 niveles · 174 canciones</div>
-          <div class="rqn-badge">L1 → L5</div>
-        </button>
-        <button class="rqn-btn watching" onclick="openModule('watching')">
-          <div class="rqn-icon">🎬</div>
-          <div class="rqn-cat">WATCHING</div>
-          <div class="rqn-title">Movies</div>
-          <div class="rqn-sub">4 niveles · 60 películas</div>
-          <div class="rqn-badge">Aprende viendo</div>
+        <button class="rqn-btn libro" onclick="openLibroRodrigo()">
+          <div class="rqn-icon">📚</div>
+          <div class="rqn-cat">LIBRO</div>
+          <div class="rqn-title">Learning Lands 4</div>
+          <div class="rqn-sub">Elige un capítulo</div>
+          <div class="rqn-badge next">Cap. 6 activo</div>
         </button>
       </div>
     </div>
@@ -698,19 +698,12 @@
     <!-- Fernando hub: 8 módulos -->
     <div id="fernando-quick-nav" style="display:none">
       <div class="rqn-grid">
-        <button class="rqn-btn test" onclick="openTestTheTest()">
-          <div class="rqn-icon">📋</div>
-          <div class="rqn-cat">EXAM PREP</div>
-          <div class="rqn-title">Test the Test</div>
-          <div class="rqn-sub">Miss Kamil_IA analiza tu examen</div>
-          <div class="rqn-badge">B1 · Miss Kamila</div>
-        </button>
-        <button class="rqn-btn versus" onclick="openVersusModeF()">
-          <div class="rqn-icon">⚔️</div>
-          <div class="rqn-cat">VERSUS</div>
-          <div class="rqn-title">Versus Mode</div>
-          <div class="rqn-sub">Grammar Duels</div>
-          <div class="rqn-badge">Battle!</div>
+        <button class="rqn-btn singing" onclick="openModule('singing')">
+          <div class="rqn-icon">🎵</div>
+          <div class="rqn-cat">SINGING</div>
+          <div class="rqn-title">Music Playlists</div>
+          <div class="rqn-sub">5 niveles · 174 canciones</div>
+          <div class="rqn-badge">L1 → L5</div>
         </button>
         <button class="rqn-btn watching" onclick="openModule('watching')">
           <div class="rqn-icon">🎬</div>
@@ -718,13 +711,6 @@
           <div class="rqn-title">Movies</div>
           <div class="rqn-sub">4 niveles · 60 películas</div>
           <div class="rqn-badge">Aprende viendo</div>
-        </button>
-        <button class="rqn-btn singing" onclick="openModule('singing')">
-          <div class="rqn-icon">🎵</div>
-          <div class="rqn-cat">SINGING</div>
-          <div class="rqn-title">Music Playlists</div>
-          <div class="rqn-sub">5 niveles · 174 canciones</div>
-          <div class="rqn-badge">L1 → L5</div>
         </button>
         <button class="rqn-btn showtell" onclick="openShowAndTell()">
           <div class="rqn-icon">🖼️</div>
@@ -733,13 +719,6 @@
           <div class="rqn-sub">Describe images in English</div>
           <div class="rqn-badge">4 modos · PET</div>
         </button>
-        <button class="rqn-btn pet" onclick="openModule('pet')">
-          <div class="rqn-icon">🎯</div>
-          <div class="rqn-cat">PET TRAINING</div>
-          <div class="rqn-title">PET Training</div>
-          <div class="rqn-sub">Skills · Grammar · Vocab</div>
-          <div class="rqn-badge">B1 Level</div>
-        </button>
         <button class="rqn-btn bookclub" onclick="openFernandoBookClub()">
           <div class="rqn-icon">📖</div>
           <div class="rqn-cat">READING</div>
@@ -747,12 +726,33 @@
           <div class="rqn-sub">Tu libro actual</div>
           <div class="rqn-badge next">Miss Kamil_IA</div>
         </button>
+        <button class="rqn-btn versus" onclick="openVersusModeF()">
+          <div class="rqn-icon">⚔️</div>
+          <div class="rqn-cat">VERSUS</div>
+          <div class="rqn-title">Versus Mode</div>
+          <div class="rqn-sub">Grammar Duels</div>
+          <div class="rqn-badge">Battle!</div>
+        </button>
         <button class="rqn-btn libre" onclick="openFernandoLibre()">
           <div class="rqn-icon">🌍</div>
           <div class="rqn-cat">FREE PRACTICE</div>
           <div class="rqn-title">Free Practice</div>
           <div class="rqn-sub">Elige cualquier tema PET</div>
           <div class="rqn-badge next">Gramática · Vocab · Más</div>
+        </button>
+        <button class="rqn-btn test" onclick="openTestTheTest()">
+          <div class="rqn-icon">📋</div>
+          <div class="rqn-cat">EXAM PREP</div>
+          <div class="rqn-title">Test the Test</div>
+          <div class="rqn-sub">Miss Kamil_IA analiza tu examen</div>
+          <div class="rqn-badge">B1 · Miss Kamila</div>
+        </button>
+        <button class="rqn-btn pet" onclick="openModule('pet')">
+          <div class="rqn-icon">🎯</div>
+          <div class="rqn-cat">PET TRAINING</div>
+          <div class="rqn-title">PET Training</div>
+          <div class="rqn-sub">Skills · Grammar · Vocab</div>
+          <div class="rqn-badge">B1 Level</div>
         </button>
       </div>
     </div>
