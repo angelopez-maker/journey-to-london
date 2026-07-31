@@ -692,6 +692,13 @@
           <div class="rqn-sub">Elige un capítulo</div>
           <div class="rqn-badge next">Cap. 6 activo</div>
         </button>
+        <button class="rqn-btn test" onclick="openKETDiagnostic()" style="display:none" id="rod-ket-btn">
+          <div class="rqn-icon">🎓</div>
+          <div class="rqn-cat">DIAGNÓSTICO</div>
+          <div class="rqn-title">KET Diagnostic</div>
+          <div class="rqn-sub">Cambridge A2 Key · Sin tiempo</div>
+          <div class="rqn-badge">4 Skills · British</div>
+        </button>
       </div>
     </div>
 
@@ -770,6 +777,13 @@
           <div class="rqn-title">PET Training</div>
           <div class="rqn-sub">Skills · Grammar · Vocab</div>
           <div class="rqn-badge">B1 Level</div>
+        </button>
+        <button class="rqn-btn test" onclick="openKETDiagnostic()">
+          <div class="rqn-icon">🎓</div>
+          <div class="rqn-cat">DIAGNÓSTICO</div>
+          <div class="rqn-title">KET Diagnostic</div>
+          <div class="rqn-sub">Cambridge A2 Key · Sin tiempo</div>
+          <div class="rqn-badge">4 Skills · British</div>
         </button>
       </div>
     </div>
@@ -2081,6 +2095,644 @@ function oliverSpeak(text){
   if(window.speechSynthesis.getVoices().length)loadVoice();
   else{window.speechSynthesis.onvoiceschanged=loadVoice;}
 }
+
+
+// ═══════════════════════════════════════════════════════════════════════════
+// KET DIAGNOSTIC MODULE — Cambridge A2 Key
+// ═══════════════════════════════════════════════════════════════════════════
+
+let _ketSess=null;
+
+function openKETDiagnostic(){
+  openModule('movers');
+  document.getElementById('mod-icon').textContent='🎓';
+  document.getElementById('mod-title').textContent='KET DIAGNOSTIC';
+  document.getElementById('mod-sub').textContent='Cambridge A2 Key · Diagnóstico · Sin tiempo';
+  if(!_ketSess)_ketSess={reading:null,writing:null,listening:null,speaking:null};
+  _renderKETMenu();
+}
+
+function _renderKETMenu(){
+  const area=document.getElementById('module-content-area');
+  const done=s=>_ketSess&&_ketSess[s]!==null&&_ketSess[s]!==undefined;
+  const allDone=['reading','writing','listening','speaking'].every(done);
+  area.innerHTML=`<div style="max-width:640px;margin:0 auto;font-family:'Inter',sans-serif">
+    <div style="background:linear-gradient(135deg,#1a1f2e,#1e2438);border:1px solid rgba(251,191,36,.25);border-radius:16px;padding:24px;margin-bottom:20px">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">
+        <div style="font-size:36px">🎓</div>
+        <div><div style="font-family:'Orbitron',monospace;font-size:15px;font-weight:700;color:var(--gold2)">KET DIAGNOSTIC</div>
+        <div style="color:#8b949e;font-size:12px;margin-top:2px">Cambridge A2 Key · Sin presión · Diagnóstico real</div></div>
+      </div>
+      <div style="color:#c9d1d9;font-size:13px;line-height:1.7;background:rgba(0,0,0,.2);padding:12px;border-radius:8px">
+        Este no es un examen — es un <strong style="color:var(--gold2)">termómetro</strong>. Queremos saber exactamente dónde estás parado para construir desde ahí. Tómate el tiempo que necesites. Al final tendrás un reporte de fortalezas y gaps.
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
+      ${_ketCard('reading','📖','Reading','4 partes · Textos y preguntas','#3b82f6')}
+      ${_ketCard('writing','✏️','Writing','Email corto · Tarea real','#ec4899')}
+      ${_ketCard('listening','🎧','Listening','2 partes · Audio británico','#8b5cf6')}
+      ${_ketCard('speaking','🎤','Speaking','Con Oliver · 2 partes','#22c55e')}
+    </div>
+    ${allDone
+      ?`<button onclick="ketResults()" style="width:100%;padding:16px;background:linear-gradient(135deg,#f59e0b,#d97706);border:none;border-radius:12px;color:#0a0a1a;font-family:'Orbitron',monospace;font-weight:700;font-size:15px;cursor:pointer">🎓 Ver Diagnóstico Completo →</button>`
+      :`<div style="text-align:center;color:#444;font-size:12px;padding:12px">Completa las 4 secciones para ver el diagnóstico</div>`}
+    <div style="margin-top:10px;text-align:center"><button onclick="showScreen('screen-dashboard')" style="background:none;border:none;color:#555;font-size:12px;cursor:pointer">← Hub</button></div>
+  </div>`;
+}
+
+function _ketCard(id,icon,title,desc,color){
+  const done=_ketSess&&_ketSess[id]!==null&&_ketSess[id]!==undefined;
+  return `<button onclick="ketGo('${id}')" style="display:flex;flex-direction:column;gap:8px;padding:16px;background:${done?'rgba(34,197,94,.06)':'rgba(255,255,255,.02)'};border:1px solid ${done?'rgba(34,197,94,.4)':`${color}44`};border-radius:12px;cursor:pointer;text-align:left;width:100%" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+    <div style="font-size:26px">${icon}</div>
+    <div style="font-family:'Orbitron',monospace;font-size:11px;font-weight:700;color:${done?'#22c55e':color}">${title.toUpperCase()}${done?' ✅':''}</div>
+    <div style="color:#8b949e;font-size:11px;line-height:1.4">${desc}</div>
+    <div style="font-size:11px;color:${done?'#22c55e':color};font-weight:600">${done?'Repetir →':'Comenzar →'}</div>
+  </button>`;
+}
+
+async function ketGo(s){const m={reading:ketReading,writing:ketWriting,listening:ketListening,speaking:ketSpeaking};if(m[s])await m[s]();}
+
+// ── READING ─────────────────────────────────────────────────────────────────
+
+async function ketReading(){
+  const area=document.getElementById('module-content-area');
+  area.innerHTML=`<div style="max-width:640px;margin:0 auto;background:#111214;border-radius:14px;padding:24px;font-family:'Inter',sans-serif;text-align:center"><div style="color:#3b82f6;font-size:32px;margin-bottom:12px">📖</div><div style="color:#8b949e;font-size:13px">Generating Reading test...<br><span style="font-size:11px;color:#444">Cambridge A2 Key authentic format</span></div></div>`;
+  try{
+    const raw=await callClaude(`You are a Cambridge A2 Key (KET) exam writer. Generate a KET Reading practice test for a ${getAge()}-year-old learner approaching B1. Use realistic British English contexts (shops, notices, emails, short articles).
+Return ONLY valid JSON — no markdown, no explanation:
+{"parts":[
+{"id":1,"title":"Short Texts","instructions":"Read the texts. For each question, choose the correct answer (A, B or C).","items":[
+{"ctx":"SPORTS CENTRE — Changing rooms close 30 minutes before the centre closes.","q":"What must visitors remember?","A":"Leave the sports centre early.","B":"Use the changing rooms before they close.","C":"Lock the changing rooms when they leave.","ans":"B"},
+{"ctx":"From: Jack\\nHi! I left my jacket at your house yesterday. Is it okay if I come and get it tomorrow morning?","q":"Why is Jack writing?","A":"To say he is coming to visit.","B":"To ask if he can collect something.","C":"To thank his friend for something.","ans":"B"},
+{"ctx":"MUSEUM — Under-16s must be with an adult at all times.","q":"Who must always stay with a grown-up?","A":"All visitors.","B":"Visitors under 16.","C":"School groups only.","ans":"B"},
+{"ctx":"SALE — All winter coats reduced by 40% — this weekend only!","q":"What is the special offer?","A":"Buy two coats and get one free.","B":"Coats are cheaper for two days.","C":"All clothes are on sale all month.","ans":"B"},
+{"ctx":"Swimming lessons for beginners — No experience needed. Bring a towel and goggles.","q":"What should you bring to the lessons?","A":"Your own swimming instructor.","B":"A towel and goggles.","C":"Proof that you can swim.","ans":"B"}
+]},
+{"id":2,"title":"Longer Text","instructions":"Read the article. Choose the correct answer (A, B or C).","passage":"Sam works at a local bakery. He started three months ago and at first found it hard to wake up at 5am. Now he enjoys the quiet mornings and the smell of fresh bread. His favourite task is decorating birthday cakes, which needs patience. Sam cycles to work and earns enough to save money each month. He hopes to open his own café one day. His manager says Sam is one of the best workers they have had.","items":[
+{"q":"How long has Sam worked at the bakery?","A":"One month.","B":"Three months.","C":"One year.","ans":"B"},
+{"q":"How did Sam feel about early starts at first?","A":"He found them easy.","B":"He found them difficult.","C":"He found them exciting.","ans":"B"},
+{"q":"What does Sam enjoy most at work?","A":"Baking bread.","B":"Decorating cakes.","C":"Talking to customers.","ans":"B"},
+{"q":"How does Sam get to work?","A":"By bus.","B":"By car.","C":"By bicycle.","ans":"C"},
+{"q":"What does Sam's manager think of him?","A":"He needs more training.","B":"He is an excellent worker.","C":"He should be promoted.","ans":"B"}
+]},
+{"id":3,"title":"Vocabulary and Grammar","instructions":"Choose the correct word (A, B or C) for each gap.","passage":"Last summer, Elena (1)___ a trip to Scotland. She (2)___ in a cottage near a lake. Every morning she (3)___ long walks and took photographs. One afternoon she (4)___ a family of deer. It was (5)___ holiday she had ever had. She (6)___ to go back next year.","items":[
+{"n":1,"q":"","A":"makes","B":"made","C":"making","ans":"B"},
+{"n":2,"q":"","A":"stay","B":"staying","C":"stayed","ans":"C"},
+{"n":3,"q":"","A":"went","B":"go","C":"goes","ans":"A"},
+{"n":4,"q":"","A":"seen","B":"see","C":"saw","ans":"C"},
+{"n":5,"q":"","A":"good","B":"better","C":"the best","ans":"C"},
+{"n":6,"q":"","A":"plans","B":"planned","C":"planning","ans":"A"}
+]},
+{"id":4,"title":"Open Cloze","instructions":"Write ONE correct English word in each gap.","passage":"Coffee is (1)___ of the most popular drinks in the world. It is (2)___ from coffee beans which grow in warm countries. Many people drink coffee in the morning (3)___ help them wake up. Coffee shops (4)___ found in almost every city today. Some people prefer to have it (5)___ milk, while others like it black. Scientists say (6)___ a small amount each day can be good for health.","answers":{"1":"one","2":"made","3":"to","4":"are","5":"with","6":"that"}}
+]}
+Produce ORIGINAL content following this exact structure. Keep questions realistic and A2-appropriate.`,4000);
+    const d=parseJSON(raw);
+    if(!d?.parts?.length)throw new Error('bad json');
+    window._ketRead={parts:d.parts,answers:{},partIdx:0};
+    _ketRenderReadPart();
+  }catch(e){
+    const area=document.getElementById('module-content-area');
+    area.innerHTML=`<div style="max-width:640px;margin:0 auto;background:#111214;border-radius:14px;padding:24px;text-align:center"><div style="color:#ef4444;margin-bottom:12px">⚠️ Could not generate test. Check connection and try again.</div><button onclick="ketReading()" style="padding:10px 20px;background:#3b82f6;border:none;border-radius:8px;color:#fff;cursor:pointer;font-family:'Rajdhani',sans-serif;font-weight:700;margin-right:8px">Try Again</button><button onclick="openKETDiagnostic()" style="padding:10px 20px;background:rgba(255,255,255,.08);border:1px solid #333;border-radius:8px;color:#888;cursor:pointer;font-family:'Rajdhani',sans-serif;font-weight:700">← Back</button></div>`;
+  }
+}
+
+function _ketRenderReadPart(){
+  const {parts,partIdx}=window._ketRead;
+  const part=parts[partIdx];
+  const area=document.getElementById('module-content-area');
+  const pct=Math.round((partIdx/parts.length)*100);
+  let bodyHtml='';
+  if(part.id===4){
+    let txt=part.passage.replace(/\((\d+)\)___/g,(_,n)=>`<input id="ket-gap-${n}" type="text" placeholder="word ${n}" style="width:90px;padding:3px 8px;background:#2b2d31;border:1px solid #3d4045;border-radius:4px;color:#c9d1d9;font-size:13px;text-align:center;outline:none;margin:0 3px">`);
+    bodyHtml=`<div style="background:#2b2d31;border-radius:10px;padding:16px;color:#c9d1d9;font-size:14px;line-height:2.2">${txt}</div>`;
+  } else {
+    bodyHtml=(part.items||[]).map((item,i)=>{
+      const qLabel=part.id===3?`Gap (${item.n})`:String(i+1+(partIdx===1?5:partIdx===2?10:0))+'.';
+      return `<div style="background:#1e1f22;border-radius:10px;padding:14px;margin-bottom:10px">
+        ${item.ctx?`<div style="font-size:13px;background:#2b2d31;border-left:3px solid #3b82f6;border-radius:0 6px 6px 0;padding:10px;margin-bottom:10px;color:#c9d1d9;font-style:italic">${item.ctx}</div>`:''}
+        ${item.q?`<div style="color:#c9d1d9;font-size:14px;font-weight:600;margin-bottom:10px">${qLabel} ${item.q}</div>`:part.id===3?`<div style="color:#8b949e;font-size:13px;margin-bottom:8px">Gap (${item.n}) — choose the correct word:</div>`:''}
+        ${['A','B','C'].map(opt=>`<label style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:#2b2d31;border-radius:6px;margin-bottom:6px;cursor:pointer;transition:background .1s" onmouseover="this.style.background='#363a3f'" onmouseout="this.style.background='#2b2d31'">
+          <input type="radio" name="ket-r-${partIdx}-${i}" value="${opt}" style="accent-color:#3b82f6;width:16px;height:16px">
+          <span style="color:#c9d1d9;font-size:13px"><strong style="color:#3b82f6">${opt}.</strong> ${item[opt]||''}</span>
+        </label>`).join('')}
+      </div>`;
+    }).join('');
+  }
+  area.innerHTML=`<div style="max-width:640px;margin:0 auto;font-family:'Inter',sans-serif;background:#111214;border-radius:14px;padding:20px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      <div style="flex:1;height:4px;background:#1e1f22;border-radius:2px"><div style="height:100%;width:${pct}%;background:#3b82f6;border-radius:2px;transition:width .3s"></div></div>
+      <span style="font-size:11px;color:#555;font-family:'Orbitron',monospace">PART ${part.id}/4</span>
+    </div>
+    <div style="background:#1a2035;border:1px solid #3b82f633;border-radius:12px;padding:14px;margin-bottom:14px">
+      <div style="font-family:'Orbitron',monospace;font-size:10px;color:#3b82f6;font-weight:700;letter-spacing:1px;margin-bottom:4px">📖 READING — PART ${part.id}</div>
+      <div style="font-size:15px;font-weight:700;color:#c9d1d9;margin-bottom:4px">${part.title}</div>
+      <div style="font-size:12px;color:#8b949e">${part.instructions}</div>
+    </div>
+    ${part.passage&&part.id!==4?`<div style="background:#2b2d31;border-left:3px solid #3b82f6;border-radius:0 10px 10px 0;padding:14px;margin-bottom:14px;color:#c9d1d9;font-size:14px;line-height:1.7">${part.passage}</div>`:''}
+    ${bodyHtml}
+    <div style="margin-top:16px;display:flex;gap:10px">
+      <button onclick="openKETDiagnostic()" style="padding:11px 16px;background:rgba(255,255,255,.05);border:1px solid #333;border-radius:8px;color:#666;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;cursor:pointer">← Menu</button>
+      <button onclick="_ketSubmitReadPart()" style="flex:1;padding:11px;background:#3b82f6;border:none;border-radius:8px;color:#fff;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">${partIdx<parts.length-1?'Next Part →':'Finish Reading ✓'}</button>
+    </div>
+  </div>`;
+}
+
+function _ketSubmitReadPart(){
+  const {parts,partIdx}=window._ketRead;
+  const part=parts[partIdx];
+  if(part.id===4){
+    const ans={};
+    Object.keys(part.answers||{}).forEach(k=>{ans[k]=(document.getElementById(`ket-gap-${k}`)?.value||'').trim().toLowerCase();});
+    window._ketRead.answers[partIdx]=ans;
+  } else {
+    const ans={};
+    (part.items||[]).forEach((_,i)=>{const sel=document.querySelector(`input[name="ket-r-${partIdx}-${i}"]:checked`);ans[i]=sel?sel.value:'';});
+    window._ketRead.answers[partIdx]=ans;
+  }
+  if(partIdx<parts.length-1){window._ketRead.partIdx=partIdx+1;_ketRenderReadPart();}
+  else{
+    let score=0,max=0;
+    parts.forEach((p,pi)=>{
+      const ans=window._ketRead.answers[pi]||{};
+      if(p.id===4){Object.entries(p.answers||{}).forEach(([k,c])=>{max++;if((ans[k]||'')===(c||'').toLowerCase())score++;});}
+      else{(p.items||[]).forEach((item,i)=>{max++;if(ans[i]===item.ans)score++;});}
+    });
+    _ketSess.reading={score,max};
+    _renderKETMenu();
+    showToast(`📖 Reading complete! ${score}/${max}`);
+  }
+}
+
+// ── WRITING ─────────────────────────────────────────────────────────────────
+
+async function ketWriting(){
+  const area=document.getElementById('module-content-area');
+  area.innerHTML=`<div style="max-width:640px;margin:0 auto;background:#111214;border-radius:14px;padding:24px;text-align:center"><div style="color:#ec4899;font-size:32px;margin-bottom:12px">✏️</div><div style="color:#8b949e;font-size:13px">Preparing your writing task...</div></div>`;
+  try{
+    const raw=await callClaude(`Generate a Cambridge A2 Key (KET) Writing task (Part 7) for a ${getAge()}-year-old learner.
+Return ONLY valid JSON:
+{"scenario":"You want to invite your English friend Sam to your birthday party next Saturday.","instructions":"Write an email to Sam. In your email:\\n• say when and where the party is\\n• tell Sam what to bring\\n• explain how to get to your house","wordTarget":35,"hint":"Write 30-40 words. Include all three points."}`,600);
+    const task=parseJSON(raw);
+    if(!task?.scenario)throw new Error('bad');
+    window._ketWriteTask=task;
+    _ketRenderWriting(task);
+  }catch(e){
+    area.innerHTML=`<div style="max-width:640px;margin:0 auto;background:#111214;border-radius:14px;padding:24px;text-align:center"><div style="color:#ef4444;margin-bottom:12px">⚠️ Error. Please try again.</div><button onclick="ketWriting()" style="padding:10px 20px;background:#ec4899;border:none;border-radius:8px;color:#fff;cursor:pointer;font-family:'Rajdhani',sans-serif;font-weight:700">Try Again</button></div>`;
+  }
+}
+
+function _ketRenderWriting(task){
+  const area=document.getElementById('module-content-area');
+  area.innerHTML=`<div style="max-width:640px;margin:0 auto;font-family:'Inter',sans-serif;background:#111214;border-radius:14px;padding:20px">
+    <div style="background:#2d1a2e;border:1px solid #ec489933;border-radius:12px;padding:14px;margin-bottom:16px">
+      <div style="font-family:'Orbitron',monospace;font-size:10px;color:#ec4899;font-weight:700;letter-spacing:1px;margin-bottom:6px">✏️ WRITING — PART 7</div>
+      <div style="font-size:15px;font-weight:700;color:#c9d1d9;margin-bottom:10px">Email Task</div>
+      <div style="background:rgba(0,0,0,.2);border-radius:8px;padding:12px;color:#c9d1d9;font-size:13px;line-height:1.6;margin-bottom:10px">${task.scenario}</div>
+      <div style="color:#8b949e;font-size:13px;line-height:1.8;white-space:pre-line">${task.instructions}</div>
+    </div>
+    <div style="background:#1e1f22;border-radius:10px;padding:14px;margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div style="color:#8b949e;font-size:12px">Write your email here:</div>
+        <div id="ket-wc" style="color:#555;font-size:11px;font-family:'Orbitron',monospace">0 words</div>
+      </div>
+      <textarea id="ket-write-area" rows="7" placeholder="Write your email here..." oninput="document.getElementById('ket-wc').textContent=(this.value.trim().split(/\s+/).filter(w=>w).length)+' words'" style="width:100%;background:#2b2d31;border:1px solid #3d4045;border-radius:8px;color:#c9d1d9;font-size:14px;padding:12px;outline:none;resize:vertical;font-family:'Inter',sans-serif;box-sizing:border-box;line-height:1.6"></textarea>
+      <div style="color:#555;font-size:11px;margin-top:6px">💡 ${task.hint}</div>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button onclick="openKETDiagnostic()" style="padding:11px 16px;background:rgba(255,255,255,.05);border:1px solid #333;border-radius:8px;color:#666;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;cursor:pointer">← Menu</button>
+      <button onclick="_ketSubmitWriting()" style="flex:1;padding:11px;background:#ec4899;border:none;border-radius:8px;color:#fff;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">Submit Writing ✓</button>
+    </div>
+  </div>`;
+}
+
+async function _ketSubmitWriting(){
+  const text=(document.getElementById('ket-write-area')?.value||'').trim();
+  if(text.length<10){showToast('✏️ Please write your email first!');return;}
+  const area=document.getElementById('module-content-area');
+  area.innerHTML=`<div style="max-width:640px;margin:0 auto;background:#111214;border-radius:14px;padding:24px;text-align:center"><div style="color:#ec4899;font-size:24px;margin-bottom:8px">✏️</div><div style="color:#8b949e;font-size:13px">Evaluating your writing...</div></div>`;
+  try{
+    const task=window._ketWriteTask;
+    const raw=await callClaude(`You are a Cambridge A2 Key examiner. Evaluate this writing sample from a ${getAge()}-year-old learner.
+TASK: ${task.scenario}
+INSTRUCTIONS: ${task.instructions}
+STUDENT WRITING: "${text}"
+Return ONLY valid JSON:
+{"score":7,"maxScore":10,"taskCompletion":{"score":3,"max":3,"comment":"..."},"grammar":{"score":2,"max":3,"comment":"..."},"vocabulary":{"score":2,"max":4,"comment":"..."},"overall":"2-sentence overall comment","level":"A1/A2/B1"}`,1000);
+    const ev=parseJSON(raw);
+    if(!ev?.score&&ev?.score!==0)throw new Error('bad');
+    _ketSess.writing={score:ev.score,max:ev.maxScore||10,evaluation:ev,text};
+    _ketRenderWritingResult(ev,text);
+  }catch(e){
+    _ketSess.writing={score:0,max:10,text};
+    _renderKETMenu();
+    showToast('✏️ Writing saved!');
+  }
+}
+
+function _ketRenderWritingResult(ev,text){
+  const area=document.getElementById('module-content-area');
+  const pct=Math.round(ev.score/ev.maxScore*100);
+  const col=pct>=70?'#22c55e':pct>=50?'#f59e0b':'#ef4444';
+  area.innerHTML=`<div style="max-width:640px;margin:0 auto;font-family:'Inter',sans-serif;background:#111214;border-radius:14px;padding:20px">
+    <div style="background:#1e1f22;border-radius:12px;padding:16px;margin-bottom:14px;text-align:center">
+      <div style="font-family:'Orbitron',monospace;font-size:11px;color:#ec4899;margin-bottom:8px">✏️ WRITING RESULT</div>
+      <div style="font-size:36px;font-weight:700;color:${col}">${ev.score}/${ev.maxScore}</div>
+      <div style="font-size:12px;color:#8b949e;margin-top:4px">${pct}% · Estimated level: ${ev.level||'A2'}</div>
+    </div>
+    <div style="background:#2b2d31;border-radius:10px;padding:14px;margin-bottom:12px;font-size:13px;color:#8b949e;font-style:italic;line-height:1.6;border-left:3px solid #ec4899">"${text}"</div>
+    <div style="background:#1e1f22;border-radius:10px;padding:14px;margin-bottom:14px">
+      ${ev.taskCompletion?`<div style="margin-bottom:10px"><div style="font-size:12px;color:#ec4899;font-weight:700;margin-bottom:3px">Task Completion ${ev.taskCompletion.score}/${ev.taskCompletion.max}</div><div style="font-size:13px;color:#8b949e">${ev.taskCompletion.comment}</div></div>`:''}
+      ${ev.grammar?`<div style="margin-bottom:10px"><div style="font-size:12px;color:#ec4899;font-weight:700;margin-bottom:3px">Grammar & Spelling ${ev.grammar.score}/${ev.grammar.max}</div><div style="font-size:13px;color:#8b949e">${ev.grammar.comment}</div></div>`:''}
+      ${ev.vocabulary?`<div style="margin-bottom:10px"><div style="font-size:12px;color:#ec4899;font-weight:700;margin-bottom:3px">Vocabulary ${ev.vocabulary.score}/${ev.vocabulary.max}</div><div style="font-size:13px;color:#8b949e">${ev.vocabulary.comment}</div></div>`:''}
+      <div style="border-top:1px solid #333;padding-top:10px;margin-top:4px;font-size:13px;color:#c9d1d9">${ev.overall||''}</div>
+    </div>
+    <button onclick="openKETDiagnostic()" style="width:100%;padding:12px;background:rgba(236,72,153,.15);border:1px solid rgba(236,72,153,.3);border-radius:8px;color:#ec4899;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">← Back to Menu</button>
+  </div>`;
+}
+
+// ── LISTENING ────────────────────────────────────────────────────────────────
+
+async function ketListening(){
+  const area=document.getElementById('module-content-area');
+  area.innerHTML=`<div style="max-width:640px;margin:0 auto;background:#111214;border-radius:14px;padding:24px;text-align:center"><div style="color:#8b5cf6;font-size:32px;margin-bottom:12px">🎧</div><div style="color:#8b949e;font-size:13px">Preparing Listening test...<br><span style="font-size:11px;color:#444">Audio will use British English</span></div></div>`;
+  try{
+    const raw=await callClaude(`Generate a Cambridge A2 Key (KET) Listening practice test for a ${getAge()}-year-old learner. Use natural British English conversations.
+Return ONLY valid JSON:
+{"parts":[
+{"id":1,"title":"Short Conversations","instructions":"You will hear five short conversations. Choose the correct answer (A, B or C).","items":[
+{"audioText":"Woman: Excuse me, what time does the next bus to the city centre leave? Man: It leaves at half past three. The one after that is at four fifteen.","q":"When does the next bus leave?","A":"3:00","B":"3:30","C":"4:15","ans":"B"},
+{"audioText":"Boy: Are you coming to football practice today? Girl: I can't — I have a dentist appointment at five. I'll be there on Thursday though.","q":"Why can't the girl go to football practice?","A":"She is ill.","B":"She has a medical appointment.","C":"She has to study.","ans":"B"},
+{"audioText":"Shop assistant: Can I help you? Customer: Yes, I'm looking for a birthday card for my grandmother. She's turning seventy. Shop assistant: The cards for older people are on the left, near the window.","q":"Where are the cards for older people?","A":"Near the door.","B":"On the right.","C":"By the window.","ans":"C"},
+{"audioText":"Teacher: Don't forget — your history projects are due next Friday, not this Friday. You have one more week. Student: Oh great! I thought it was this week!","q":"When is the history project due?","A":"This Friday.","B":"Next Friday.","C":"In two weeks.","ans":"B"},
+{"audioText":"Woman: How much is the entrance to the swimming pool? Man: It's three pounds fifty for adults and two pounds for children under twelve. Woman: I have two adults and one child of ten, please.","q":"How much will the woman pay in total?","A":"£7.00","B":"£9.00","C":"£9.50","ans":"B"}
+]},
+{"id":2,"title":"Longer Recording","instructions":"You will hear someone talking about their new job. Complete the notes with ONE or TWO words or a number.","audioText":"Hello everyone, I'm here to talk about my new job at the City Library. I started working there six weeks ago. The library opens at nine in the morning and closes at six in the evening on weekdays. On Saturdays, we close at four. My main job is to help people find books and use the computers. I also help with the children's reading club every Tuesday afternoon. The library has over fifty thousand books, including a great section for foreign languages. If you haven't visited yet, I really recommend it. There is free parking behind the building.","notes":{"started":"(1)___ weeks ago","opens":"(2)___ am","children's club":"every (3)___","total books":"over (4)___","parking":"(5)___ parking available"},"answers":{"1":"six","2":"nine","3":"Tuesday","4":"fifty thousand","5":"free"}}
+]}`,3000);
+    const d=parseJSON(raw);
+    if(!d?.parts?.length)throw new Error('bad');
+    window._ketListen={parts:d.parts,answers:{},partIdx:0};
+    _ketRenderListenPart();
+  }catch(e){
+    area.innerHTML=`<div style="max-width:640px;margin:0 auto;background:#111214;border-radius:14px;padding:24px;text-align:center"><div style="color:#ef4444;margin-bottom:12px">⚠️ Error. Please try again.</div><button onclick="ketListening()" style="padding:10px 20px;background:#8b5cf6;border:none;border-radius:8px;color:#fff;cursor:pointer;font-family:'Rajdhani',sans-serif;font-weight:700">Try Again</button> <button onclick="openKETDiagnostic()" style="padding:10px 20px;background:rgba(255,255,255,.08);border:1px solid #333;border-radius:8px;color:#888;cursor:pointer;font-family:'Rajdhani',sans-serif;font-weight:700">← Back</button></div>`;
+  }
+}
+
+function _ketRenderListenPart(){
+  const {parts,partIdx}=window._ketListen;
+  const part=parts[partIdx];
+  const area=document.getElementById('module-content-area');
+  const pct=Math.round(partIdx/parts.length*100);
+  let bodyHtml='';
+  if(part.id===2){
+    bodyHtml=`<div style="background:#1e1f22;border-radius:10px;padding:14px;margin-bottom:10px">
+      <div style="font-size:12px;color:#8b5cf6;font-weight:700;margin-bottom:10px">Complete the notes:</div>
+      ${Object.entries(part.notes||{}).map(([k,v],i)=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #2d2f33">
+        <div style="color:#8b949e;font-size:13px;min-width:140px">${k}:</div>
+        <input id="ket-ln-${i}" type="text" placeholder="..." style="flex:1;padding:5px 10px;background:#2b2d31;border:1px solid #3d4045;border-radius:6px;color:#c9d1d9;font-size:13px;outline:none">
+      </div>`).join('')}
+    </div>`;
+  } else {
+    bodyHtml=(part.items||[]).map((item,i)=>`<div style="background:#1e1f22;border-radius:10px;padding:14px;margin-bottom:10px">
+      <div style="color:#c9d1d9;font-size:14px;font-weight:600;margin-bottom:10px">${i+1}. ${item.q}</div>
+      ${['A','B','C'].map(opt=>`<label style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:#2b2d31;border-radius:6px;margin-bottom:6px;cursor:pointer">
+        <input type="radio" name="ket-ln-mc-${i}" value="${opt}" style="accent-color:#8b5cf6;width:16px;height:16px">
+        <span style="color:#c9d1d9;font-size:13px"><strong style="color:#8b5cf6">${opt}.</strong> ${item[opt]||''}</span>
+      </label>`).join('')}
+    </div>`).join('');
+  }
+  area.innerHTML=`<div style="max-width:640px;margin:0 auto;font-family:'Inter',sans-serif;background:#111214;border-radius:14px;padding:20px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      <div style="flex:1;height:4px;background:#1e1f22;border-radius:2px"><div style="height:100%;width:${pct}%;background:#8b5cf6;border-radius:2px"></div></div>
+      <span style="font-size:11px;color:#555;font-family:'Orbitron',monospace">PART ${part.id}/2</span>
+    </div>
+    <div style="background:#1e1020;border:1px solid #8b5cf633;border-radius:12px;padding:14px;margin-bottom:14px">
+      <div style="font-family:'Orbitron',monospace;font-size:10px;color:#8b5cf6;font-weight:700;letter-spacing:1px;margin-bottom:4px">🎧 LISTENING — PART ${part.id}</div>
+      <div style="font-size:15px;font-weight:700;color:#c9d1d9;margin-bottom:4px">${part.title}</div>
+      <div style="font-size:12px;color:#8b949e">${part.instructions}</div>
+    </div>
+    <div style="background:#2b2d31;border-radius:10px;padding:14px;margin-bottom:14px">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+        <button onclick="_ketPlayAudio()" id="ket-play-btn" style="padding:10px 18px;background:#8b5cf6;border:none;border-radius:8px;color:#fff;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">▶ Play Audio</button>
+        <div style="font-size:12px;color:#555">British English · Listen carefully before answering</div>
+      </div>
+      <div id="ket-audio-status" style="font-size:12px;color:#555;font-style:italic"></div>
+    </div>
+    ${bodyHtml}
+    <div style="display:flex;gap:10px;margin-top:16px">
+      <button onclick="openKETDiagnostic()" style="padding:11px 16px;background:rgba(255,255,255,.05);border:1px solid #333;border-radius:8px;color:#666;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;cursor:pointer">← Menu</button>
+      <button onclick="_ketSubmitListenPart()" style="flex:1;padding:11px;background:#8b5cf6;border:none;border-radius:8px;color:#fff;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">${partIdx<parts.length-1?'Next Part →':'Finish Listening ✓'}</button>
+    </div>
+  </div>`;
+}
+
+function _ketPlayAudio(){
+  const {parts,partIdx}=window._ketListen;
+  const part=parts[partIdx];
+  const btn=document.getElementById('ket-play-btn');
+  const status=document.getElementById('ket-audio-status');
+  if(!window.speechSynthesis)return;
+  window.speechSynthesis.cancel();
+  let text='';
+  if(part.id===2){text=part.audioText||'';}
+  else{text=(part.items||[]).map((item,i)=>`Conversation ${i+1}. ${item.audioText}`).join(' ... ');}
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang='en-GB';u.rate=0.85;u.pitch=1.0;
+  const v=getBestMaleVoice(true);if(v)u.voice=v;
+  if(btn){btn.textContent='🔊 Playing...';btn.style.background='rgba(139,92,246,.4)';}
+  if(status)status.textContent='Audio playing — listen carefully...';
+  u.onend=()=>{
+    if(btn){btn.textContent='▶ Play Again';btn.style.background='#8b5cf6';}
+    if(status)status.textContent='Done. Answer the questions below.';
+  };
+  window.speechSynthesis.speak(u);
+}
+
+function _ketSubmitListenPart(){
+  const {parts,partIdx}=window._ketListen;
+  const part=parts[partIdx];
+  window.speechSynthesis.cancel();
+  if(part.id===2){
+    const ans={};
+    Object.entries(part.notes||{}).forEach(([k,v],i)=>{ans[i]=(document.getElementById(`ket-ln-${i}`)?.value||'').trim().toLowerCase();});
+    window._ketListen.answers[partIdx]=ans;
+  } else {
+    const ans={};
+    (part.items||[]).forEach((_,i)=>{const sel=document.querySelector(`input[name="ket-ln-mc-${i}"]:checked`);ans[i]=sel?sel.value:'';});
+    window._ketListen.answers[partIdx]=ans;
+  }
+  if(partIdx<parts.length-1){window._ketListen.partIdx=partIdx+1;_ketRenderListenPart();}
+  else{
+    let score=0,max=0;
+    parts.forEach((p,pi)=>{
+      const ans=window._ketListen.answers[pi]||{};
+      if(p.id===2){Object.entries(p.answers||{}).forEach(([k,c],i)=>{max++;const given=(ans[i]||'').toLowerCase();const correct=(c||'').toLowerCase();if(given===correct||correct.includes(given))score++;});}
+      else{(p.items||[]).forEach((item,i)=>{max++;if(ans[i]===item.ans)score++;});}
+    });
+    _ketSess.listening={score,max};
+    _renderKETMenu();
+    showToast(`🎧 Listening complete! ${score}/${max}`);
+  }
+}
+
+// ── SPEAKING ─────────────────────────────────────────────────────────────────
+
+async function ketSpeaking(){
+  const area=document.getElementById('module-content-area');
+  area.innerHTML=`<div style="max-width:640px;margin:0 auto;background:#111214;border-radius:14px;padding:24px;text-align:center"><div style="color:#22c55e;font-size:32px;margin-bottom:12px">🎤</div><div style="color:#8b949e;font-size:13px">Preparing Speaking test...</div></div>`;
+  try{
+    const raw=await callClaude(`Generate a Cambridge A2 Key (KET) Speaking test for a ${getAge()}-year-old learner. Oliver Blackwood (a Ravenclaw student at Hogwarts) is the examiner.
+Return ONLY valid JSON:
+{"part1":{"title":"Personal Questions","instructions":"Oliver will ask you questions about yourself. Answer in complete sentences.","questions":["What is your full name and how do you spell your surname?","Where do you live, and what do you like about your neighbourhood?","What do you usually do at the weekend?","Tell me about a subject you enjoy at school and why.","What kind of food do you like? Do you have a favourite meal?"]},"part2":{"title":"Topic Discussion","instructions":"Look at the picture prompt and discuss the topic with Oliver.","prompt":"Imagine you are planning a perfect day out with friends. You can choose between: going to the cinema, visiting a theme park, or having a picnic in the park. Which would you choose and why? What would you do there?","followups":["What would you eat or drink during your day out?","Would you prefer to go with family or friends? Why?","Have you done any of these activities before? Tell me about it."]}}`,1000);
+    const d=parseJSON(raw);
+    if(!d?.part1?.questions)throw new Error('bad');
+    window._ketSpeak={data:d,part:1,qIdx:0,transcripts:[],part2Transcripts:[]};
+    _ketRenderSpeakIntro();
+  }catch(e){
+    area.innerHTML=`<div style="max-width:640px;margin:0 auto;background:#111214;border-radius:14px;padding:24px;text-align:center"><div style="color:#ef4444;margin-bottom:12px">⚠️ Error. Please try again.</div><button onclick="ketSpeaking()" style="padding:10px 20px;background:#22c55e;border:none;border-radius:8px;color:#0a0a1a;cursor:pointer;font-family:'Rajdhani',sans-serif;font-weight:700">Try Again</button></div>`;
+  }
+}
+
+function _ketRenderSpeakIntro(){
+  const area=document.getElementById('module-content-area');
+  const d=window._ketSpeak.data;
+  area.innerHTML=`<div style="max-width:640px;margin:0 auto;font-family:'Inter',sans-serif;background:#111214;border-radius:14px;padding:20px">
+    <div style="background:#2b2d31;border-radius:12px;padding:16px;margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+        <img src="Avatar/oliver-blackwood.png" style="width:44px;height:44px;border-radius:50%;object-fit:cover" alt="Oliver">
+        <div>
+          <div style="font-weight:700;color:#c9d1d9;font-size:14px">Oliver Blackwood <span style="background:#1e3a5f;color:#7aa2d4;font-size:10px;padding:1px 6px;border-radius:4px;margin-left:6px">RAVENCLAW</span></div>
+          <div style="color:#8b949e;font-size:12px">KET Speaking Examiner</div>
+        </div>
+      </div>
+      <div style="background:#1e1f22;border-radius:8px;padding:12px;color:#c9d1d9;font-size:13px;line-height:1.6">Hello! I'm Oliver Blackwood, and I'll be your examiner today. There are two parts. First, I'll ask you some personal questions. Then we'll discuss a topic together. Take your time — there's no rush. Ready?</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+      <div style="background:#1e1f22;border-radius:10px;padding:12px">
+        <div style="font-size:11px;color:#22c55e;font-weight:700;font-family:'Orbitron',monospace;margin-bottom:4px">PART 1</div>
+        <div style="font-size:13px;color:#c9d1d9">${d.part1.title}</div>
+        <div style="font-size:11px;color:#555;margin-top:4px">${d.part1.questions.length} questions</div>
+      </div>
+      <div style="background:#1e1f22;border-radius:10px;padding:12px">
+        <div style="font-size:11px;color:#22c55e;font-weight:700;font-family:'Orbitron',monospace;margin-bottom:4px">PART 2</div>
+        <div style="font-size:13px;color:#c9d1d9">${d.part2.title}</div>
+        <div style="font-size:11px;color:#555;margin-top:4px">Discussion + follow-ups</div>
+      </div>
+    </div>
+    <button onclick="_ketSpeakAsk()" style="width:100%;padding:14px;background:#22c55e;border:none;border-radius:10px;color:#0a0a1a;font-family:'Orbitron',monospace;font-weight:700;font-size:14px;cursor:pointer">Start Speaking Test →</button>
+    <div style="margin-top:8px;text-align:center"><button onclick="openKETDiagnostic()" style="background:none;border:none;color:#555;font-size:12px;cursor:pointer">← Menu</button></div>
+  </div>`;
+  oliverSpeak("Hello! I'm Oliver Blackwood, and I'll be your examiner today. There are two parts. Ready?");
+}
+
+let _ketSpeakRec=null,_ketSpeakHeld=false;
+function _ketSpeakAsk(){
+  const s=window._ketSpeak;
+  const {data,part,qIdx}=s;
+  const area=document.getElementById('module-content-area');
+  const isP1=part===1;
+  const questions=isP1?data.part1.questions:[data.part2.prompt,...(data.part2.followups||[])];
+  const q=questions[qIdx];
+  const total=questions.length;
+  const pct=Math.round(qIdx/total*100);
+  area.innerHTML=`<div style="max-width:640px;margin:0 auto;font-family:'Inter',sans-serif;background:#111214;border-radius:14px;padding:20px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <div style="flex:1;height:4px;background:#1e1f22;border-radius:2px"><div style="height:100%;width:${pct}%;background:#22c55e;border-radius:2px"></div></div>
+      <span style="font-size:11px;color:#555;font-family:'Orbitron',monospace">PART ${part} · Q${qIdx+1}/${total}</span>
+    </div>
+    <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:14px">
+      <img src="Avatar/oliver-blackwood.png" style="width:40px;height:40px;border-radius:50%;object-fit:cover;flex-shrink:0" alt="Oliver">
+      <div style="flex:1">
+        <div style="font-weight:700;color:#c9d1d9;font-size:13px;margin-bottom:6px">Oliver Blackwood</div>
+        <div style="background:#2b2d31;border-radius:0 10px 10px 10px;padding:12px 14px;color:#c9d1d9;font-size:14px;line-height:1.5">${q}</div>
+      </div>
+    </div>
+    <div style="background:#2b2d31;border-radius:10px;padding:14px;margin-bottom:14px">
+      <div id="ket-sp-transcript" style="min-height:48px;color:#8b949e;font-size:13px;font-style:italic;padding:8px;background:#1e1f22;border-radius:6px;margin-bottom:10px">Your answer will appear here...</div>
+      <div style="display:flex;gap:8px">
+        <button id="ket-sp-btn" onmousedown="_ketSpStartListen()" onmouseup="_ketSpStopListen()" ontouchstart="_ketSpStartListen()" ontouchend="_ketSpStopListen()" style="flex:1;padding:11px;background:rgba(34,197,94,.1);border:2px solid rgba(34,197,94,.3);border-radius:8px;color:#22c55e;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">🎤 Hold / Space</button>
+        <button onclick="_ketSpSubmitAnswer()" style="padding:11px 18px;background:#22c55e;border:none;border-radius:8px;color:#0a0a1a;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">Next →</button>
+      </div>
+    </div>
+    <button onclick="openKETDiagnostic()" style="background:none;border:none;color:#555;font-size:12px;cursor:pointer;width:100%;text-align:center">← Menu</button>
+  </div>`;
+  oliverSpeak(q);
+  document.addEventListener('keydown',_ketSpKeyDown);
+  document.addEventListener('keyup',_ketSpKeyUp);
+}
+
+function _ketSpKeyDown(e){if(e.code==='Space'&&!_ketSpeakHeld&&document.getElementById('ket-sp-btn')){e.preventDefault();_ketSpeakHeld=true;_ketSpStartListen();}}
+function _ketSpKeyUp(e){if(e.code==='Space'&&document.getElementById('ket-sp-btn')){e.preventDefault();_ketSpeakHeld=false;_ketSpStopListen();}}
+
+function _ketSpStartListen(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){document.getElementById('ket-sp-transcript').textContent='Mic not available — type below.';return;}
+  _ketSpeakRec=new SR();_ketSpeakRec.lang='en-US';_ketSpeakRec.continuous=false;_ketSpeakRec.interimResults=true;
+  const btn=document.getElementById('ket-sp-btn');
+  if(btn){btn.style.background='rgba(239,68,68,.2)';btn.style.borderColor='#ef4444';btn.textContent='🔴 Listening...';}
+  _ketSpeakRec.onresult=e=>{const t=Array.from(e.results).map(r=>r[0].transcript).join('');const el=document.getElementById('ket-sp-transcript');if(el)el.textContent=t;};
+  _ketSpeakRec.start();
+}
+
+function _ketSpStopListen(){
+  if(_ketSpeakRec){_ketSpeakRec.stop();_ketSpeakRec=null;}
+  const btn=document.getElementById('ket-sp-btn');
+  if(btn){btn.style.background='rgba(34,197,94,.1)';btn.style.borderColor='rgba(34,197,94,.3)';btn.textContent='🎤 Hold / Space';}
+}
+
+function _ketSpSubmitAnswer(){
+  document.removeEventListener('keydown',_ketSpKeyDown);
+  document.removeEventListener('keyup',_ketSpKeyUp);
+  if(_ketSpeakRec){_ketSpeakRec.stop();_ketSpeakRec=null;}
+  const transcript=(document.getElementById('ket-sp-transcript')?.textContent||'').trim();
+  const s=window._ketSpeak;
+  if(s.part===1){
+    s.transcripts.push({q:s.data.part1.questions[s.qIdx],a:transcript});
+    s.qIdx++;
+    if(s.qIdx<s.data.part1.questions.length){_ketSpeakHeld=false;_ketSpeakRec=null;_ketSpeakAsk();}
+    else{s.part=2;s.qIdx=0;_ketSpeakAsk();}
+  } else {
+    const qs=[s.data.part2.prompt,...(s.data.part2.followups||[])];
+    s.part2Transcripts.push({q:qs[s.qIdx],a:transcript});
+    s.qIdx++;
+    if(s.qIdx<qs.length){_ketSpeakHeld=false;_ketSpeakRec=null;_ketSpeakAsk();}
+    else{_ketEvalSpeaking();}
+  }
+}
+
+async function _ketEvalSpeaking(){
+  const area=document.getElementById('module-content-area');
+  area.innerHTML=`<div style="max-width:640px;margin:0 auto;background:#111214;border-radius:14px;padding:24px;text-align:center"><div style="color:#22c55e;font-size:24px;margin-bottom:8px">🎤</div><div style="color:#8b949e;font-size:13px">Oliver is reviewing your answers...</div></div>`;
+  const s=window._ketSpeak;
+  const allAnswers=[...s.transcripts,...s.part2Transcripts];
+  try{
+    const raw=await callClaude(`You are a Cambridge A2 Key (KET) Speaking examiner. Evaluate these speaking answers from a ${getAge()}-year-old learner.
+ANSWERS: ${JSON.stringify(allAnswers)}
+Return ONLY valid JSON:
+{"score":7,"maxScore":10,"fluency":{"score":2,"max":3,"comment":"..."},"grammar":{"score":2,"max":3,"comment":"..."},"vocabulary":{"score":2,"max":4,"comment":"..."},"taskCompletion":{"score":1,"max":2,"comment":"Was relevant and responsive?"},"overall":"2-sentence honest evaluation","level":"A1/A2/B1","strengths":["...","..."],"toImprove":["...","..."]}`,1500);
+    const ev=parseJSON(raw);
+    _ketSess.speaking={score:ev?.score||5,max:ev?.maxScore||10,evaluation:ev};
+    _ketRenderSpeakResult(ev);
+  }catch(e){
+    _ketSess.speaking={score:5,max:10};
+    _renderKETMenu();
+    showToast('🎤 Speaking saved!');
+  }
+}
+
+function _ketRenderSpeakResult(ev){
+  const area=document.getElementById('module-content-area');
+  const pct=Math.round((ev.score/ev.maxScore)*100);
+  const col=pct>=70?'#22c55e':pct>=50?'#f59e0b':'#ef4444';
+  area.innerHTML=`<div style="max-width:640px;margin:0 auto;font-family:'Inter',sans-serif;background:#111214;border-radius:14px;padding:20px">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+      <img src="Avatar/oliver-blackwood.png" style="width:44px;height:44px;border-radius:50%;object-fit:cover" alt="Oliver">
+      <div>
+        <div style="font-weight:700;color:#c9d1d9;font-size:14px">Oliver Blackwood</div>
+        <div style="font-size:12px;color:#8b949e">Speaking Evaluation</div>
+      </div>
+    </div>
+    <div style="background:#1e1f22;border-radius:12px;padding:16px;margin-bottom:14px;text-align:center">
+      <div style="font-size:36px;font-weight:700;color:${col}">${ev.score}/${ev.maxScore}</div>
+      <div style="font-size:12px;color:#8b949e;margin-top:4px">${pct}% · ${ev.level||'A2'}</div>
+    </div>
+    <div style="background:#1e1f22;border-radius:10px;padding:14px;margin-bottom:12px">
+      ${ev.fluency?`<div style="margin-bottom:8px"><span style="font-size:12px;color:#22c55e;font-weight:700">Fluency ${ev.fluency.score}/${ev.fluency.max}:</span> <span style="color:#8b949e;font-size:13px">${ev.fluency.comment}</span></div>`:''}
+      ${ev.grammar?`<div style="margin-bottom:8px"><span style="font-size:12px;color:#22c55e;font-weight:700">Grammar ${ev.grammar.score}/${ev.grammar.max}:</span> <span style="color:#8b949e;font-size:13px">${ev.grammar.comment}</span></div>`:''}
+      ${ev.vocabulary?`<div style="margin-bottom:8px"><span style="font-size:12px;color:#22c55e;font-weight:700">Vocabulary ${ev.vocabulary.score}/${ev.vocabulary.max}:</span> <span style="color:#8b949e;font-size:13px">${ev.vocabulary.comment}</span></div>`:''}
+      <div style="border-top:1px solid #333;padding-top:10px;color:#c9d1d9;font-size:13px">${ev.overall||''}</div>
+    </div>
+    <button onclick="openKETDiagnostic()" style="width:100%;padding:12px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);border-radius:8px;color:#22c55e;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">← Back to Menu</button>
+  </div>`;
+  oliverSpeak(ev.overall||"Well done for completing the speaking test!");
+}
+
+// ── RESULTS ──────────────────────────────────────────────────────────────────
+
+async function ketResults(){
+  const area=document.getElementById('module-content-area');
+  area.innerHTML=`<div style="max-width:640px;margin:0 auto;background:#111214;border-radius:14px;padding:24px;text-align:center"><div style="color:var(--gold2);font-size:32px;margin-bottom:12px">🎓</div><div style="color:#8b949e;font-size:13px">Generating your diagnostic report...<br><span style="font-size:11px;color:#444">This takes a moment</span></div></div>`;
+  const s=_ketSess;
+  const scores={
+    reading:`${s.reading?.score||0}/${s.reading?.max||21}`,
+    writing:`${s.writing?.score||0}/${s.writing?.max||10}`,
+    listening:`${s.listening?.score||0}/${s.listening?.max||10}`,
+    speaking:`${s.speaking?.score||0}/${s.speaking?.max||10}`
+  };
+  try{
+    const raw=await callClaude(`You are a Cambridge language assessment expert. Generate a diagnostic report for a ${getAge()}-year-old A2 Key (KET) learner who did NOT come from a bilingual school.
+SCORES: Reading ${scores.reading}, Writing ${scores.writing}, Listening ${scores.listening}, Speaking ${scores.speaking}
+SPEAKING EVAL: ${JSON.stringify(s.speaking?.evaluation||{})}
+WRITING EVAL: ${JSON.stringify(s.writing?.evaluation||{})}
+
+Return ONLY valid JSON:
+{"overallLevel":"Pre-A2/Borderline A2/Solid A2/Ready for B1","overallSummary":"3-4 sentence honest assessment of current level","readingAnalysis":"2 sentences","writingAnalysis":"2 sentences","listeningAnalysis":"2 sentences","speakingAnalysis":"2 sentences","strengths":["specific strength 1","specific strength 2","specific strength 3"],"toImprove":["area 1 with specific advice","area 2 with specific advice"],"criticalGaps":["gap 1","gap 2"],"roadmapToBl":"3-4 sentences: what to focus on to reach B1 for the Cambridge exam after the London trip","priority":"reading/writing/listening/speaking — which to focus on MOST right now"}`,2000);
+    const r=parseJSON(raw);
+    _ketRenderResults(r,scores);
+  }catch(e){
+    _ketRenderResults(null,scores);
+  }
+}
+
+function _ketRenderResults(r,scores){
+  const area=document.getElementById('module-content-area');
+  const s=_ketSess;
+  const totalScore=(s.reading?.score||0)+(s.writing?.score||0)+(s.listening?.score||0)+(s.speaking?.score||0);
+  const totalMax=(s.reading?.max||21)+(s.writing?.max||10)+(s.listening?.max||10)+(s.speaking?.max||10);
+  const pct=Math.round(totalScore/totalMax*100);
+  const levelCol=r?.overallLevel?.includes('B1')?'#22c55e':r?.overallLevel?.includes('Solid')?'#f59e0b':r?.overallLevel?.includes('Borderline')?'#f97316':'#ef4444';
+  const barColor=s=>{ const p=Math.round((s.score||0)/(s.max||10)*100);return p>=70?'#22c55e':p>=50?'#f59e0b':'#ef4444';};
+  area.innerHTML=`<div style="max-width:640px;margin:0 auto;font-family:'Inter',sans-serif">
+    <div style="background:linear-gradient(135deg,#1a1f2e,#1e2438);border:1px solid rgba(251,191,36,.25);border-radius:16px;padding:24px;margin-bottom:16px;text-align:center">
+      <div style="font-family:'Orbitron',monospace;font-size:12px;color:#8b949e;letter-spacing:2px;margin-bottom:8px">KET DIAGNOSTIC RESULT</div>
+      <div style="font-size:28px;font-weight:700;color:${levelCol};margin-bottom:4px">${r?.overallLevel||'A2'}</div>
+      <div style="font-size:13px;color:#8b949e">${totalScore}/${totalMax} total · ${pct}% overall</div>
+      ${r?.overallSummary?`<div style="margin-top:14px;color:#c9d1d9;font-size:13px;line-height:1.7;text-align:left;background:rgba(0,0,0,.2);padding:12px;border-radius:8px">${r.overallSummary}</div>`:''}
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+      ${[
+        {k:'reading',icon:'📖',label:'Reading',col:'#3b82f6'},
+        {k:'writing',icon:'✏️',label:'Writing',col:'#ec4899'},
+        {k:'listening',icon:'🎧',label:'Listening',col:'#8b5cf6'},
+        {k:'speaking',icon:'🎤',label:'Speaking',col:'#22c55e'}
+      ].map(({k,icon,label,col})=>{
+        const sc=s[k]||{score:0,max:10};
+        const p=Math.round((sc.score||0)/(sc.max||10)*100);
+        const bc=p>=70?'#22c55e':p>=50?'#f59e0b':'#ef4444';
+        return `<div style="background:#1e1f22;border-radius:10px;padding:12px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <div style="font-size:11px;font-family:'Orbitron',monospace;color:${col}">${icon} ${label.toUpperCase()}</div>
+            <div style="font-size:13px;font-weight:700;color:${bc}">${sc.score||0}/${sc.max||10}</div>
+          </div>
+          <div style="height:4px;background:#2b2d31;border-radius:2px"><div style="height:100%;width:${p}%;background:${bc};border-radius:2px"></div></div>
+          <div style="font-size:11px;color:#555;margin-top:6px">${p}%</div>
+        </div>`;
+      }).join('')}
+    </div>
+    ${r?.strengths?.length?`<div style="background:#1e2d1e;border:1px solid rgba(34,197,94,.2);border-radius:10px;padding:14px;margin-bottom:10px">
+      <div style="font-size:11px;font-weight:700;color:#22c55e;font-family:'Orbitron',monospace;margin-bottom:8px">✅ STRENGTHS</div>
+      ${r.strengths.map(s=>`<div style="color:#c9d1d9;font-size:13px;padding:4px 0;border-bottom:1px solid #1e3d1e">• ${s}</div>`).join('')}
+    </div>`:''}
+    ${r?.toImprove?.length?`<div style="background:#2d2010;border:1px solid rgba(245,158,11,.2);border-radius:10px;padding:14px;margin-bottom:10px">
+      <div style="font-size:11px;font-weight:700;color:#f59e0b;font-family:'Orbitron',monospace;margin-bottom:8px">⚠️ TO IMPROVE</div>
+      ${r.toImprove.map(s=>`<div style="color:#c9d1d9;font-size:13px;padding:4px 0;border-bottom:1px solid #3d2d10">• ${s}</div>`).join('')}
+    </div>`:''}
+    ${r?.criticalGaps?.length?`<div style="background:#2d1010;border:1px solid rgba(239,68,68,.2);border-radius:10px;padding:14px;margin-bottom:10px">
+      <div style="font-size:11px;font-weight:700;color:#ef4444;font-family:'Orbitron',monospace;margin-bottom:8px">🔴 CRITICAL GAPS</div>
+      ${r.criticalGaps.map(s=>`<div style="color:#c9d1d9;font-size:13px;padding:4px 0;border-bottom:1px solid #3d1010">• ${s}</div>`).join('')}
+    </div>`:''}
+    ${r?.roadmapToBl?`<div style="background:#1a1f2e;border:1px solid rgba(251,191,36,.2);border-radius:10px;padding:14px;margin-bottom:16px">
+      <div style="font-size:11px;font-weight:700;color:var(--gold2);font-family:'Orbitron',monospace;margin-bottom:8px">🗺️ ROADMAP TO B1 (London → Cambridge PET)</div>
+      <div style="color:#c9d1d9;font-size:13px;line-height:1.7">${r.roadmapToBl}</div>
+      ${r.priority?`<div style="margin-top:10px;background:rgba(251,191,36,.08);border-radius:6px;padding:8px;font-size:12px;color:var(--gold2)">🎯 Priority focus right now: <strong>${r.priority.toUpperCase()}</strong></div>`:''}
+    </div>`:''}
+    <div style="display:flex;gap:10px">
+      <button onclick="openKETDiagnostic()" style="flex:1;padding:12px;background:rgba(255,255,255,.06);border:1px solid #333;border-radius:8px;color:#888;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;cursor:pointer">← Redo Section</button>
+      <button onclick="showScreen('screen-dashboard')" style="flex:1;padding:12px;background:linear-gradient(135deg,#f59e0b,#d97706);border:none;border-radius:12px;color:#0a0a1a;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">🏠 Hub</button>
+    </div>
+  </div>`;
+}
+
+
 
 function openFernandoLibre(){
   openModule('movers');
