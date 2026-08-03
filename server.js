@@ -67,9 +67,17 @@ app.post('/api/scores/:profile', (req, res) => {
   const scores = readScores();
   const incoming = req.body;
 
-  // Always keep the higher km value (prevents accidental resets)
+  // A lower incoming km is normally treated as an accidental reset (e.g. cleared
+  // localStorage) and rejected — we keep the higher value. BUT a real reset to 0
+  // happens on purpose every time a star/trophy/Big Ben is earned. We detect that
+  // by checking whether prestige went up: if it did, trust the client's km as-is,
+  // even though it's lower. Otherwise, keep the old "always keep the higher value" guard.
+  const prestigeScore = p => (p?.bens || 0) * 25 + (p?.trophies || 0) * 5 + (p?.stars || 0);
+  const prevPrestige = scores[profile].prestige;
+  const earnedPrestige = incoming.prestige && prestigeScore(incoming.prestige) > prestigeScore(prevPrestige);
+
   if (typeof incoming.km === 'number')
-    scores[profile].km = Math.max(scores[profile].km || 0, incoming.km);
+    scores[profile].km = earnedPrestige ? incoming.km : Math.max(scores[profile].km || 0, incoming.km);
 
   if (incoming.prestige) scores[profile].prestige = incoming.prestige;
   if (incoming.streak)   scores[profile].streak   = incoming.streak;
