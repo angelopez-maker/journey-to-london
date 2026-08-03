@@ -1948,7 +1948,7 @@ function renderQAQuestion(idx){
       <div style="background:#2b2d31;border-radius:10px;padding:14px;border:1px solid #3d4045">
         <div id="qa-transcript" style="min-height:38px;color:#8b949e;font-size:13px;font-style:italic;margin-bottom:10px;padding:8px;background:#1e1f22;border-radius:6px">Your answer will appear here...</div>
         <div style="display:flex;gap:8px;margin-bottom:8px">
-          <button id="qa-mic-btn" onmousedown="qaStartListening()" onmouseup="qaStopListening()" ontouchstart="qaStartListening()" ontouchend="qaStopListening()" style="flex:1;padding:11px;background:${s.topic.colorBg};border:2px solid ${s.topic.colorBorder};border-radius:8px;color:${s.topic.color};font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">🎤 Hold / Space</button>
+          <button id="qa-mic-btn" onmousedown="qaStartListening()" onmouseup="qaStopListening()" ontouchstart="qaStartListening()" ontouchend="qaStopListening()" style="flex:1;padding:11px;background:${s.topic.colorBg};border:2px solid ${s.topic.colorBorder};border-radius:8px;color:${s.topic.color};font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">🎤 Hold / Ñ</button>
           <button onclick="qaSubmitAnswer(${idx})" style="padding:11px 18px;background:${s.topic.color};border:none;border-radius:8px;color:#0a0a1a;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">Send →</button>
         </div>
         <input type="text" id="qa-text-input" placeholder="Or type your answer here..." onkeydown="if(event.key==='Enter')qaSubmitAnswer(${idx})" style="width:100%;padding:9px 12px;background:#1e1f22;border:1px solid #3d4045;border-radius:8px;color:#c9d1d9;font-size:13px;outline:none;box-sizing:border-box">
@@ -1977,8 +1977,11 @@ function qaStopListening(){
   if(btn&&s){btn.style.background=s.topic.colorBg;btn.style.borderColor=s.topic.colorBorder;btn.textContent='🎤 Hold / Space';}
 }
 let _qaSpaceHeld=false;
-function qaSpaceDown(e){if(e.code==='Space'&&!_qaSpaceHeld&&document.getElementById('qa-mic-btn')){e.preventDefault();_qaSpaceHeld=true;qaStartListening();}}
-function qaSpaceUp(e){if(e.code==='Space'&&document.getElementById('qa-mic-btn')){e.preventDefault();_qaSpaceHeld=false;qaStopListening();}}
+// "Ñ" doesn't exist in English, so it can't collide with a word being typed in #qa-text-input —
+// that's why it replaced the spacebar as the hold-to-talk key (spacebar broke typing: every space
+// inside a sentence re-triggered the mic).
+function qaSpaceDown(e){if(e.key&&e.key.toLowerCase()==='ñ'&&!_qaSpaceHeld&&document.getElementById('qa-mic-btn')){e.preventDefault();_qaSpaceHeld=true;qaStartListening();}}
+function qaSpaceUp(e){if(e.key&&e.key.toLowerCase()==='ñ'&&document.getElementById('qa-mic-btn')){e.preventDefault();_qaSpaceHeld=false;qaStopListening();}}
 function qaAddSpaceListeners(){document.addEventListener('keydown',qaSpaceDown);document.addEventListener('keyup',qaSpaceUp);}
 function qaRemoveSpaceListeners(){document.removeEventListener('keydown',qaSpaceDown);document.removeEventListener('keyup',qaSpaceUp);_qaSpaceHeld=false;}
 
@@ -4694,31 +4697,62 @@ function pronSkip(){
 async function runVocabMatch(){
   showLoading('Preparing vocab match...');
   const unitCtx=state.currentUnit||getUnitContext();
+  const levelDesc=getLevelDesc();
   let prompt='';
 
   if(unitCtx&&unitCtx.vocab){
     const allWords=unitCtx.vocab.split(',').map(w=>w.trim()).filter(Boolean);
     const chosen=allWords.sort(()=>Math.random()-0.5).slice(0,5);
-    prompt=`Translate these English words to Spanish for a ${getAge()}-year-old Chilean child.
+    prompt=`Translate these English words to Spanish for a Chilean child. Student level: ${levelDesc}.
 Words: ${chosen.join(', ')}
 Return ONLY this JSON (no markdown):
 {"pairs":[{"en":"word","es":"traducción"},...]}`;
     try{
       const raw=await callClaude(prompt,400);
       const d=parseJSON(raw);
-      renderVocabMatch(d.pairs,unitCtx.unitName);
+      // Only worth the extra check at Pro/GOAT — simple A1 words are low-risk and the check just adds latency
+      const checked=(state.level==='pro'||state.level==='goat')?await verifyVocabPairs(d.pairs):d.pairs;
+      renderVocabMatch(checked,unitCtx.unitName);
     }catch(e){showError('Could not load vocabulary. '+e.message);}
   } else {
     const topic=getTopic();
-    prompt=`Generate 5 English-Spanish vocabulary pairs for a ${getAge()}-year-old studying "${topic}".
-Use simple, concrete A1 words a Chilean child would know in Spanish.
+    // Difficulty scales with Normal/Pro/GOAT, not just age — a GOAT-level Fer gets harder words than a Normal-level Rodrigo on the same topic.
+    const difficultyHint={
+      normal:'Use simple, concrete A1 words a Chilean child would know in Spanish.',
+      pro:'Use moderately challenging B1 words — some can be more abstract, not just concrete objects.',
+      goat:'Use advanced, challenging B2-C1 vocabulary — precise, less common words appropriate for a strong student.'
+    }[state.level]||'Use simple, concrete A1 words a Chilean child would know in Spanish.';
+    prompt=`Generate 5 English-Spanish vocabulary pairs for a ${getAge()}-year-old studying "${topic}". Student level: ${levelDesc}.
+${difficultyHint}
 Return ONLY this JSON (no markdown):
 {"pairs":[{"en":"word","es":"traducción"},{"en":"word","es":"traducción"},{"en":"word","es":"traducción"},{"en":"word","es":"traducción"},{"en":"word","es":"traducción"}]}`;
     try{
       const raw=await callClaude(prompt,400);
       const d=parseJSON(raw);
-      renderVocabMatch(d.pairs,topic);
+      // Only worth the extra check at Pro/GOAT — simple A1 words are low-risk and the check just adds latency
+      const checked=(state.level==='pro'||state.level==='goat')?await verifyVocabPairs(d.pairs):d.pairs;
+      renderVocabMatch(checked,topic);
     }catch(e){showError('Could not load vocabulary. '+e.message);}
+  }
+}
+
+// Consistency validator: re-checks each EN-ES pair for accuracy before showing it to the student —
+// a second, independent pass that catches wrong/ambiguous translations (false friends, rare
+// synonyms) before the game is shown. If the check itself fails, fall back to the original
+// pairs rather than blocking the game entirely.
+async function verifyVocabPairs(pairs){
+  if(!pairs||!pairs.length)return pairs;
+  try{
+    const raw=await callClaude(`You are a strict Spanish-English translation checker for a children's vocabulary game.
+Review this list of English-Spanish word pairs. For each one, check if "es" is truly the correct, most natural, unambiguous Spanish translation of "en" — not a false friend, not a rare or regional synonym a Chilean child wouldn't recognize.
+If a pair is already correct, keep it exactly as is. If it's wrong or misleading, replace "es" with the correct translation.
+Pairs: ${JSON.stringify(pairs)}
+Return ONLY the corrected JSON, same structure, same number of pairs:
+{"pairs":[{"en":"word","es":"traducción"},...]}`,400);
+    const d=parseJSON(raw);
+    return (d&&d.pairs&&d.pairs.length)?d.pairs:pairs;
+  }catch(e){
+    return pairs;
   }
 }
 
