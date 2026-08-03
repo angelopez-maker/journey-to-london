@@ -1974,7 +1974,7 @@ function qaStartListening(){
 function qaStopListening(){
   if(_qaRec){_qaRec.stop();_qaRec=null;}
   const btn=document.getElementById('qa-mic-btn'),s=window._qaSession;
-  if(btn&&s){btn.style.background=s.topic.colorBg;btn.style.borderColor=s.topic.colorBorder;btn.textContent='🎤 Hold / Space';}
+  if(btn&&s){btn.style.background=s.topic.colorBg;btn.style.borderColor=s.topic.colorBorder;btn.textContent='🎤 Hold / Ñ';}
 }
 let _qaSpaceHeld=false;
 // "Ñ" doesn't exist in English, so it can't collide with a word being typed in #qa-text-input —
