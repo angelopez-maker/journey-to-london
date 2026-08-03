@@ -2738,6 +2738,9 @@ function openFernandoLibre(){
   openModule('movers');
   const area=document.getElementById('module-content-area');
   document.getElementById('mod-title').textContent='FREE PRACTICE';
+  // Clear any leftover Versus Mode duel so it doesn't bleed into Free Practice lessons
+  const duelSelReset=document.getElementById('grammar-duel-select');
+  if(duelSelReset)duelSelReset.value='none';
   const chips=['My daily routine','My hobbies and interests','Travel and places I want to visit','My favourite food','School life','Family and friends','A book or film I enjoyed','My future plans','Sports and activities','Technology and social media'];
   const chipsHTML=chips.map(c=>`<span onclick="setFernandoTopic(this)" style="display:inline-block;padding:8px 16px;margin:4px;background:var(--card2);border:1px solid var(--border);border-radius:20px;font-size:13px;cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor='#c084fc';this.style.color='#c084fc'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text)'">${c}</span>`).join('');
   area.innerHTML=`<div style="max-width:680px;margin:0 auto">
@@ -2754,13 +2757,19 @@ function openFernandoLibre(){
       <input type="text" id="free-topic-input" placeholder="Or write your own topic..." style="flex:1;padding:11px 14px;background:var(--card2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;outline:none" onkeydown="if(event.key==='Enter')setFernandoTopic(null,this.value)">
       <button onclick="setFernandoTopic(null,document.getElementById('free-topic-input').value)" style="padding:11px 18px;background:#c084fc;border:none;border-radius:10px;color:#0a0a1a;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">Go →</button>
     </div>
+    <div id="free-hub-area"></div>
   </div>`;
 }
 function setFernandoTopic(el,customTopic){
   const t=customTopic||el?.textContent||'';
   if(!t.trim())return;
+  // Clear any leftover Versus Mode duel — Free Practice must never inherit a Versus grammar contrast
+  const duelSel=document.getElementById('grammar-duel-select');
+  if(duelSel)duelSel.value='none';
+  state.currentUnit={unitName:t,topic:t,vocab:''};
   const topicInput=document.getElementById('topic-input');
-  if(topicInput){topicInput.value=t;startLesson();}
+  if(topicInput)topicInput.value=t;
+  renderModuleHub('🌍',t,'#c084fc',null,true);
 }
 
 // ── Test the Test ──
@@ -3009,6 +3018,9 @@ function setFreeTopicAndHub(el){
 function confirmFreeTopicHub(){
   const inp=document.getElementById('free-topic-input');
   const topic=(inp?.value||'').trim()||'General English';
+  // Clear any leftover Versus Mode duel — Free Practice must never inherit a Versus grammar contrast
+  const duelSel=document.getElementById('grammar-duel-select');
+  if(duelSel)duelSel.value='none';
   state.currentUnit={unitName:topic,topic,vocab:''};
   document.getElementById('topic-input')&&(document.getElementById('topic-input').value=topic);
   renderModuleHub('🌍',topic,'#c084fc',null,true);
