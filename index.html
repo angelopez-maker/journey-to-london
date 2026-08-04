@@ -911,9 +911,82 @@
 
 <div class="toast" id="toast"></div>
 
+<script src="lyrics-cache.js"></script>
 <script>
 // ══ CONFIG ══
 const MODEL = 'claude-haiku-4-5-20251001';
+
+// ══ WHISPER MIC (STT) ══
+// Reemplaza el reconocimiento de voz nativo del navegador (webkitSpeechRecognition), que
+// tenía mala precisión con acento infantil. En vez de transcribir en vivo mientras se habla,
+// esto graba el audio completo (modelo start/stop por click, no "mantener presionado" — así
+// una pausa para pensar no corta nada) y al detener lo manda al servidor (/api/transcribe)
+// para transcribirlo con Whisper (OpenAI). Aparece con ~1-2 segundos de demora tras detener.
+// _micBusy es un lock síncrono: evita que dos llamadas a micStart() casi simultáneas (ej. un
+// doble-click, o eventos de teclado + click superpuestos) disparen dos grabaciones a la vez,
+// donde la segunda pisa a la primera a medio camino y se pierde el audio ya capturado.
+let _micRecorder=null, _micChunks=[], _micStream=null, _micBusy=false;
+
+function micIsRecording(){return !!(_micRecorder&&_micRecorder.state==='recording');}
+
+async function micStart(){
+  if(_micBusy||micIsRecording())return;
+  _micBusy=true;
+  try{
+    _micStream=await navigator.mediaDevices.getUserMedia({audio:true});
+    _micChunks=[];
+    const mimeType=(window.MediaRecorder&&MediaRecorder.isTypeSupported('audio/webm;codecs=opus'))?'audio/webm;codecs=opus':'audio/webm';
+    _micRecorder=new MediaRecorder(_micStream,{mimeType});
+    _micRecorder.ondataavailable=e=>{if(e.data&&e.data.size>0)_micChunks.push(e.data);};
+    _micRecorder.start();
+  } finally {
+    _micBusy=false;
+  }
+}
+
+// Detiene la grabación y devuelve una Promise con el texto transcrito ('' si falla o no hay audio).
+function micStopAndTranscribe(){
+  return new Promise(resolve=>{
+    if(!micIsRecording()){resolve('');return;}
+    const mimeType=_micRecorder.mimeType||'audio/webm';
+    _micRecorder.onstop=async()=>{
+      if(_micStream){_micStream.getTracks().forEach(t=>t.stop());_micStream=null;}
+      const blob=new Blob(_micChunks,{type:mimeType});
+      _micChunks=[];
+      if(blob.size<500){resolve('');return;} // grabación demasiado corta (sin audio real)
+      try{
+        const b64=await new Promise((res,rej)=>{
+          const reader=new FileReader();
+          reader.onloadend=()=>res(String(reader.result).split(',')[1]);
+          reader.onerror=rej;
+          reader.readAsDataURL(blob);
+        });
+        const r=await fetch('/api/transcribe',{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({audio:b64,mimeType})
+        });
+        const data=await r.json();
+        resolve((data.text||'').trim());
+      }catch(e){
+        console.error('Whisper transcribe error:',e);
+        resolve('');
+      }
+    };
+    try{_micRecorder.stop();}catch(e){resolve('');}
+  });
+}
+
+// Descarta la grabación en curso sin transcribir (botón "Reset / try again").
+function micReset(){
+  if(_micRecorder&&_micRecorder.state==='recording'){
+    _micRecorder.onstop=null;
+    try{_micRecorder.stop();}catch(e){}
+  }
+  if(_micStream){_micStream.getTracks().forEach(t=>t.stop());_micStream=null;}
+  _micChunks=[];
+  _micRecorder=null;
+}
 const TOTAL_KM = 11700;
 const MILESTONES = [500,1000,2500,5000,7500,10000,11700];
 
@@ -1650,6 +1723,9 @@ function openVersusModeF(){
       {val:'food_drinks',label:'Food & Drinks',theory:null},
       {val:'school_classroom',label:'School & Classroom',theory:null},
       {val:'hobbies',label:'Hobbies & Free Time',theory:null},
+      {val:'personal_info',label:'Personal Information',theory:null},
+      {val:'family_friends',label:'Family & Friends',theory:null},
+      {val:'shopping',label:'Shopping',theory:null},
     ]},
     {label:'Writing Skills ✍️',color:'var(--cyan)',duels:[
       {val:'informal_email',label:'Informal Email / Letter',theory:null},
@@ -1686,7 +1762,7 @@ function openVersusModeF(){
 
 function startVersusF(duelVal){
   const grammarDuels=['pres_simple_cont','past_simple_cont','stative_verbs','perf_simple_cont','comparative_superlative','will_going_to','zero_first_cond'];
-  const duelLabels={pres_simple_cont:'Present Simple vs Continuous',past_simple_cont:'Past Simple vs Continuous',stative_verbs:'Stative Verbs',perf_simple_cont:'Present Perfect',comparative_superlative:'Comparatives & Superlatives',will_going_to:'Will vs Going To',zero_first_cond:'Conditionals',modal_verbs:'Modal Verbs',passive_voice:'Passive Voice',question_tags:'Question Tags',daily_routines:'Daily Routines',travel_transport:'Travel & Transport',food_drinks:'Food & Drinks',school_classroom:'School & Classroom',hobbies:'Hobbies & Free Time',informal_email:'Informal Email Writing',describing_people:'Describing People',giving_opinions:'Giving Opinions'};
+  const duelLabels={pres_simple_cont:'Present Simple vs Continuous',past_simple_cont:'Past Simple vs Continuous',stative_verbs:'Stative Verbs',perf_simple_cont:'Present Perfect',comparative_superlative:'Comparatives & Superlatives',will_going_to:'Will vs Going To',zero_first_cond:'Conditionals',modal_verbs:'Modal Verbs',passive_voice:'Passive Voice',question_tags:'Question Tags',daily_routines:'Daily Routines',travel_transport:'Travel & Transport',food_drinks:'Food & Drinks',school_classroom:'School & Classroom',hobbies:'Hobbies & Free Time',personal_info:'Personal Information (name, age, where you live)',family_friends:'Family & Friends',shopping:'Shopping (clothes, prices, asking for things in a shop)',informal_email:'Informal Email Writing',describing_people:'Describing People',giving_opinions:'Giving Opinions'};
   const sel=document.getElementById('grammar-duel-select');
   if(sel)sel.value=grammarDuels.includes(duelVal)?duelVal:'none';
   const topicInput=document.getElementById('topic-input');
@@ -1948,8 +2024,9 @@ function renderQAQuestion(idx){
       <div style="background:#2b2d31;border-radius:10px;padding:14px;border:1px solid #3d4045">
         <div id="qa-transcript" style="min-height:38px;color:#8b949e;font-size:13px;font-style:italic;margin-bottom:10px;padding:8px;background:#1e1f22;border-radius:6px">Your answer will appear here...</div>
         <div style="display:flex;gap:8px;margin-bottom:8px">
-          <button id="qa-mic-btn" onmousedown="qaStartListening()" onmouseup="qaStopListening()" ontouchstart="qaStartListening()" ontouchend="qaStopListening()" style="flex:1;padding:11px;background:${s.topic.colorBg};border:2px solid ${s.topic.colorBorder};border-radius:8px;color:${s.topic.color};font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">🎤 Hold / Ñ</button>
-          <button onclick="qaSubmitAnswer(${idx})" style="padding:11px 18px;background:${s.topic.color};border:none;border-radius:8px;color:#0a0a1a;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">Send →</button>
+          <button id="qa-mic-btn" onclick="qaMicToggle()" style="flex:1;padding:11px;background:${s.topic.colorBg};border:2px solid ${s.topic.colorBorder};border-radius:8px;color:${s.topic.color};font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">🎤 Start recording</button>
+          <button id="qa-reset-btn" onclick="qaMicReset()" style="display:none;padding:11px 14px;background:#2b2d31;border:2px solid #3d4045;border-radius:8px;color:#8b949e;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">🔄</button>
+          <button id="qa-send-btn" onclick="qaSubmitAnswer(${idx})" style="padding:11px 18px;background:${s.topic.color};border:none;border-radius:8px;color:#0a0a1a;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">Send →</button>
         </div>
         <input type="text" id="qa-text-input" placeholder="Or type your answer here..." onkeydown="if(event.key==='Enter')qaSubmitAnswer(${idx})" style="width:100%;padding:9px 12px;background:#1e1f22;border:1px solid #3d4045;border-radius:8px;color:#c9d1d9;font-size:13px;outline:none;box-sizing:border-box">
       </div>
@@ -1957,33 +2034,39 @@ function renderQAQuestion(idx){
     </div>
   </div>`;
   oliverSpeak(`Question ${idx+1}. ${q.question}. Hint: use ${q.hint_tense||'the correct tense'}. Example: ${q.hint_example||''}`);
-  qaRemoveSpaceListeners();
-  qaAddSpaceListeners();
 }
 
-let _qaRec=null;
-function qaStartListening(){
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){document.getElementById('qa-transcript').textContent='Mic not available — type below.';return;}
-  _qaRec=new SR();_qaRec.lang='en-US';_qaRec.continuous=false;_qaRec.interimResults=true;
-  const btn=document.getElementById('qa-mic-btn'),s=window._qaSession;
-  if(btn){btn.style.background='rgba(239,68,68,.2)';btn.style.borderColor='#ef4444';btn.textContent='🔴 Listening...';}
-  _qaRec.onresult=e=>{const t=Array.from(e.results).map(r=>r[0].transcript).join('');const el=document.getElementById('qa-transcript');if(el)el.textContent=t;};
-  _qaRec.start();
+// Modelo start/stop por click (no "mantener presionado"): el niño hace click para empezar,
+// habla con las pausas que necesite, y hace click de nuevo para terminar y transcribir.
+// Evita el bug de perder audio si se suelta una tecla/botón sin querer durante una pausa.
+async function qaMicToggle(){
+  const btn=document.getElementById('qa-mic-btn'),el=document.getElementById('qa-transcript');
+  const resetBtn=document.getElementById('qa-reset-btn'),sendBtn=document.getElementById('qa-send-btn');
+  if(!micIsRecording()){
+    if(btn){btn.style.background='rgba(239,68,68,.2)';btn.style.borderColor='#ef4444';btn.textContent='🔴 Stop recording';}
+    if(resetBtn)resetBtn.style.display='block';
+    if(el)el.textContent='Listening... click "Stop recording" when done.';
+    micStart().catch(e=>{if(el)el.textContent='Mic not available — type below.';});
+  } else {
+    const s=window._qaSession;
+    if(btn&&s){btn.style.background=s.topic.colorBg;btn.style.borderColor=s.topic.colorBorder;btn.textContent='🎤 Start recording';btn.disabled=true;}
+    if(resetBtn)resetBtn.style.display='none';
+    if(sendBtn)sendBtn.disabled=true;
+    if(el)el.textContent='Transcribing...';
+    const text=await micStopAndTranscribe();
+    if(el)el.textContent=text||'(no speech detected — type below)';
+    if(btn)btn.disabled=false;
+    if(sendBtn)sendBtn.disabled=false;
+  }
 }
-function qaStopListening(){
-  if(_qaRec){_qaRec.stop();_qaRec=null;}
-  const btn=document.getElementById('qa-mic-btn'),s=window._qaSession;
-  if(btn&&s){btn.style.background=s.topic.colorBg;btn.style.borderColor=s.topic.colorBorder;btn.textContent='🎤 Hold / Ñ';}
+function qaMicReset(){
+  micReset();
+  const btn=document.getElementById('qa-mic-btn'),el=document.getElementById('qa-transcript'),resetBtn=document.getElementById('qa-reset-btn');
+  const s=window._qaSession;
+  if(btn&&s){btn.style.background=s.topic.colorBg;btn.style.borderColor=s.topic.colorBorder;btn.textContent='🎤 Start recording';}
+  if(resetBtn)resetBtn.style.display='none';
+  if(el)el.textContent='Your answer will appear here...';
 }
-let _qaSpaceHeld=false;
-// "Ñ" doesn't exist in English, so it can't collide with a word being typed in #qa-text-input —
-// that's why it replaced the spacebar as the hold-to-talk key (spacebar broke typing: every space
-// inside a sentence re-triggered the mic).
-function qaSpaceDown(e){if(e.key&&e.key.toLowerCase()==='ñ'&&!_qaSpaceHeld&&document.getElementById('qa-mic-btn')){e.preventDefault();_qaSpaceHeld=true;qaStartListening();}}
-function qaSpaceUp(e){if(e.key&&e.key.toLowerCase()==='ñ'&&document.getElementById('qa-mic-btn')){e.preventDefault();_qaSpaceHeld=false;qaStopListening();}}
-function qaAddSpaceListeners(){document.addEventListener('keydown',qaSpaceDown);document.addEventListener('keyup',qaSpaceUp);}
-function qaRemoveSpaceListeners(){document.removeEventListener('keydown',qaSpaceDown);document.removeEventListener('keyup',qaSpaceUp);_qaSpaceHeld=false;}
 
 async function qaSubmitAnswer(idx){
   const s=window._qaSession;if(!s)return;
@@ -2001,6 +2084,7 @@ Question: "${q.question}"
 Correct answer: "${q.answer}"
 Grammar focus: ${q.hint_tense||'correct tense'}
 Student answered: "${answer}"
+Use BRITISH English spelling and vocabulary in your feedback (e.g. "favourite" not "favorite", "colour" not "color") — this student is preparing for Cambridge exams. If the student used American spelling/vocabulary, gently show the British form as part of your feedback.
 Evaluate and return ONLY valid JSON with these exact keys:
 "correct" (boolean: was the meaning right, even if phrased differently?),
 "grammar_ok" (boolean: did they use ${q.hint_tense||'an appropriate tense'} correctly?),
@@ -2552,40 +2636,45 @@ function _ketSpeakAsk(){
     <div style="background:#2b2d31;border-radius:10px;padding:14px;margin-bottom:14px">
       <div id="ket-sp-transcript" style="min-height:48px;color:#8b949e;font-size:13px;font-style:italic;padding:8px;background:#1e1f22;border-radius:6px;margin-bottom:10px">Your answer will appear here...</div>
       <div style="display:flex;gap:8px">
-        <button id="ket-sp-btn" onmousedown="_ketSpStartListen()" onmouseup="_ketSpStopListen()" ontouchstart="_ketSpStartListen()" ontouchend="_ketSpStopListen()" style="flex:1;padding:11px;background:rgba(34,197,94,.1);border:2px solid rgba(34,197,94,.3);border-radius:8px;color:#22c55e;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">🎤 Hold / Space</button>
-        <button onclick="_ketSpSubmitAnswer()" style="padding:11px 18px;background:#22c55e;border:none;border-radius:8px;color:#0a0a1a;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">Next →</button>
+        <button id="ket-sp-btn" onclick="_ketSpMicToggle()" style="flex:1;padding:11px;background:rgba(34,197,94,.1);border:2px solid rgba(34,197,94,.3);border-radius:8px;color:#22c55e;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">🎤 Start recording</button>
+        <button id="ket-sp-reset-btn" onclick="_ketSpMicReset()" style="display:none;padding:11px 14px;background:#2b2d31;border:2px solid #3d4045;border-radius:8px;color:#8b949e;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">🔄</button>
+        <button id="ket-sp-next-btn" onclick="_ketSpSubmitAnswer()" style="padding:11px 18px;background:#22c55e;border:none;border-radius:8px;color:#0a0a1a;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">Next →</button>
       </div>
     </div>
     <button onclick="openKETDiagnostic()" style="background:none;border:none;color:#555;font-size:12px;cursor:pointer;width:100%;text-align:center">← Menu</button>
   </div>`;
   oliverSpeak(q);
-  document.addEventListener('keydown',_ketSpKeyDown);
-  document.addEventListener('keyup',_ketSpKeyUp);
 }
 
-function _ketSpKeyDown(e){if(e.code==='Space'&&!_ketSpeakHeld&&document.getElementById('ket-sp-btn')){e.preventDefault();_ketSpeakHeld=true;_ketSpStartListen();}}
-function _ketSpKeyUp(e){if(e.code==='Space'&&document.getElementById('ket-sp-btn')){e.preventDefault();_ketSpeakHeld=false;_ketSpStopListen();}}
-
-function _ketSpStartListen(){
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){document.getElementById('ket-sp-transcript').textContent='Mic not available — type below.';return;}
-  _ketSpeakRec=new SR();_ketSpeakRec.lang='en-US';_ketSpeakRec.continuous=false;_ketSpeakRec.interimResults=true;
-  const btn=document.getElementById('ket-sp-btn');
-  if(btn){btn.style.background='rgba(239,68,68,.2)';btn.style.borderColor='#ef4444';btn.textContent='🔴 Listening...';}
-  _ketSpeakRec.onresult=e=>{const t=Array.from(e.results).map(r=>r[0].transcript).join('');const el=document.getElementById('ket-sp-transcript');if(el)el.textContent=t;};
-  _ketSpeakRec.start();
+// Modelo start/stop por click — ver comentario equivalente en qaMicToggle().
+async function _ketSpMicToggle(){
+  const btn=document.getElementById('ket-sp-btn'),el=document.getElementById('ket-sp-transcript');
+  const resetBtn=document.getElementById('ket-sp-reset-btn'),nextBtn=document.getElementById('ket-sp-next-btn');
+  if(!micIsRecording()){
+    if(btn){btn.style.background='rgba(239,68,68,.2)';btn.style.borderColor='#ef4444';btn.textContent='🔴 Stop recording';}
+    if(resetBtn)resetBtn.style.display='block';
+    if(el)el.textContent='Listening... click "Stop recording" when done.';
+    micStart().catch(e=>{if(el)el.textContent='Mic not available — type below.';});
+  } else {
+    if(btn){btn.style.background='rgba(34,197,94,.1)';btn.style.borderColor='rgba(34,197,94,.3)';btn.textContent='🎤 Start recording';btn.disabled=true;}
+    if(resetBtn)resetBtn.style.display='none';
+    if(nextBtn)nextBtn.disabled=true;
+    if(el)el.textContent='Transcribing...';
+    const text=await micStopAndTranscribe();
+    if(el)el.textContent=text||'(no speech detected — type below)';
+    if(btn)btn.disabled=false;
+    if(nextBtn)nextBtn.disabled=false;
+  }
 }
-
-function _ketSpStopListen(){
-  if(_ketSpeakRec){_ketSpeakRec.stop();_ketSpeakRec=null;}
-  const btn=document.getElementById('ket-sp-btn');
-  if(btn){btn.style.background='rgba(34,197,94,.1)';btn.style.borderColor='rgba(34,197,94,.3)';btn.textContent='🎤 Hold / Space';}
+function _ketSpMicReset(){
+  micReset();
+  const btn=document.getElementById('ket-sp-btn'),el=document.getElementById('ket-sp-transcript'),resetBtn=document.getElementById('ket-sp-reset-btn');
+  if(btn){btn.style.background='rgba(34,197,94,.1)';btn.style.borderColor='rgba(34,197,94,.3)';btn.textContent='🎤 Start recording';}
+  if(resetBtn)resetBtn.style.display='none';
+  if(el)el.textContent='Your answer will appear here...';
 }
 
 function _ketSpSubmitAnswer(){
-  document.removeEventListener('keydown',_ketSpKeyDown);
-  document.removeEventListener('keyup',_ketSpKeyUp);
-  if(_ketSpeakRec){_ketSpeakRec.stop();_ketSpeakRec=null;}
   const transcript=(document.getElementById('ket-sp-transcript')?.textContent||'').trim();
   const s=window._ketSpeak;
   if(s.part===1){
@@ -3952,7 +4041,7 @@ const SONG_PLAYLISTS=[null,
     ['The Real Slim Shady','Eminem'],['Rap God','Eminem'],
     ["Gettin' Jiggy Wit It",'Will Smith'],['Men in Black','Will Smith'],
     ['Miami','Will Smith'],['Fresh Prince of Bel-Air','Will Smith'],
-    ['Black and Yellow','Wiz Khalifa'],['Empire State of Mind','Jay-Z ft. Alicia Keys'],
+    ['Black and Yellow','Wiz Khalifa'],['Empire State of Mind','Jay-Z'],
     ['Old Town Road','Lil Nas X'],['In the End','Linkin Park'],
     ['Numb','Linkin Park'],["What I've Done",'Linkin Park'],
     ['Breaking the Habit','Linkin Park'],['New Divide','Linkin Park'],
@@ -3962,31 +4051,11 @@ const SONG_PLAYLISTS=[null,
     ['Back in the USSR','The Beatles'],['Communication Breakdown','Led Zeppelin'],
     ['Good Times Bad Times','Led Zeppelin'],['Bulls on Parade','Rage Against the Machine'],
     ['Killing in the Name','Rage Against the Machine'],['Sabotage','Beastie Boys'],
-    ['Fight for Your Right','Beastie Boys'],['Crawling','Linkin Park'],
+    ['Fight for Your Right to Party','Beastie Boys'],['Crawling','Linkin Park'],
   ]},
 ];
 
-const LYRICS_CACHE={
-  'queen|it\'s a beautiful day':`It's a beautiful day\nThe sun is shining, I feel good\nAnd no one's gonna\nStop me now, oh yeah\n\nIt's a beautiful day\nI feel good, I feel right\nAnd no one, no one's\nGonna stop me now, mama\n\nSometimes I feel so sad\nSo sad, so bad\nBut no one's gonna\nStop me now, no one\nOoh, it's hopeless\nSo hopeless to even try`,
-  'michael jackson|girlfriend':`I'm gonna tell your boyfriend\nTell him\nExactly what we're doin'\nTell him what you do to me\nLate at night when the wind is free\nGirlfriend\nI'm gonna show your boyfriend\nShow him\nThe letters I've been savin'\nShow him how you feel inside\nAnd how love could not be denied\nWe're gonna have to tell him\nYou'll only be a girlfriend of mine\nGirlfriend\nYou better tell your boyfriend\nTell him\nExactly what we're doin'\nTell him what he needs to know\nOr he may never let you go`,
-  'linkin park|what i\'ve done':`In this farewell\nThere's no blood, there's no alibi\n'Cause I've drawn regret\nFrom the truth of a thousand lies\nSo let mercy come and wash away\nWhat I've done\n\nI'll face myself to cross out what I've become\nErase myself\nAnd let go of what I've done\n\nPut to rest what you thought of me\nWhile I clean this slate\nWith the hands of uncertainty\nSo let mercy come and wash away\nWhat I've done\n\nI'll face myself to cross out what I've become\nErase myself\nAnd let go of what I've done\n\nFor what I've done\nI start again\nAnd whatever pain may come\nToday this ends\nI'm forgiving what I've done\n\nI'll face myself to cross out what I've become\nErase myself\nAnd let go of what I've done\nWhat I've done\nForgiving what I've done`,
-  'jackson 5|who\'s lovin\' you':`When I (when I), had you (had you)\nI treated you bad and wrong my dear\nGirl since, since you went away\nDon't you know I sit around with my head hanging down?\nAnd I wonder who's lovin' you\n\nI, I, I, I\nShould have never, ever\nEver made you cry\nAnd girl since you been gone\nDon't you know I sit around with my head hanging down?\nAnd I wonder who's lovin' you\n\nLife without love, hu!\nIt's oh so lonely\nI don't think, I don't think I'm gonna make it\nAll my life (all my life), all my life (all my life)\nI've been lost to you only\nCome on and take it girl\nCome on and take it, because\n\nAll I can do since you've been gone is cry\nDon't you know I sit around with my head hanging down?\nAnd I wonder who's lovin' you\n\nI, I, I, I\nWho's lovin' you\nI, I, I, I\nI wonder (who's lovin' you)\nWho's lovin' you`,
-  'michael jackson|she\'s out of my life':`She's Out Of My Life\nShe's Out Of My Life\nAnd I Don't Know Whether To Laugh Or Cry\nI Don't Know Whether To Live Or Die\nAnd It Cuts Like A Knife\nShe's Out Of My Life\n\nIt's Out Of My Hands\nIt's Out Of My Hands\nTo Think For Two Years She Was Here\nAnd I Took Her For Granted I Was So Cavalier\nNow The Way That It Stands\nShe's Out Of My Hands\n\nSo I've Learned That Love's Not Possession\nAnd I've Learned That Love Won't Wait\nNow I've Learned That Love Needs Expression\nBut I Learned Too Late\n\nShe's Out Of My Life\nShe's Out Of My Life\nDamned Indecision And Cursed Pride\nKept My Love For Her Locked Deep Inside\nAnd It Cuts Like A Knife\nShe's Out Of My Life`,
-  'elvis presley|can\'t help falling in love':`Wise men say only fools rush in\nbut I can't help falling in love with you\nShall I stay\nwould it be a sin\nIf I can't help falling in love with you\n\nLike a river flows surely to the sea\nDarling so it goes\nsome things are meant to be\ntake my hand, take my whole life too\nfor I can't help falling in love with you\n\nLike a river flows surely to the sea\nDarling so it goes\nsome things are meant to be\ntake my hand, take my whole life too\nfor I can't help falling in love with you\nfor I can't help falling in love with you`,
-  'john denver|annie\'s song':`You fill up my senses like a night in the forest,\nlike the mountains in springtime, like a walk in the rain,\nlike a storm in the desert, like a sleepy blue ocean.\nYou fill up my senses, come fill me again.\n\nCome let me love you, let me give my life to you,\nlet me drown in your laughter, let me die in your arms,\nlet me lay down beside you, let me always be with you.\nCome let me love you, come love me again.\n\nYou fill up my senses like a night in the forest,\nlike the mountains in springtime, like a walk in the rain,\nlike a storm in the desert, like a sleepy blue ocean.\nYou fill up my senses, come fill me again.`,
-  'sam brown|stop':`All that I have is all that you've given me\nDid you never worry that I'd come to depend on you?\nI gave you all the love I had in me\nNow I find you lied and I can't believe it's true\n\nWrapped in her arms, I see you across the street\nAnd I can't help but wonder if she knows what's going on\nOh, you talk of love, but you don't know how it feels\nWhen you realise that you're not the only one\n\nOh, you'd better stop\nBefore you tear me all apart\nYou'd better stop\nBefore you go and break my heart\nOoh, you'd better stop\n\nTime after time, I've tried to walk away\nBut it's not that easy when your soul is torn in two\nSo I just resign myself to it every day\nNow all I can do is to leave it up to you\n\nOh, you'd better stop\nBefore you tear me all apart\nYou'd better stop\nBefore you go and break my heart\nOoh, you'd better stop`,
-  'jay-z|empire state of mind':`Yeah, I'm out that Brooklyn, now I'm down in Tribeca\nRight next to De Niro, but I'll be hood forever\nI'm the new Sinatra, and since I made it here\nI can make it anywhere, yeah, they love me everywhere\nI used to cop in Harlem, hola, my Dominicanos\nRight there up on Broadway, brought me back to that McDonald's\nTook it to my stashbox, 560 State Street\nCatch me in the kitchen like a Simmons whippin' pastry\nCruisin' down 8th Street, off-white Lexus\nDriverin' so slow, but BK is from Texas\nMe, I'm out that Bed-Stuy, home of that boy Biggie\nNow I live on Billboard and I brought my boys with me\n\nIn New York\nConcrete jungle where dreams are made of\nThere's nothin' you can't do\nNow you're in New York\nThese streets will make you feel brand new\nBig lights will inspire you\nLet's hear it for New York\nNew York, New York\n\nWelcome to the melting pot, corners where we sellin' rock\nAfrika Bambataa shit, home of the hip-hop\nYellow cab, gypsy cab, dollar cab, holla back\nFor foreigners it ain't fair, they act like they forgot how to add\nEight million stories, out there in the naked city\nCity is a pity, half of y'all won't make it\nStatue of Liberty, long live the World Trade\nLong live the king, yo, I'm from the Empire State\n\nIn New York\nConcrete jungle where dreams are made of\nThere's nothin' you can't do\nNow you're in New York\nThese streets will make you feel brand new\nBig lights will inspire you\nLet's hear it for New York\nNew York, New York\n\nLights is blinding, girls need blinders\nCity of sin, it's a pity on a whim\nGood girls gone bad, the city's filled with them\nCame here for school, graduated to the high life\nBall players, rap stars, addicted to the limelight\nThe city never sleeps, better slip you an Ambien\n\nIn New York\nConcrete jungle where dreams are made of\nThere's nothin' you can't do\nNow you're in New York\nThese streets will make you feel brand new\nBig lights will inspire you\nLet's hear it for New York\nNew York, New York`,
-  'the beatles|help!':`Help, I need somebody\nHelp, not just anybody\nHelp, you know I need someone, help\n\nWhen I was younger so much younger than today\nI never needed anybody's help in any way\nBut now these days are gone, I'm not so self assured\nNow I find I've changed my mind and opened up the doors\n\nHelp me if you can, I'm feeling down\nAnd I do appreciate you being round\nHelp me get my feet back on the ground\nWon't you please, please help me\n\nAnd now my life has changed in oh so many ways\nMy independence seems to vanish in the haze\nBut every now and then I feel so insecure\nI know that I just need you like I've never done before\n\nHelp me if you can, I'm feeling down\nAnd I do appreciate you being round\nHelp me get my feet back on the ground\nWon't you please, please help me\n\nWhen I was younger so much younger than today\nI never needed anybody's help in any way\nBut now these days are gone, I'm not so self assured\nNow I find I've changed my mind and opened up the doors\n\nHelp me if you can, I'm feeling down\nAnd I do appreciate you being round\nHelp me, get my feet back on the ground\nWon't you please, please help me, help me, help me, ooh`,
-  'jackson 5|i\'ll be there':`You and I must make a pact, we must bring salvation back\nWhere there is love, I'll be there\nI'll reach out my hand to you, I'll have faith in all you do\nJust call my name and I'll be there\n\nAnd oh - I'll be there to comfort you,\nBuild my world of dreams around you, I'm so glad that I found you\nI'll be there with a love that's strong\nI'll be your strength, I'll keep holding on - yes I will, yes I will\n\nLet me fill your heart with joy and laughter\nTogetherness, well that's all I'm after\nWhenever you need me, I'll be there\nI'll be there to protect you, with an unselfish love I respect you\nJust call my name and I'll be there\n\nIf you should ever find someone new, I know he'd better be good to you\n'Cos if he doesn't, I'll be there\nDon't you know, baby, yeah yeah\n\nI'll be there, I'll be there, just call my name, I'll be there\nI'll be there, I'll be there, whenever you need me, I'll be there\nDon't you know, baby, yeah yeah`,
-  'bon jovi|it\'s my life':`This ain't a song for the broken-hearted\nNo silent prayer for the faith-departed\nI ain't gonna be just a face in the crowd\nYou're gonna hear my voice\nWhen I shout it out loud\n\nIt's my life\nIt's now or never\nI ain't gonna live forever\nI just want to live while I'm alive\nMy heart is like an open highway\nLike Frankie said\nI did it my way\nI just wanna live while I'm alive\nIt's my life\n\nThis is for the ones who stood their ground\nFor Tommy and Gina who never backed down\nTomorrow's getting harder make no mistake\nLuck ain't even lucky\nGot to make your own breaks\n\nBetter stand tall when they're calling you out\nDon't bend, don't break, baby, don't back down`,
-  'frank sinatra|that\'s life':`That's life, that's what all the people say\nYou're ridin' high in April, shot down in May\nBut I know I'm gonna change that tune\nWhen I'm back on top, back on top in June\n\nI said that's life, and as funny as it may seem\nSome people get their kicks stompin' on a dream\nBut I don't let it, let it get me down\n'cause this fine old world, it keeps spinnin' around\n\nI've been a puppet, a pauper, a pirate, a poet, a pawn and a king\nI've been up and down and over and out and I know one thing\nEach time I find myself flat on my face\nI pick myself up and get back in the race\n\nThat's life, I tell you I can't deny it\nI thought of quitting, baby, but my heart just ain't gonna buy it\nAnd if I didn't think it was worth one single try\nI'd jump right on a big bird and then I'd fly\n\nThat's life, that's life and I can't deny it\nMany times I thought of cuttin' out but my heart won't buy it\nBut if there's nothin' shakin' come this here July\nI'm gonna roll myself up in a big ball and die`,
-  'tom jones|it\'s not unusual':`It's not unusual to be loved by anyone\nIt's not unusual to have fun with anyone\nbut when I see you hanging about with anyone\nIt's not unusual to see me cry,\noh I wanna die\n\nIt's not unusual to go out at any time\nbut when I see you out and about it's such a crime\nif you should ever want to be loved by anyone,\nIt's not unusual it happens every day no matter what you say\nyou find it happens all the time\nlove will never do what you want it to\nwhy can't this crazy love be mine\n\nIt's not unusual, to be mad with anyone\nIt's not unusual, to be sad with anyone\nbut if I ever find that you've changed at anytime\nit's not unusual to find out that I'm in love with you\nwhoa-oh-oh-oh-oh`,
-  'frank sinatra|new york, new york':`Start spreadin' the news, I'm leavin' today\nI want to be a part of it\nNew York, New York\n\nThese vagabond shoes, are longing to stray\nRight through the very heart of it\nNew York, New York\n\nI want to wake up, in a city that never sleeps\nAnd find I'm king of the hill\nTop of the heap\n\nThese little town blues, are melting away\nI'll make a brand new start of it\nIn old New York\n\nIf I can make it there, I'll make it anywhere\nIt's up to you, New York, New York\n\nI want to wake up, in a city that never sleeps\nAnd find I'm A number one, top of the list\nKing of the hill, A number one\n\nThese little town blues, are melting away\nI'll make a brand new start of it\nIn old New York\n\nIf I can make it there, I'll make it anywhere\nIt's up to you, New York, New York`,
-  'whitney houston|i\'m every woman':`Whatever you want\nWhatever you need\nAnything you want done baby\nI do it naturally\n\nI'm every woman\nIt's all in me\nAnything you want done baby\nI do it naturally\n\nI can read your thoughts right now\nEvery woman, whoever made ya say\nWhoa whoa whoa\n\nI can cast a spell\nSee, but you can't tell\nMix a special groove\nPut fire inside of you\nAnytime you feel danger or fear\nThen instantly I will appear\n\nI'm every woman\nIt's all in me\nAnything you want done baby\nI do it naturally\n\nI can set your knees like playing unto the seas\nI can make a rhyme of confusion in your mind\nAnd when it comes down to some little flash of love\nI got it, I got it, I got it, got it, baby\n\nI'm every woman\nIt's all in me\nAnything you want done baby\nI do it naturally\n\nI ain't braggin'\n'Cause I'm the one\nJust ask me\nOh, it shall be done\nAnd don't bother to compare\nI've got it`,
-  'shakira|whenever, wherever':`Lucky you were born that far away so\nWe could both make fun of distance\nLucky that I love a foreign land for\nThe lucky fact of your existence\nBaby, I would climb the Andes solely\nTo count the freckles on your body\nNever could imagine there were only\nTen million ways to love somebody\n\nWhenever, wherever\nWe're meant to be together\nI'll be there and you'll be near\nAnd that's the deal, my dear\nThereover, hereunder\nYou'll never have to wonder\nWe can always play by ear\nBut that's the deal, my dear\n\nLucky that my lips not only mumble\nThey spill kisses like a fountain\nLucky that my breasts are small and humble\nSo you don't confuse them with mountains\nLucky I have strong legs like my mother\nTo run for cover when I need it\nAnd these two eyes that for no other\nThe day you leave will cry a river\n\nWhenever, wherever\nWe're meant to be together\nI'll be there and you'll be near\nAnd that's the deal, my dear\nThereover, hereunder\nYou've got me head over heels\nThere's nothing left to fear\nIf you really feel the way I feel`,
-  'shakira|don\'t bother':`She's got the kind of look that defies gravity\nShe's the greatest cook\nAnd she's fat free\nShe's been to private school\nAnd she speaks perfect French\nShe's got her perfect friends\nOh, isn't she cool?\nShe practices Tai Chi\nShe'd never lose her nerve\nShe's more than you deserve\nShe's just far better than me\n\nSo don't bother\nI won't die of deception\nI promise you won't ever see me cry\nDon't feel sorry\nAnd don't bother, I'll be fine\nBut she's waiting\nThe ring you gave to her will lose its shine\nSo don't bother, be unkind\n\nI'm sure she doesn't know\nHow to touch you like I would\nI beat her at that one good\nDon't you think so?\nShe's almost six feet tall\nShe must think I'm a flea\nI'm really a cat, you see\nAnd it's not my last life at all\n\nSo don't bother\nI won't die of deception\nI promise you won't ever see me cry\nDon't feel sorry\nDon't bother, I'll be fine\nBut she's waiting\nThe ring you gave to her will lose its shine\nSo don't bother, be unkind\n\nFor you, I'd give up all I own\nAnd move to a communist country\nIf you came with me, of course\nAnd I'd file my nails so they don't hurt you\nAnd lose those pounds, learn about football\nIf it made you stay, but you won't, but you won't\n\nSo don't bother\nI'll be fine, I'll be fine\nPromise you won't ever see me cry\nAnd after all, I'm glad that I'm not your type`,
-  'simply red|if you don\'t know me by now':`If you don't know me by now\nYou will never never never know me\n\nAll the things that we've been through\nYou should understand me\nLike I understand you\nNow girl I know the difference\nBetween right and wrong\nI ain't gonna do nothing\nTo break up our happy home\n\nDon't get so excited\nWhen I come home a little late at night\nCos we only act like children\nWhen we argue fuss and fight\n\nIf you don't know me by now\nYou will never never never know me\n\nWe've all got our own funny moods\nI've got mine, woman you've got yours too\nJust trust in me like I trust in you\nAs long as we've been together\nIt should be so easy to do\n\nJust get yourself together\nOr we might as well say goodbye\nWhat good is a love affair\nWhen you can't see eye to eye\n\nIf you don't know me by now\nYou will never\nNever never know me`,
-};
+// LYRICS_CACHE definido en lyrics-cache.js (cargado via <script> antes de este bloque)
 
 // Buffer de canciones por nivel (se usan cuando el usuario marca todas las activas como escuchadas)
 const SONG_BUFFER=[null,
@@ -4010,7 +4079,7 @@ const SONG_BUFFER=[null,
    ['Happy','Pharrell Williams'],['Perfect','Ed Sheeran'],['Count on Me','Bruno Mars'],
    ['Thinking Out Loud','Ed Sheeran'],['Flowers','Miley Cyrus'],['A Thousand Years','Christina Perri'],['Lover','Taylor Swift']],
   // L2
-  [['Dancing Queen','ABBA'],['Mamma Mia','ABBA'],['The Winner Takes It All','ABBA'],['SOS','ABBA'],['Honey Honey','ABBA'],
+  [['Dancing Queen','ABBA'],['Mamma Mia','ABBA'],['The Winner Takes It All','ABBA'],['SOS','ABBA'],['Honey, Honey','ABBA'],
    ['Tragedy','Bee Gees'],['To Love Somebody','Bee Gees'],['More Than a Woman','Bee Gees'],
    ['Another Day in Paradise','Phil Collins'],['In the Air Tonight','Phil Collins'],['Against All Odds','Phil Collins'],
    ['Hello','Lionel Richie'],['All Night Long','Lionel Richie'],
@@ -4303,17 +4372,66 @@ async function _loadTrivia(t,a){
   }
 }
 
+// Alias de artista: casos donde la API de lyrics indexa la canción bajo un artista
+// distinto al que mostramos en el catálogo (ej. "Wake Me Up Before You Go-Go" está
+// acreditada como George Michael, no como la banda "Wham!"). Se prueba el alias
+// solo si la búsqueda con el artista original no encuentra nada.
+const LYRICS_ARTIST_ALIAS={
+  'wham!':'George Michael','wham':'George Michael',
+  'the temptations':'Temptations',
+  'r.e.m.':'REM','rem':'REM',
+};
+
 async function _loadLyricsAndVocab(t,a){
   let lyrics='';
   const cacheKey=`${a}|${t}`.toLowerCase();
+  // Normaliza el artista para la búsqueda: quita "ft./feat./featuring X" — el artista
+  // principal es lo que la API de lyrics reconoce; un artista invitado en el string
+  // rompe la búsqueda (causó el bug de "Empire State of Mind" no encontrando lyrics).
+  // OJO: requiere \s+ (al menos un espacio) antes de "ft" — con \s* (cero espacios) el
+  // regex rompía artistas legítimos que contienen la letra "ft" pegada, ej. "Daft Punk"
+  // se recortaba a "Da" porque matcheaba la "ft" interna de "Daft" seguida de " Punk".
+  const searchArtist=a.replace(/\s+(?:ft\.?|feat\.?|featuring)\s+.+$/i,'').trim()||a;
+  // Quita apóstrofes (rectos y curvos) del título y artista para la búsqueda: la API
+  // de lyrics falla sistemáticamente con contracciones como "Don't", "It's", "I'm"
+  // cuando llevan apóstrofe — quitarlo resuelve la enorme mayoría de estos casos
+  // (confirmado en auditoría: Don't Stop Me Now, Don't Cry, Hips Don't Lie, I Don't
+  // Want to Miss a Thing, Don't You Forget About Me — las 5 fallaban con apóstrofe
+  // y funcionaron sin él). No afecta títulos sin apóstrofe.
+  const stripApos=s=>s.replace(/['’]/g,'');
+  async function tryFetch(artist,title){
+    const r=await fetch(`https://api.lyrics.ovh/v1/${encodeURIComponent(stripApos(artist))}/${encodeURIComponent(stripApos(title))}`);
+    return r.json();
+  }
   if(LYRICS_CACHE[cacheKey]){
     lyrics=LYRICS_CACHE[cacheKey];
     const el=document.getElementById('ss-lyrics');
     if(el)el.innerHTML=`<div style="font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);margin-bottom:10px">LYRICS</div><div style="white-space:pre-wrap;line-height:1.9;font-size:14px">${lyrics}</div>`;
   }else{
     try{
-      const r=await fetch(`https://api.lyrics.ovh/v1/${encodeURIComponent(a)}/${encodeURIComponent(t)}`);
-      const d=await r.json();
+      let d=await tryFetch(searchArtist,t);
+      if(!d.lyrics){
+        const alias=LYRICS_ARTIST_ALIAS[searchArtist.toLowerCase()];
+        if(alias)d=await tryFetch(alias,t);
+      }
+      // La API es inconsistente con "&" en nombres de dúo/banda (a veces solo
+      // reconoce "&", a veces solo "and" deletreado, sin regla fija — confirmado
+      // con "Simon & Garfunkel" que solo funciona con "and", vs. "Elton John &
+      // Ray Charles" que solo funciona con "&"). Se prueba la variante contraria
+      // como último recurso.
+      if(!d.lyrics&&/&| and /i.test(searchArtist)){
+        const swapped=/&/.test(searchArtist)
+          ?searchArtist.replace(/\s*&\s*/g,' and ')
+          :searchArtist.replace(/\s+and\s+/gi,' & ');
+        if(swapped.toLowerCase()!==searchArtist.toLowerCase())d=await tryFetch(swapped,t);
+      }
+      // Último recurso: reintenta todo en minúsculas. La API a veces cachea un resultado
+      // vacío para una consulta puntual (mayúsculas/minúsculas exactas) aunque la canción
+      // sí exista — confirmado con "Adele/Hello", que falló con case normal y funcionó
+      // en minúsculas en una consulta idéntica en contenido.
+      if(!d.lyrics){
+        d=await tryFetch(searchArtist.toLowerCase(),t.toLowerCase());
+      }
       if(d.lyrics){
         lyrics=d.lyrics;
         const el=document.getElementById('ss-lyrics');
@@ -4484,8 +4602,7 @@ Return only valid JSON.`;
 
 // ══ PRONUNCIATION ══
 function runPronunciation(){
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia||!window.MediaRecorder){
     document.getElementById('module-content-area').innerHTML=`<div class="content-card" style="text-align:center;padding:40px">
       <div style="font-size:48px;margin-bottom:12px">🎤</div>
       <h2>Browser not supported</h2>
@@ -4563,23 +4680,18 @@ function renderPronWord(){
       <div class="pron-progress">WORD ${idx+1} OF ${words.length} &nbsp;·&nbsp; ${window._pronScore} correct</div>
       <div style="font-size:13px;color:var(--muted)">Listen, then repeat the word:</div>
       <div class="pron-word" id="pron-word-display">${word}</div>
-      <div class="pron-hint">Press 🔊 to hear it, then hold the mic button (or SPACE) to say it</div>
+      <div class="pron-hint">Press 🔊 to hear it, then click the mic to start, click again when you're done</div>
       <div class="pron-status" id="pron-status">Press 🔊 first to hear the word</div>
       <div class="pron-transcript" id="pron-transcript"></div>
       <div class="pron-feedback" id="pron-feedback"></div>
-      <button class="pron-mic-btn" id="pron-mic-btn"
-        onmousedown="pronStartRec()" onmouseup="pronStopRec()"
-        ontouchstart="pronStartRec()" ontouchend="pronStopRec()">🎤</button>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:16px">Hold to speak · Release to check</div>
+      <button class="pron-mic-btn" id="pron-mic-btn" onclick="pronMicToggle()">🎤</button>
+      <button id="pron-reset-btn" onclick="pronMicReset()" style="display:none;margin-top:8px;padding:8px 14px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:12px;cursor:pointer">🔄 Reset</button>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:16px">Click to start · Click again to check</div>
       <div>
         <button class="pron-hint-btn" onclick="pronSpeak()">🔊 Hear word</button>
         <button class="pron-hint-btn" onclick="pronSkip()">Skip →</button>
       </div>
     </div>`;
-
-  // Keyboard
-  document.addEventListener('keydown',pronKeyDown);
-  document.addEventListener('keyup',pronKeyUp);
 
   // Auto-play the word
   setTimeout(()=>pronSpeak(),400);
@@ -4589,57 +4701,45 @@ function renderPronWord(){
 function pronSpeak(){
   const word=window._pronWords[window._pronIdx];
   speak(word,0.8);
-  document.getElementById('pron-status').textContent='Now hold the mic (or SPACE) and repeat!';
+  document.getElementById('pron-status').textContent='Now click the mic and repeat!';
 }
 
 function pronSetupRec(){
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  const rec=new SR();
-  rec.lang='en-US';rec.continuous=false;rec.interimResults=true;rec.maxAlternatives=3;
-  rec.onresult=e=>{
-    let interim='',final='';
-    for(let i=e.resultIndex;i<e.results.length;i++){
-      if(e.results[i].isFinal){
-        // Check all alternatives
-        for(let j=0;j<e.results[i].length;j++)final+=e.results[i][j].transcript+' ';
-      } else interim+=e.results[i][0].transcript;
-    }
-    const t=document.getElementById('pron-transcript');
-    if(t)t.textContent='"'+(interim||final.trim())+'"';
-    if(final)window._pronLastFinal=final.trim();
-  };
-  rec.onerror=e=>{if(e.error!=='aborted'){document.getElementById('pron-status').textContent='Mic error: '+e.error+'. Try again.';}};
-  rec.onend=()=>{
-    if(window._pronListening){window._pronListening=false;pronCheckResult();}
-    const btn=document.getElementById('pron-mic-btn');
+  // Con Whisper no hace falta configurar nada por adelantado — micStart()/micStopAndTranscribe()
+  // se llaman directamente desde pronMicToggle().
+  window._pronLastFinal='';
+}
+
+// Modelo start/stop por click — ver comentario equivalente en qaMicToggle().
+async function pronMicToggle(){
+  const btn=document.getElementById('pron-mic-btn'),resetBtn=document.getElementById('pron-reset-btn');
+  if(!micIsRecording()){
+    window._pronLastFinal='';
+    if(btn){btn.classList.remove('success','fail');btn.classList.add('recording');}
+    if(resetBtn)resetBtn.style.display='inline-block';
+    const s=document.getElementById('pron-status');if(s)s.textContent='🎤 Listening... click again when done!';
+    const t=document.getElementById('pron-transcript');if(t)t.textContent='';
+    micStart().catch(e=>{const s2=document.getElementById('pron-status');if(s2)s2.textContent='Mic not available.';});
+  } else {
     if(btn)btn.classList.remove('recording');
-  };
-  window._pronRec=rec;
-  window._pronLastFinal='';
+    if(resetBtn)resetBtn.style.display='none';
+    const s=document.getElementById('pron-status');if(s)s.textContent='Transcribing...';
+    const text=await micStopAndTranscribe();
+    window._pronLastFinal=text;
+    const t=document.getElementById('pron-transcript');if(t)t.textContent=text?('"'+text+'"'):'(no speech detected)';
+    pronCheckResult();
+  }
 }
-
-function pronKeyDown(e){if(e.code==='Space'&&!e.repeat){e.preventDefault();pronStartRec();}}
-function pronKeyUp(e){if(e.code==='Space'){e.preventDefault();pronStopRec();}}
-
-function pronStartRec(){
-  if(window._pronListening)return;
-  window._pronListening=true;
-  window._pronLastFinal='';
-  const btn=document.getElementById('pron-mic-btn');
-  if(btn){btn.classList.remove('success','fail');btn.classList.add('recording');}
-  const s=document.getElementById('pron-status');if(s)s.textContent='🎤 Listening... speak now!';
-  try{window._pronRec.start();}catch(e){}
-}
-
-function pronStopRec(){
-  if(!window._pronListening)return;
-  try{window._pronRec.stop();}catch(e){}
+function pronMicReset(){
+  micReset();
+  const btn=document.getElementById('pron-mic-btn'),resetBtn=document.getElementById('pron-reset-btn');
+  if(btn)btn.classList.remove('recording','success','fail');
+  if(resetBtn)resetBtn.style.display='none';
+  const s=document.getElementById('pron-status');if(s)s.textContent='Click the mic to try again';
+  const t=document.getElementById('pron-transcript');if(t)t.textContent='';
 }
 
 function pronCheckResult(){
-  document.removeEventListener('keydown',pronKeyDown);
-  document.removeEventListener('keyup',pronKeyUp);
-
   const target=window._pronWords[window._pronIdx].toLowerCase().trim();
   const said=(window._pronLastFinal||'').toLowerCase();
   // Check if any word in what they said matches the target (handles extra words, partial matches)
@@ -4657,38 +4757,26 @@ function pronCheckResult(){
     if(st)st.textContent='';
     window._pronScore++;
     window._pronIdx++;
-    setTimeout(()=>{
-      document.removeEventListener('keydown',pronKeyDown);
-      document.removeEventListener('keyup',pronKeyUp);
-      renderPronWord();
-    },1200);
+    setTimeout(()=>{renderPronWord();},1200);
   } else if(window._pronAttempts>=3){
     if(btn)btn.classList.add('fail');
     if(fb)fb.innerHTML=`<span style="color:#f87171">The word is: <strong>${window._pronWords[window._pronIdx]}</strong></span>`;
     if(st)st.textContent='Moving on...';
     window._pronIdx++;
-    setTimeout(()=>{
-      document.removeEventListener('keydown',pronKeyDown);
-      document.removeEventListener('keyup',pronKeyUp);
-      renderPronWord();
-    },2000);
+    setTimeout(()=>{renderPronWord();},2000);
   } else {
     if(btn)btn.classList.add('fail');
     if(fb)fb.innerHTML=`<span style="color:#f87171">I heard: "${said||'nothing'}" — try again! (${3-window._pronAttempts} left)</span>`;
-    if(st)st.textContent='Hold the mic and try again';
+    if(st)st.textContent='Click the mic and try again';
     setTimeout(()=>{
       if(btn){btn.classList.remove('fail');}
-      document.addEventListener('keydown',pronKeyDown);
-      document.addEventListener('keyup',pronKeyUp);
-      pronSetupRec(); // fresh recognition instance
+      pronSetupRec();
     },1000);
   }
 }
 
 function pronSkip(){
-  document.removeEventListener('keydown',pronKeyDown);
-  document.removeEventListener('keyup',pronKeyUp);
-  try{if(window._pronRec)window._pronRec.abort();}catch(e){}
+  micReset();
   window._pronIdx++;
   renderPronWord();
 }
@@ -4705,6 +4793,7 @@ async function runVocabMatch(){
     const chosen=allWords.sort(()=>Math.random()-0.5).slice(0,5);
     prompt=`Translate these English words to Spanish for a Chilean child. Student level: ${levelDesc}.
 Words: ${chosen.join(', ')}
+Use BRITISH English spelling if the word has a British/American spelling variant (e.g. "colour" not "color", "favourite" not "favorite") — this student is preparing for Cambridge exams.
 Return ONLY this JSON (no markdown):
 {"pairs":[{"en":"word","es":"traducción"},...]}`;
     try{
@@ -4724,6 +4813,7 @@ Return ONLY this JSON (no markdown):
     }[state.level]||'Use simple, concrete A1 words a Chilean child would know in Spanish.';
     prompt=`Generate 5 English-Spanish vocabulary pairs for a ${getAge()}-year-old studying "${topic}". Student level: ${levelDesc}.
 ${difficultyHint}
+Use BRITISH English spelling if a word has a British/American spelling variant (e.g. "colour" not "color", "favourite" not "favorite") — this student is preparing for Cambridge exams.
 Return ONLY this JSON (no markdown):
 {"pairs":[{"en":"word","es":"traducción"},{"en":"word","es":"traducción"},{"en":"word","es":"traducción"},{"en":"word","es":"traducción"},{"en":"word","es":"traducción"}]}`;
     try{
@@ -7160,9 +7250,10 @@ async function runTalking(){
     <div class="conv-log" id="conv-log"></div>
     <div class="transcript-live" id="transcript-live"></div>
     <div class="mic-controls">
-      <div class="mic-hint">Hold <kbd style="background:var(--card2);border:1px solid var(--border);border-radius:4px;padding:2px 8px;font-family:monospace">SPACE</kbd> or the button to speak · Release to send</div>
+      <div class="mic-hint">Click the mic to start · Click again when you're done speaking</div>
       <div class="mic-btn-row">
-        <button class="mic-btn disabled" id="mic-btn" onmousedown="startListening()" onmouseup="stopListening()" ontouchstart="startListening()" ontouchend="stopListening()">🎤</button>
+        <button class="mic-btn disabled" id="mic-btn" onclick="micToggleTalking()">🎤</button>
+        <button id="talking-reset-btn" onclick="micResetTalking()" style="display:none;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:12px;padding:8px 14px;cursor:pointer">🔄 Reset</button>
         <button class="end-conv-btn" onclick="endConversation()">End & Feedback</button>
       </div>
     </div>
@@ -7170,27 +7261,10 @@ async function runTalking(){
 
   document.getElementById('module-content-area').innerHTML=uiHtml;
 
-  // Keyboard shortcut
-  document.addEventListener('keydown',onSpaceDown);
-  document.addEventListener('keyup',onSpaceUp);
-
-  // Setup speech recognition
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){addMsg('tutor','Sorry, your browser does not support voice recognition. Please use Google Chrome! 🌐');setStatus('Browser not supported','');return;}
-  recognition=new SR();
-  recognition.lang='en-US';recognition.continuous=true;recognition.interimResults=true;recognition.maxAlternatives=1;
-  recognition.onresult=e=>{
-    let interim='',final='';
-    for(let i=e.resultIndex;i<e.results.length;i++){
-      if(e.results[i].isFinal)final+=e.results[i][0].transcript;
-      else interim+=e.results[i][0].transcript;
-    }
-    const live=document.getElementById('transcript-live');
-    if(live)live.textContent=interim||final;
-    if(final){window._userFinal=final;}
-  };
-  // onend handled via continuous mode restart above
-  recognition.onerror=e=>{if(e.error==='no-speech'&&isListening){try{recognition.start();}catch(ex){}}else if(e.error!=='aborted'){isListening=false;setStatus('Mic error: '+e.error,'');}};  recognition.onend=e=>{if(isListening&&!isTutorSpeaking){try{recognition.start();}catch(ex){}}else if(!isListening&&window._userFinal){const t=window._userFinal;window._userFinal='';sendUserMessage(t);const live=document.getElementById('transcript-live');if(live)live.textContent='';}};_recEnd=true;
+  // Speech-to-text: grabación + Whisper (ver micStart/micStopAndTranscribe/micToggleTalking).
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia||!window.MediaRecorder){
+    addMsg('tutor','Sorry, your browser does not support voice recognition. Please use Google Chrome! 🌐');setStatus('Browser not supported','');return;
+  }
 
   // Tutor speaks first
   const opening=`Hi ${pName}! I'm your English tutor. Today we're going to talk about "${topic}". Are you ready? Let's start — tell me, what do you already know about this topic?`;
@@ -7199,35 +7273,45 @@ async function runTalking(){
   speakTutor(opening,()=>{
     const btn=document.getElementById('mic-btn');
     if(btn)btn.classList.remove('disabled');
-    setStatus('Hold SPACE or button to speak','');
+    setStatus('Click the mic to speak','');
   });
 }
 
-function onSpaceDown(e){if(e.code==='Space'&&!spaceHeld&&!isTutorSpeaking){e.preventDefault();spaceHeld=true;startListening();}}
-function onSpaceUp(e){if(e.code==='Space'){e.preventDefault();spaceHeld=false;stopListening();}}
-
-function startListening(){
-  if(isTutorSpeaking||isListening)return;
-  isListening=true;window._userFinal='';
-  const btn=document.getElementById('mic-btn');if(btn)btn.classList.add('active');
-  setStatus('🎙 Listening...','listening');
-  try{recognition.start();}catch(e){}
-}
-
-function stopListening(){
-  if(!isListening)return;
-  isListening=false;
-  const btn=document.getElementById('mic-btn');if(btn)btn.classList.remove('active');
-  setStatus('Processing...','');
-  try{recognition.stop();}catch(e){}
-  setTimeout(()=>{
-    if(window._userFinal){const t=window._userFinal;window._userFinal='';
+// Modelo start/stop por click — ver comentario equivalente en qaMicToggle(). Se eliminó el
+// modelo de "mantener presionado" (mousedown/mouseup, tecla SPACE) porque una pausa natural al
+// hablar podía soltar el botón/tecla sin querer y cortar la grabación a mitad de camino.
+async function micToggleTalking(){
+  if(isTutorSpeaking)return;
+  const btn=document.getElementById('mic-btn'),resetBtn=document.getElementById('talking-reset-btn');
+  if(!isListening){
+    isListening=true;window._userFinal='';
+    if(btn)btn.classList.add('active');
+    if(resetBtn)resetBtn.style.display='inline-block';
+    setStatus('🎙 Listening... click again when done','listening');
+    const live=document.getElementById('transcript-live');if(live)live.textContent='';
+    micStart().catch(e=>{setStatus('Mic error — try again.','');isListening=false;if(resetBtn)resetBtn.style.display='none';});
+  } else {
+    isListening=false;
+    if(btn){btn.classList.remove('active');btn.disabled=true;}
+    if(resetBtn)resetBtn.style.display='none';
+    setStatus('Transcribing...','');
+    const text=await micStopAndTranscribe();
+    if(btn)btn.disabled=false;
+    if(text){
       const live=document.getElementById('transcript-live');if(live)live.textContent='';
-      sendUserMessage(t);
+      sendUserMessage(text);
     } else {
-      if(!isTutorSpeaking)setStatus('Hold SPACE or button to speak','');
+      if(!isTutorSpeaking)setStatus('Click the mic to speak (no speech detected)','');
     }
-  },400);
+  }
+}
+function micResetTalking(){
+  micReset();
+  isListening=false;
+  const btn=document.getElementById('mic-btn'),resetBtn=document.getElementById('talking-reset-btn');
+  if(btn)btn.classList.remove('active');
+  if(resetBtn)resetBtn.style.display='none';
+  if(!isTutorSpeaking)setStatus('Click the mic to speak','');
 }
 
 function setStatus(msg,cls){
@@ -7278,6 +7362,7 @@ Rules:
 - Keep responses SHORT: 2-3 sentences max
 - Always end with a question to keep the conversation going
 - Gently correct grammar by naturally using the correct form in your reply (don't explicitly say "you made a mistake")
+- Use BRITISH English spelling and vocabulary at all times (e.g. "favourite" not "favorite", "colour" not "color", "mum" not "mom") — this student is preparing for Cambridge exams. If the student uses American spelling or vocabulary, naturally use the British form in your reply, the same way you'd gently correct a grammar mistake
 - Be encouraging and warm
 - Use vocabulary appropriate for the level
 - Stay on topic: ${topic}
@@ -7296,8 +7381,7 @@ Content safety rules (this student is a child — these matter a lot):
 }
 
 async function endConversation(){
-  document.removeEventListener('keydown',onSpaceDown);
-  document.removeEventListener('keyup',onSpaceUp);
+  micReset();
   window.speechSynthesis.cancel();
   if(convHistory.length<3){
     addMsg('tutor',"We barely started! Let's talk more next time. 😊");return;
