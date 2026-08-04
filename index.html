@@ -1939,7 +1939,6 @@ function getQACycle(){try{return JSON.parse(localStorage.getItem('jtl_qa_cycle')
 function saveQACycle(s){localStorage.setItem('jtl_qa_cycle',JSON.stringify(s))}
 
 function openQATrivia(){
-  qaRemoveSpaceListeners();
   openModule('movers');
   document.getElementById('mod-icon').textContent='⚡';
   document.getElementById('mod-title').textContent='Q&A TRIVIA';
@@ -2114,7 +2113,6 @@ No markdown. Only the JSON object.`;
 }
 
 function endQASession(){
-  qaRemoveSpaceListeners();
   const s=window._qaSession;if(!s)return;
   const cycle=getQACycle();cycle[s.topicId]=true;saveQACycle(cycle);
   const correct=s.results.filter(r=>r.correct).length;
