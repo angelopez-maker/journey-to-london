@@ -119,6 +119,44 @@ app.post('/api/chat', rateLimit(30), async (req, res) => {
   }
 });
 
+// ── Whisper STT proxy ──────────────────────────────────────────────────────────
+// Recibe audio grabado en el navegador (base64) y lo transcribe con la API de Whisper
+// de OpenAI. Reemplaza el reconocimiento de voz nativo del navegador, que tenía mala
+// precisión con acento infantil. Requiere OPENAI_API_KEY configurada en el entorno.
+app.post('/api/transcribe', rateLimit(30), async (req, res) => {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey)
+    return res.status(500).json({ error: { message: 'OpenAI API key not configured on server.' } });
+
+  const { audio, mimeType } = req.body || {};
+  if (!audio)
+    return res.status(400).json({ error: { message: 'Missing audio.' } });
+
+  try {
+    const buffer = Buffer.from(audio, 'base64');
+    const ext = (mimeType || '').includes('webm') ? 'webm' : 'wav';
+    const blob = new Blob([buffer], { type: mimeType || 'audio/webm' });
+
+    const form = new FormData();
+    form.append('file', blob, `audio.${ext}`);
+    form.append('model', 'whisper-1');
+    form.append('language', 'en');
+
+    const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${apiKey}` },
+      body: form,
+    });
+    const data = await response.json();
+    if (!response.ok)
+      return res.status(response.status).json({ error: data.error || { message: 'Whisper API error.' } });
+
+    res.json({ text: data.text || '' });
+  } catch (err) {
+    res.status(500).json({ error: { message: err.message } });
+  }
+});
+
 // ── Fallback: serve index.html ─────────────────────────────────────────────────
 app.get('*', (req, res) => {
   // Only serve HTML for non-API routes
