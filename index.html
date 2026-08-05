@@ -705,7 +705,7 @@
     <!-- Fernando weekly skill card -->
     <div id="fer-week-card" style="display:none;margin-bottom:12px"></div>
 
-    <!-- Fernando hub: 9 módulos -->
+    <!-- Fernando hub: 8 módulos -->
     <div id="fernando-quick-nav" style="display:none">
       <div class="rqn-grid">
         <button class="rqn-btn singing" onclick="openModule('singing')">
@@ -724,17 +724,10 @@
         </button>
         <button class="rqn-btn showtell" onclick="openShowAndTell()">
           <div class="rqn-icon">🖼️</div>
-          <div class="rqn-cat">WRITING</div>
+          <div class="rqn-cat">WRITING / SPEAKING</div>
           <div class="rqn-title">Show & Tell</div>
-          <div class="rqn-sub">Describe images in English</div>
+          <div class="rqn-sub">Describe images — escrito u oral</div>
           <div class="rqn-badge">4 modos · PET</div>
-        </button>
-        <button class="rqn-btn showtell" onclick="openShowAndTellSpeaking()" style="border-color:rgba(6,182,212,.4)">
-          <div class="rqn-icon">🎧</div>
-          <div class="rqn-cat">SPEAKING</div>
-          <div class="rqn-title">Show & Tell Speaking</div>
-          <div class="rqn-sub">Habla sobre las imágenes</div>
-          <div class="rqn-badge">4 modos · Oral</div>
         </button>
         <button class="rqn-btn" onclick="openQATrivia()" style="border-color:rgba(139,92,246,.4);background:rgba(139,92,246,.06)">
           <div class="rqn-icon">⚡</div>
@@ -1407,7 +1400,12 @@ document.addEventListener('click',function _voiceInit(){
 // llamada falla, tarda demasiado, o el navegador no puede reproducir el audio, cae
 // automáticamente de vuelta a speechSynthesis — la voz nueva nunca debe ser el motivo de que
 // algo se sienta roto frente a los niños.
-const OLIVER_TTS_INSTRUCTIONS='Speak as a warm, energetic young British English man in his twenties — clear pronunciation, natural pace, friendly and encouraging, like a supportive older student. Natural intonation, not robotic.';
+// Ajuste (5 agosto, cierre de fase 1): mismo voice preset ('echo', que ya sonó natural y British
+// según feedback real) pero instrucciones reescritas hacia un tono más juvenil/entusiasta —
+// Angel pidió algo con más energía tipo "hermano mayor cool" en vez de "adulto veinteañero
+// formal". El parámetro "instructions" es la palanca real para esto en gpt-4o-mini-tts (no el
+// voice preset), así que se cambia solo el texto, sin tocar nada de la arquitectura de audio.
+const OLIVER_TTS_INSTRUCTIONS='Speak as an upbeat, enthusiastic British teenager, around 16-18 years old — energetic and playful, like a fun older brother or camp counsellor, not a formal adult. Fast, natural, conversational pace with expressive intonation, never flat or robotic. Clear pronunciation for a young English learner, genuinely excited and fun.';
 const TTS_TIMEOUT_MS=6000;
 let _ttsAudio=null; // <audio> actualmente sonando, si estamos usando OpenAI TTS
 
@@ -1465,6 +1463,59 @@ function speak(text,rate=0.9,lang='en-GB',onEnd){
       }
     }
   });
+}
+
+// ══ EXPORTAR REPORTES (KET / PET) A PDF ══
+// Genera un PDF real y legible (texto real, no una captura visual) a partir de los mismos datos
+// que ya se muestran en pantalla, usando jsPDF cargado desde CDN bajo demanda (no forma parte
+// del bundle inicial, así no pesa nada mientras nadie lo usa). Sin backend ni historial — cada
+// PDF es una foto del momento, pensada para que Angel la guarde y, si quiere, se la pase a una
+// IA más adelante para comparar iteraciones fuera de la app.
+let _jsPDFReady=null;
+function _loadJsPDF(){
+  if(window.jspdf)return Promise.resolve();
+  if(_jsPDFReady)return _jsPDFReady;
+  _jsPDFReady=new Promise((resolve,reject)=>{
+    const s=document.createElement('script');
+    s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+    s.onload=resolve;s.onerror=reject;
+    document.head.appendChild(s);
+  });
+  return _jsPDFReady;
+}
+async function downloadReportPDF(filename,title,subtitle,sections){
+  try{
+    await _loadJsPDF();
+    const {jsPDF}=window.jspdf;
+    const doc=new jsPDF({unit:'pt',format:'a4'});
+    const marginX=48,pageW=595,maxW=pageW-marginX*2;
+    let y=56;
+    const addLine=(text,size,style,color,gapAfter)=>{
+      if(!text)return;
+      doc.setFont('helvetica',style||'normal');
+      doc.setFontSize(size||11);
+      doc.setTextColor(color||'#111111');
+      const lines=doc.splitTextToSize(String(text),maxW);
+      lines.forEach(line=>{
+        if(y>780){doc.addPage();y=56;}
+        doc.text(line,marginX,y);
+        y+=(size||11)*1.35;
+      });
+      y+=gapAfter||6;
+    };
+    addLine(title,18,'bold','#111111',4);
+    if(subtitle)addLine(subtitle,11,'normal','#555555',10);
+    addLine(`Fecha: ${new Date().toLocaleDateString('es-CL',{year:'numeric',month:'long',day:'numeric'})}`,10,'italic','#777777',18);
+    sections.forEach(sec=>{
+      if(!sec)return;
+      addLine(sec.heading,13,'bold','#1e3a5f',4);
+      (sec.lines||[]).forEach(l=>addLine(l,11,'normal','#222222',3));
+      y+=8;
+    });
+    doc.save(filename);
+  }catch(e){
+    showToast('No se pudo generar el PDF — intenta de nuevo.');
+  }
 }
 
 // ══ NAVIGATION ══
@@ -1856,25 +1907,14 @@ const _SPOT_SCENES=[
    count:6,diffs:['tall → short','basket → trolley','vegetables → fruit','red bag → blue bag','cereal → pasta','3 people → 2 people']},
 ];
 
+// Un solo punto de entrada — abre siempre en modo Written por defecto. El toggle ✍️/🎤 dentro
+// de renderShowAndTell() es lo que deja cambiar a Speaking sin salir de la pantalla (y sin
+// necesitar un segundo botón en el hub).
 function openShowAndTell(){
   _stSeed=Math.floor(Math.random()*800)+100;
   _stMode='describe';_stSelected=null;_stSpeaking=false;
   openModule('movers');
   document.getElementById('mod-title').textContent='SHOW & TELL';
-  renderShowAndTell();
-}
-
-// Gemelo oral de Show & Tell — mismos 4 modos y mismas imágenes/escenas, pero en vez de escribir
-// en un textarea, el alumno graba su respuesta con el mismo motor Whisper que ya usa PET Speaking
-// (petSpBlock/petSpMicToggle/petSpMicReset, reutilizados tal cual). window._petSpTranscripts /
-// _petSpQuestionText se reutilizan como buffer compartido — es seguro porque solo una pantalla
-// está activa a la vez y los qid usan el prefijo "st_" (nunca chocan con los "sp*" de PET).
-function openShowAndTellSpeaking(){
-  _stSeed=Math.floor(Math.random()*800)+100;
-  _stMode='describe';_stSelected=null;_stSpeaking=true;
-  window._petSpTranscripts={};window._petSpQuestionText={};
-  openModule('movers');
-  document.getElementById('mod-title').textContent='SHOW & TELL SPEAKING';
   renderShowAndTell();
 }
 
@@ -2941,13 +2981,13 @@ async function ketResults(){
     speaking:`${s.speaking?.score||0}/${s.speaking?.max||10}`
   };
   try{
-    const raw=await callClaude(`You are a Cambridge language assessment expert. Generate a diagnostic report for a ${getAge()}-year-old A2 Key (KET) learner who did NOT come from a bilingual school.
+    const raw=await callClaude(`You are a strict Cambridge language assessment expert writing a critical, evidence-based diagnostic report for a ${getAge()}-year-old A2 Key (KET) learner who did NOT come from a bilingual school. Be specific and honest, not generic praise — ground every point in the actual scores and evaluations below, not vague encouragement.
 SCORES: Reading ${scores.reading}, Writing ${scores.writing}, Listening ${scores.listening}, Speaking ${scores.speaking}
 SPEAKING EVAL: ${JSON.stringify(s.speaking?.evaluation||{})}
 WRITING EVAL: ${JSON.stringify(s.writing?.evaluation||{})}
 
 Return ONLY valid JSON:
-{"overallLevel":"Pre-A2/Borderline A2/Solid A2/Ready for B1","overallSummary":"3-4 sentence honest assessment of current level","readingAnalysis":"2 sentences","writingAnalysis":"2 sentences","listeningAnalysis":"2 sentences","speakingAnalysis":"2 sentences","strengths":["specific strength 1","specific strength 2","specific strength 3"],"toImprove":["area 1 with specific advice","area 2 with specific advice"],"criticalGaps":["gap 1","gap 2"],"roadmapToBl":"3-4 sentences: what to focus on to reach B1 for the Cambridge exam after the London trip","priority":"reading/writing/listening/speaking — which to focus on MOST right now"}`,2000);
+{"overallLevel":"Pre-A2/Borderline A2/Solid A2/Ready for B1","overallSummary":"3-4 sentence honest assessment of current level, referencing the actual scores above","readingAnalysis":"2-3 sentences citing the actual score","writingAnalysis":"2-3 sentences citing specifics from the writing evaluation","listeningAnalysis":"2-3 sentences citing the actual score","speakingAnalysis":"2-3 sentences citing specifics from the speaking evaluation","strengths":["specific strength tied to a real result","specific strength 2","specific strength 3"],"toImprove":["area 1 with concrete, actionable advice tied to a real mistake","area 2 with concrete advice"],"criticalGaps":["gap 1 grounded in a specific low score or error pattern","gap 2"],"roadmapToBl":"3-4 concrete sentences: what to focus on to reach B1 for the Cambridge exam after the London trip","priority":"reading/writing/listening/speaking — which to focus on MOST right now, based on the actual numbers"}`,2000);
     const r=parseJSON(raw);
     _ketRenderResults(r,scores);
   }catch(e){
@@ -2958,6 +2998,7 @@ Return ONLY valid JSON:
 function _ketRenderResults(r,scores){
   const area=document.getElementById('module-content-area');
   const s=_ketSess;
+  window._ketLastReport=r;window._ketLastScores=scores;
   const totalScore=(s.reading?.score||0)+(s.writing?.score||0)+(s.listening?.score||0)+(s.speaking?.score||0);
   const totalMax=(s.reading?.max||21)+(s.writing?.max||10)+(s.listening?.max||10)+(s.speaking?.max||10);
   const pct=Math.round(totalScore/totalMax*100);
@@ -3007,11 +3048,33 @@ function _ketRenderResults(r,scores){
       <div style="color:#c9d1d9;font-size:13px;line-height:1.7">${r.roadmapToBl}</div>
       ${r.priority?`<div style="margin-top:10px;background:rgba(251,191,36,.08);border-radius:6px;padding:8px;font-size:12px;color:var(--gold2)">🎯 Priority focus right now: <strong>${r.priority.toUpperCase()}</strong></div>`:''}
     </div>`:''}
+    <button onclick="downloadKETReportPDF()" style="width:100%;padding:12px;margin-bottom:10px;background:rgba(255,255,255,.06);border:1px solid #333;border-radius:8px;color:#c9d1d9;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;cursor:pointer">📄 Download PDF Report</button>
     <div style="display:flex;gap:10px">
       <button onclick="openKETDiagnostic()" style="flex:1;padding:12px;background:rgba(255,255,255,.06);border:1px solid #333;border-radius:8px;color:#888;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;cursor:pointer">← Redo Section</button>
       <button onclick="showScreen('screen-dashboard')" style="flex:1;padding:12px;background:linear-gradient(135deg,#f59e0b,#d97706);border:none;border-radius:12px;color:#0a0a1a;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">🏠 Hub</button>
     </div>
   </div>`;
+}
+
+function downloadKETReportPDF(){
+  const r=window._ketLastReport,scores=window._ketLastScores;
+  if(!scores){showToast('No hay reporte para descargar todavía.');return;}
+  const dateTag=new Date().toISOString().slice(0,10);
+  const sections=[
+    {heading:`Nivel general: ${r?.overallLevel||'A2'}`,lines:[r?.overallSummary||'']},
+    {heading:'Puntajes por habilidad',lines:[
+      `Reading: ${scores.reading}`,`Writing: ${scores.writing}`,`Listening: ${scores.listening}`,`Speaking: ${scores.speaking}`
+    ]},
+    r?.readingAnalysis?{heading:'Reading — análisis',lines:[r.readingAnalysis]}:null,
+    r?.writingAnalysis?{heading:'Writing — análisis',lines:[r.writingAnalysis]}:null,
+    r?.listeningAnalysis?{heading:'Listening — análisis',lines:[r.listeningAnalysis]}:null,
+    r?.speakingAnalysis?{heading:'Speaking — análisis',lines:[r.speakingAnalysis]}:null,
+    r?.strengths?.length?{heading:'Fortalezas',lines:r.strengths.map(x=>`• ${x}`)}:null,
+    r?.toImprove?.length?{heading:'A mejorar',lines:r.toImprove.map(x=>`• ${x}`)}:null,
+    r?.criticalGaps?.length?{heading:'Gaps críticos',lines:r.criticalGaps.map(x=>`• ${x}`)}:null,
+    r?.roadmapToBl?{heading:'Roadmap a B1',lines:[r.roadmapToBl,r.priority?`Prioridad ahora: ${r.priority.toUpperCase()}`:'']}:null,
+  ];
+  downloadReportPDF(`KET_Diagnostico_${getStudentName().replace(/\s+/g,'_')}_${dateTag}.pdf`,'KET Diagnostic Report',`${getStudentName()} · Journey to London`,sections);
 }
 
 
@@ -5832,6 +5895,19 @@ function checkMoversL(){
 let _petCurrentData=null;    // data from last AI-generated exercise
 let _petCurrentSection=null; // PET_SECTIONS entry currently shown
 let _petFullExamActive=false; // true when timed exam is running
+
+// Estado del "reporte PET consolidado" — guarda el ÚLTIMO resultado de cada parte (rp1-5, wp1-3,
+// lp1-4, sp1-4), agrupado por skill. No es un historial (no se guardan intentos anteriores, no
+// se persiste entre sesiones) — es solo la foto del estado actual, igual de simple que _ketSess.
+// Se llena solo, a medida que se completan secciones (ver showPETSessionCard() y
+// evaluatePETSpeaking()). El botón "Ver Reporte PET" en runPET() arma un análisis con esto +
+// permite descargarlo en PDF, para que Angel pueda comparar iteraciones por fuera de la app.
+let _petFullResults={reading:{},writing:{},listening:{},speaking:{}};
+function _petRecordResult(part,sectionId,title,score,max){
+  const key=(part||'').toLowerCase();
+  if(!_petFullResults[key]||!sectionId)return;
+  _petFullResults[key][sectionId]={title:title||sectionId,score,max};
+}
 let _petTimerRemaining=0;
 let _petTimerMinutes=0;
 let _petSessionScore=0;
@@ -5991,6 +6067,7 @@ Answer in 3 sentences: (1) what specific skill is being tested, (2) the most com
 }
 
 function showPETSessionCard(sectionTitle,score,total,sectionId){
+  if(_petCurrentSection?.part)_petRecordResult(_petCurrentSection.part,sectionId,sectionTitle,score,total);
   const pct=total>0?Math.round(score/total*100):0;
   const errors=(window._petSessionErrors||[]).slice(0,3);
   const grade=pct===100?'🏆 Perfect!':pct>=80?'⭐ Excellent!':pct>=60?'👍 Good job!':pct>=40?'💪 Keep going!':'📚 More practice needed';
@@ -6117,6 +6194,9 @@ function runPET(){
           </button>`).join('')}
         </div>
       </div>
+
+      ${(()=>{const n=Object.values(_petFullResults).reduce((a,b)=>a+Object.keys(b).length,0);
+        return n>0?`<button onclick="petResults()" style="width:100%;padding:14px;margin-bottom:20px;background:linear-gradient(135deg,#f59e0b,#d97706);border:none;border-radius:12px;color:#0a0a1a;font-family:'Orbitron',monospace;font-weight:700;font-size:14px;cursor:pointer">🎓 Ver Reporte PET (${n} parte${n===1?'':'s'} completada${n===1?'':'s'}) →</button>`:'';})()}
 
       <!-- Section grid -->
       ${Object.entries(byPart).map(([part,sections])=>`
@@ -7016,6 +7096,7 @@ Provide 2-3 corrections max. Be encouraging but precise. Band scale 0-5.`;
     const bandColor=dimColors[Math.min(5,band)]||'var(--muted)';
     const km=band>=5?120:band===4?100:band===3?75:band===2?50:30;
     addKm(km);_petSessionScore+=km;
+    _petRecordResult('Speaking',_petCurrentSection?.id,_petCurrentSection?.title,band,5);
 
     const dimBar=(label,val)=>{
       const pct=Math.round((val/5)*100);
@@ -7116,6 +7197,118 @@ function runPETFull(minutes){
         </div>
       </div>`).join('')}
   </div>`;
+}
+
+// ══ PET — REPORTE CONSOLIDADO (homólogo de ketResults/_ketRenderResults) ══
+// Arma un análisis crítico y profundo a partir de _petFullResults (última nota de cada parte
+// rp1-5/wp1-3/lp1-4/sp1-4 que se haya completado hasta ahora). Es autoconclusivo — no compara
+// con intentos anteriores ni guarda historial; esa comparación la hace Angel por fuera, con los
+// PDFs que se van descargando de cada corte. Mismo criterio de rigor que el validador de KET:
+// evidencia concreta de lo que pasó en la sesión, no elogios genéricos.
+function _petSkillAgg(part){
+  const entries=Object.values(_petFullResults[part]||{});
+  const score=entries.reduce((a,e)=>a+(e.score||0),0);
+  const max=entries.reduce((a,e)=>a+(e.max||0),0);
+  return {entries,score,max,pct:max>0?Math.round(score/max*100):null,count:entries.length};
+}
+
+async function petResults(){
+  const area=document.getElementById('module-content-area');
+  area.innerHTML=`<div style="max-width:640px;margin:0 auto;background:#111214;border-radius:14px;padding:24px;text-align:center"><div style="color:var(--gold2);font-size:32px;margin-bottom:12px">🎓</div><div style="color:#8b949e;font-size:13px">Generating your PET report...<br><span style="font-size:11px;color:#444">This takes a moment</span></div></div>`;
+  const agg={reading:_petSkillAgg('reading'),writing:_petSkillAgg('writing'),listening:_petSkillAgg('listening'),speaking:_petSkillAgg('speaking')};
+  const detailLines=Object.entries(agg).map(([k,a])=>`${k.toUpperCase()}: ${a.count} part(s) done — ${a.entries.map(e=>`"${e.title}": ${e.score}/${e.max}`).join('; ')||'none yet'}`).join('\n');
+  try{
+    const raw=await callClaude(`You are a strict Cambridge B1 Preliminary (PET) examiner writing a critical, evidence-based diagnostic report for a ${getAge()}-year-old student. Be specific and honest, not generic praise — ground every point in the actual results below, not vague encouragement.
+RESULTS BY SKILL (only parts actually attempted so far, may be partial):
+${detailLines}
+
+Return ONLY valid JSON:
+{"overallLevel":"Below A2/Weak A2-B1 border/Solid B1/Ready for B1 exam","overallSummary":"3-4 sentences, honest and specific, referencing actual results above","readingAnalysis":"2-3 sentences citing which parts were strong/weak","writingAnalysis":"2-3 sentences citing which parts were strong/weak","listeningAnalysis":"2-3 sentences citing which parts were strong/weak","speakingAnalysis":"2-3 sentences citing which parts were strong/weak","strengths":["specific strength tied to a real result","strength 2","strength 3"],"toImprove":["specific area with concrete advice, citing which part exposed it","area 2"],"criticalGaps":["gap 1 grounded in a specific low score","gap 2"],"roadmapToExam":"3-4 concrete sentences: what to prioritize before sitting the real PET exam","priority":"reading/writing/listening/speaking — which needs the most work right now, based on the actual numbers"}
+If a skill has no parts attempted yet, say so plainly in its analysis field instead of inventing anything.`,2000);
+    const r=parseJSON(raw);
+    _petRenderResults(r,agg);
+  }catch(e){
+    _petRenderResults(null,agg);
+  }
+}
+
+function _petRenderResults(r,agg){
+  const area=document.getElementById('module-content-area');
+  const levelCol=r?.overallLevel?.includes('Ready')?'#22c55e':r?.overallLevel?.includes('Solid')?'#f59e0b':r?.overallLevel?.includes('border')?'#f97316':'#ef4444';
+  window._petLastReport=r;window._petLastAgg=agg;
+  area.innerHTML=`<div style="max-width:640px;margin:0 auto;font-family:'Inter',sans-serif">
+    <div style="background:linear-gradient(135deg,#1a1f2e,#1e2438);border:1px solid rgba(251,191,36,.25);border-radius:16px;padding:24px;margin-bottom:16px;text-align:center">
+      <div style="font-family:'Orbitron',monospace;font-size:12px;color:#8b949e;letter-spacing:2px;margin-bottom:8px">PET B1 REPORT</div>
+      <div style="font-size:24px;font-weight:700;color:${levelCol};margin-bottom:4px">${r?.overallLevel||'B1 in progress'}</div>
+      ${r?.overallSummary?`<div style="margin-top:14px;color:#c9d1d9;font-size:13px;line-height:1.7;text-align:left;background:rgba(0,0,0,.2);padding:12px;border-radius:8px">${r.overallSummary}</div>`:''}
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+      ${[
+        {k:'reading',icon:'📖',label:'Reading',col:'#3b82f6'},
+        {k:'writing',icon:'✏️',label:'Writing',col:'#ec4899'},
+        {k:'listening',icon:'🎧',label:'Listening',col:'#8b5cf6'},
+        {k:'speaking',icon:'🎤',label:'Speaking',col:'#22c55e'}
+      ].map(({k,icon,label,col})=>{
+        const a=agg[k];
+        const p=a.pct==null?0:a.pct;
+        const bc=a.pct==null?'#555':p>=70?'#22c55e':p>=50?'#f59e0b':'#ef4444';
+        return `<div style="background:#1e1f22;border-radius:10px;padding:12px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <div style="font-size:11px;font-family:'Orbitron',monospace;color:${col}">${icon} ${label.toUpperCase()}</div>
+            <div style="font-size:13px;font-weight:700;color:${bc}">${a.pct==null?'—':a.pct+'%'}</div>
+          </div>
+          <div style="height:4px;background:#2b2d31;border-radius:2px"><div style="height:100%;width:${p}%;background:${bc};border-radius:2px"></div></div>
+          <div style="font-size:11px;color:#555;margin-top:6px">${a.count} part${a.count===1?'':'s'} done</div>
+        </div>`;
+      }).join('')}
+    </div>
+    ${['reading','writing','listening','speaking'].map(k=>r?.[`${k}Analysis`]?`<div style="background:#1e1f22;border-radius:10px;padding:12px 14px;margin-bottom:8px">
+      <div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:1px;margin-bottom:4px">${k.toUpperCase()}</div>
+      <div style="font-size:13px;color:#c9d1d9;line-height:1.6">${r[`${k}Analysis`]}</div>
+    </div>`:'').join('')}
+    ${r?.strengths?.length?`<div style="background:#1e2d1e;border:1px solid rgba(34,197,94,.2);border-radius:10px;padding:14px;margin-bottom:10px">
+      <div style="font-size:11px;font-weight:700;color:#22c55e;font-family:'Orbitron',monospace;margin-bottom:8px">✅ STRENGTHS</div>
+      ${r.strengths.map(s=>`<div style="color:#c9d1d9;font-size:13px;padding:4px 0;border-bottom:1px solid #1e3d1e">• ${s}</div>`).join('')}
+    </div>`:''}
+    ${r?.toImprove?.length?`<div style="background:#2d2010;border:1px solid rgba(245,158,11,.2);border-radius:10px;padding:14px;margin-bottom:10px">
+      <div style="font-size:11px;font-weight:700;color:#f59e0b;font-family:'Orbitron',monospace;margin-bottom:8px">⚠️ TO IMPROVE</div>
+      ${r.toImprove.map(s=>`<div style="color:#c9d1d9;font-size:13px;padding:4px 0;border-bottom:1px solid #3d2d10">• ${s}</div>`).join('')}
+    </div>`:''}
+    ${r?.criticalGaps?.length?`<div style="background:#2d1010;border:1px solid rgba(239,68,68,.2);border-radius:10px;padding:14px;margin-bottom:10px">
+      <div style="font-size:11px;font-weight:700;color:#ef4444;font-family:'Orbitron',monospace;margin-bottom:8px">🔴 CRITICAL GAPS</div>
+      ${r.criticalGaps.map(s=>`<div style="color:#c9d1d9;font-size:13px;padding:4px 0;border-bottom:1px solid #3d1010">• ${s}</div>`).join('')}
+    </div>`:''}
+    ${r?.roadmapToExam?`<div style="background:#1a1f2e;border:1px solid rgba(251,191,36,.2);border-radius:10px;padding:14px;margin-bottom:16px">
+      <div style="font-size:11px;font-weight:700;color:var(--gold2);font-family:'Orbitron',monospace;margin-bottom:8px">🗺️ ROADMAP TO PET EXAM</div>
+      <div style="color:#c9d1d9;font-size:13px;line-height:1.7">${r.roadmapToExam}</div>
+      ${r.priority?`<div style="margin-top:10px;background:rgba(251,191,36,.08);border-radius:6px;padding:8px;font-size:12px;color:var(--gold2)">🎯 Priority focus right now: <strong>${r.priority.toUpperCase()}</strong></div>`:''}
+    </div>`:''}
+    <button onclick="downloadPETReportPDF()" style="width:100%;padding:12px;margin-bottom:10px;background:rgba(255,255,255,.06);border:1px solid #333;border-radius:8px;color:#c9d1d9;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;cursor:pointer">📄 Download PDF Report</button>
+    <div style="display:flex;gap:10px">
+      <button onclick="runPET()" style="flex:1;padding:12px;background:rgba(255,255,255,.06);border:1px solid #333;border-radius:8px;color:#888;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;cursor:pointer">← PET Training</button>
+      <button onclick="showScreen('screen-dashboard')" style="flex:1;padding:12px;background:linear-gradient(135deg,#f59e0b,#d97706);border:none;border-radius:12px;color:#0a0a1a;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">🏠 Hub</button>
+    </div>
+  </div>`;
+}
+
+function downloadPETReportPDF(){
+  const r=window._petLastReport,agg=window._petLastAgg;
+  if(!agg){showToast('No hay reporte para descargar todavía.');return;}
+  const dateTag=new Date().toISOString().slice(0,10);
+  const skillLine=k=>{const a=agg[k];return a.count?`${k}: ${a.pct}% (${a.entries.map(e=>`${e.title} ${e.score}/${e.max}`).join(', ')})`:`${k}: sin partes completadas todavía`;};
+  const sections=[
+    {heading:`Nivel general: ${r?.overallLevel||'PET en progreso'}`,lines:[r?.overallSummary||'']},
+    {heading:'Puntajes por habilidad',lines:['reading','writing','listening','speaking'].map(skillLine)},
+    r?.readingAnalysis?{heading:'Reading — análisis',lines:[r.readingAnalysis]}:null,
+    r?.writingAnalysis?{heading:'Writing — análisis',lines:[r.writingAnalysis]}:null,
+    r?.listeningAnalysis?{heading:'Listening — análisis',lines:[r.listeningAnalysis]}:null,
+    r?.speakingAnalysis?{heading:'Speaking — análisis',lines:[r.speakingAnalysis]}:null,
+    r?.strengths?.length?{heading:'Fortalezas',lines:r.strengths.map(x=>`• ${x}`)}:null,
+    r?.toImprove?.length?{heading:'A mejorar',lines:r.toImprove.map(x=>`• ${x}`)}:null,
+    r?.criticalGaps?.length?{heading:'Gaps críticos',lines:r.criticalGaps.map(x=>`• ${x}`)}:null,
+    r?.roadmapToExam?{heading:'Roadmap al examen PET',lines:[r.roadmapToExam,r.priority?`Prioridad ahora: ${r.priority.toUpperCase()}`:'']}:null,
+  ];
+  downloadReportPDF(`PET_Reporte_${getStudentName().replace(/\s+/g,'_')}_${dateTag}.pdf`,'PET B1 Report',`${getStudentName()} · Journey to London`,sections);
 }
 
 // ══ BOOK CLUB ══
