@@ -705,7 +705,7 @@
     <!-- Fernando weekly skill card -->
     <div id="fer-week-card" style="display:none;margin-bottom:12px"></div>
 
-    <!-- Fernando hub: 8 módulos -->
+    <!-- Fernando hub: 9 módulos -->
     <div id="fernando-quick-nav" style="display:none">
       <div class="rqn-grid">
         <button class="rqn-btn singing" onclick="openModule('singing')">
@@ -728,6 +728,13 @@
           <div class="rqn-title">Show & Tell</div>
           <div class="rqn-sub">Describe images in English</div>
           <div class="rqn-badge">4 modos · PET</div>
+        </button>
+        <button class="rqn-btn showtell" onclick="openShowAndTellSpeaking()" style="border-color:rgba(6,182,212,.4)">
+          <div class="rqn-icon">🎧</div>
+          <div class="rqn-cat">SPEAKING</div>
+          <div class="rqn-title">Show & Tell Speaking</div>
+          <div class="rqn-sub">Habla sobre las imágenes</div>
+          <div class="rqn-badge">4 modos · Oral</div>
         </button>
         <button class="rqn-btn" onclick="openQATrivia()" style="border-color:rgba(139,92,246,.4);background:rgba(139,92,246,.06)">
           <div class="rqn-icon">⚡</div>
@@ -1835,7 +1842,7 @@ function startVersusFree(){
   startLesson();
 }
 // ── Show & Tell state ──
-let _stSeed=0,_stMode='describe',_stSelected=null;
+let _stSeed=0,_stMode='describe',_stSelected=null,_stSpeaking=false;
 
 const _SPOT_SCENES=[
   {scene1:`A busy coffee shop in the morning. There are 5 people at tables. A woman in a red jacket is reading a book by the window. A barista with a beard is making coffee. Two friends are laughing at a corner table. One person is working on a laptop near the door.`,
@@ -1851,51 +1858,80 @@ const _SPOT_SCENES=[
 
 function openShowAndTell(){
   _stSeed=Math.floor(Math.random()*800)+100;
-  _stMode='describe';_stSelected=null;
+  _stMode='describe';_stSelected=null;_stSpeaking=false;
   openModule('movers');
   document.getElementById('mod-title').textContent='SHOW & TELL';
   renderShowAndTell();
 }
 
+// Gemelo oral de Show & Tell — mismos 4 modos y mismas imágenes/escenas, pero en vez de escribir
+// en un textarea, el alumno graba su respuesta con el mismo motor Whisper que ya usa PET Speaking
+// (petSpBlock/petSpMicToggle/petSpMicReset, reutilizados tal cual). window._petSpTranscripts /
+// _petSpQuestionText se reutilizan como buffer compartido — es seguro porque solo una pantalla
+// está activa a la vez y los qid usan el prefijo "st_" (nunca chocan con los "sp*" de PET).
+function openShowAndTellSpeaking(){
+  _stSeed=Math.floor(Math.random()*800)+100;
+  _stMode='describe';_stSelected=null;_stSpeaking=true;
+  window._petSpTranscripts={};window._petSpQuestionText={};
+  openModule('movers');
+  document.getElementById('mod-title').textContent='SHOW & TELL SPEAKING';
+  renderShowAndTell();
+}
+
 function renderShowAndTell(){
   const area=document.getElementById('module-content-area');
+  const mt=document.getElementById('mod-title');if(mt)mt.textContent=_stSpeaking?'SHOW & TELL SPEAKING':'SHOW & TELL';
+  const inputToggle=`<div style="display:flex;gap:8px;margin-bottom:14px">
+    <button onclick="_stSpeaking=false;renderShowAndTell()" style="flex:1;padding:9px;border-radius:10px;font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;cursor:pointer;border:2px solid ${!_stSpeaking?'var(--cyan)':'transparent'};background:${!_stSpeaking?'rgba(6,182,212,.15)':'var(--card2)'};color:${!_stSpeaking?'var(--cyan)':'var(--muted)'}">✍️ Written</button>
+    <button onclick="_stSpeaking=true;window._petSpTranscripts={};window._petSpQuestionText={};renderShowAndTell()" style="flex:1;padding:9px;border-radius:10px;font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;cursor:pointer;border:2px solid ${_stSpeaking?'var(--cyan)':'transparent'};background:${_stSpeaking?'rgba(6,182,212,.15)':'var(--card2)'};color:${_stSpeaking?'var(--cyan)':'var(--muted)'}">🎤 Speaking</button>
+  </div>`;
   const modes=[{key:'describe',icon:'🖼️',label:'Describe It'},{key:'justify',icon:'🤔',label:'Pick & Justify'},{key:'story',icon:'📖',label:'Tell the Story'},{key:'spot',icon:'🔍',label:'Spot & Describe'}];
   const modeBar=modes.map(m=>`<button onclick="_stMode='${m.key}';_stSelected=null;renderShowAndTell()" style="flex:1;padding:8px 4px;background:${_stMode===m.key?'rgba(6,182,212,.15)':'var(--card2)'};border:${_stMode===m.key?'2px solid var(--cyan)':'2px solid transparent'};border-radius:10px;color:${_stMode===m.key?'var(--cyan)':'var(--muted)'};font-size:11px;cursor:pointer;transition:all .15s"><div style="font-size:16px">${m.icon}</div><div style="font-weight:${_stMode===m.key?700:400};margin-top:2px">${m.label}</div></button>`).join('');
 
   let content='';
   if(_stMode==='describe'){
     content=`<div style="border-radius:12px;overflow:hidden;margin-bottom:12px"><img src="https://picsum.photos/seed/${_stSeed}/680/360" style="width:100%;display:block;border-radius:12px" onerror="this.src='https://picsum.photos/680/360'"></div>
-    <div style="font-size:12px;color:var(--muted);margin-bottom:8px">✍️ Describe what you see — at least 4 sentences. Think about: people, place, actions, atmosphere.</div>
+    ${_stSpeaking?`<div style="font-size:12px;color:var(--muted);margin-bottom:8px">🎤 Describe out loud what you see — at least 4 sentences. Think about: people, place, actions, atmosphere.</div>
+    ${petSpBlock('st_describe','Describe what you can see in this picture — at least 4 sentences.')}
+    <button onclick="_stSeed=Math.floor(Math.random()*800)+100;renderShowAndTell()" style="padding:10px 14px;background:var(--card2);border:1px solid var(--border);border-radius:10px;color:var(--muted);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;cursor:pointer">🔄 New</button>
+    ${petSpFeedbackFooter("evaluateShowTellSpeaking('describe')")}`
+    :`<div style="font-size:12px;color:var(--muted);margin-bottom:8px">✍️ Describe what you see — at least 4 sentences. Think about: people, place, actions, atmosphere.</div>
     <textarea id="st-input" placeholder="I can see... There is/are... The person is... It looks like..." style="width:100%;height:110px;background:var(--card2);border:1px solid var(--border);border-radius:10px;color:var(--text);padding:12px;font-size:13px;font-family:'Inter',sans-serif;resize:vertical;outline:none"></textarea>
     <div style="display:flex;gap:8px;margin-top:10px">
       <button onclick="_stSeed=Math.floor(Math.random()*800)+100;renderShowAndTell()" style="padding:10px 14px;background:var(--card2);border:1px solid var(--border);border-radius:10px;color:var(--muted);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;cursor:pointer">🔄 New</button>
       <button onclick="submitShowTell('describe')" style="flex:1;padding:10px;background:var(--cyan);border:none;border-radius:10px;color:var(--bg);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">Submit to Miss Kamil_IA →</button>
-    </div>`;
+    </div>`}`;
   } else if(_stMode==='justify'){
     const seed2=_stSeed+400;
-    content=`<div style="font-size:12px;color:var(--muted);margin-bottom:10px">🤔 Click on the image you prefer, then explain WHY (3-4 sentences).</div>
+    content=`<div style="font-size:12px;color:var(--muted);margin-bottom:10px">🤔 Click on the image you prefer, then explain WHY ${_stSpeaking?'out loud':''} (3-4 sentences).</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
       <div onclick="_stSelected='A';renderShowAndTell()" style="cursor:pointer;border-radius:12px;overflow:hidden;border:3px solid ${_stSelected==='A'?'var(--cyan)':'transparent'};transition:border .15s"><img src="https://picsum.photos/seed/${_stSeed}/340/240" style="width:100%;display:block"></div>
       <div onclick="_stSelected='B';renderShowAndTell()" style="cursor:pointer;border-radius:12px;overflow:hidden;border:3px solid ${_stSelected==='B'?'var(--cyan)':'transparent'};transition:border .15s"><img src="https://picsum.photos/seed/${seed2}/340/240" style="width:100%;display:block"></div>
     </div>
-    ${_stSelected?`<div style="font-size:12px;color:var(--cyan);margin-bottom:8px">✓ Image ${_stSelected} selected. Explain your choice:</div>
+    ${_stSelected?(_stSpeaking?`<div style="font-size:12px;color:var(--cyan);margin-bottom:8px">✓ Image ${_stSelected} selected. Explain your choice out loud:</div>
+    ${petSpBlock('st_justify',`Explain why you prefer image ${_stSelected}.`)}
+    ${petSpFeedbackFooter("evaluateShowTellSpeaking('justify')")}`
+    :`<div style="font-size:12px;color:var(--cyan);margin-bottom:8px">✓ Image ${_stSelected} selected. Explain your choice:</div>
     <textarea id="st-input" placeholder="I prefer image ${_stSelected} because... I think... In my opinion..." style="width:100%;height:100px;background:var(--card2);border:1px solid var(--border);border-radius:10px;color:var(--text);padding:12px;font-size:13px;font-family:'Inter',sans-serif;resize:vertical;outline:none"></textarea>
-    <button onclick="submitShowTell('justify')" style="margin-top:10px;width:100%;padding:11px;background:var(--cyan);border:none;border-radius:10px;color:var(--bg);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">Submit to Miss Kamil_IA →</button>`
+    <button onclick="submitShowTell('justify')" style="margin-top:10px;width:100%;padding:11px;background:var(--cyan);border:none;border-radius:10px;color:var(--bg);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">Submit to Miss Kamil_IA →</button>`)
     :`<div style="text-align:center;padding:16px;color:var(--muted);font-size:13px">👆 Click an image to select it</div>`}
     <button onclick="_stSeed=Math.floor(Math.random()*800)+100;_stSelected=null;renderShowAndTell()" style="margin-top:8px;padding:8px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:12px;cursor:pointer">🔄 New images</button>`;
   } else if(_stMode==='story'){
-    content=`<div style="font-size:12px;color:var(--muted);margin-bottom:10px">📖 Connect these 3 images with a short story (5-6 sentences). Use Past Simple or Present tense!</div>
+    content=`<div style="font-size:12px;color:var(--muted);margin-bottom:10px">📖 ${_stSpeaking?'Tell':'Connect'} these 3 images with a short story (5-6 sentences)${_stSpeaking?', out loud':''}. Use Past Simple or Present tense!</div>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">
       ${[0,1,2].map(i=>`<div style="border-radius:10px;overflow:hidden"><img src="https://picsum.photos/seed/${_stSeed+i*200}/220/160" style="width:100%;display:block"></div>`).join('')}
     </div>
-    <textarea id="st-input" placeholder="First, ... Then, ... After that, ... Finally, ..." style="width:100%;height:110px;background:var(--card2);border:1px solid var(--border);border-radius:10px;color:var(--text);padding:12px;font-size:13px;font-family:'Inter',sans-serif;resize:vertical;outline:none"></textarea>
+    ${_stSpeaking?`${petSpBlock('st_story','Tell a short story (5-6 sentences) connecting these 3 images.')}
+    <button onclick="_stSeed=Math.floor(Math.random()*800)+100;renderShowAndTell()" style="padding:10px 14px;background:var(--card2);border:1px solid var(--border);border-radius:10px;color:var(--muted);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;cursor:pointer">🔄 New</button>
+    ${petSpFeedbackFooter("evaluateShowTellSpeaking('story')")}`
+    :`<textarea id="st-input" placeholder="First, ... Then, ... After that, ... Finally, ..." style="width:100%;height:110px;background:var(--card2);border:1px solid var(--border);border-radius:10px;color:var(--text);padding:12px;font-size:13px;font-family:'Inter',sans-serif;resize:vertical;outline:none"></textarea>
     <div style="display:flex;gap:8px;margin-top:10px">
       <button onclick="_stSeed=Math.floor(Math.random()*800)+100;renderShowAndTell()" style="padding:10px 14px;background:var(--card2);border:1px solid var(--border);border-radius:10px;color:var(--muted);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;cursor:pointer">🔄 New</button>
       <button onclick="submitShowTell('story')" style="flex:1;padding:10px;background:var(--cyan);border:none;border-radius:10px;color:var(--bg);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">Submit to Miss Kamil_IA →</button>
-    </div>`;
+    </div>`}`;
   } else {
     const sp=_SPOT_SCENES[Math.floor(_stSeed/100)%_SPOT_SCENES.length];
-    content=`<div style="font-size:12px;color:var(--muted);margin-bottom:10px">🔍 Read both scenes carefully. Find and describe the differences in English.</div>
+    content=`<div style="font-size:12px;color:var(--muted);margin-bottom:10px">🔍 Read both scenes carefully. Find and describe the differences ${_stSpeaking?'out loud, ':''}in English.</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
       <div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:12px">
         <div style="font-family:'Orbitron',monospace;font-size:9px;color:var(--cyan);letter-spacing:2px;margin-bottom:8px">SCENE A</div>
@@ -1906,22 +1942,27 @@ function renderShowAndTell(){
         <div style="font-size:12px;color:var(--text);line-height:1.7">${sp.scene2}</div>
       </div>
     </div>
-    <div style="font-size:12px;color:var(--muted);margin-bottom:8px">List the differences — there are ${sp.count}:</div>
-    <textarea id="st-input" placeholder="1. In Scene A... but in Scene B...\n2. The ... is different because...\n3. ..." style="width:100%;height:110px;background:var(--card2);border:1px solid var(--border);border-radius:10px;color:var(--text);padding:12px;font-size:13px;font-family:'Inter',sans-serif;resize:vertical;outline:none"></textarea>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:8px">${_stSpeaking?'Say':'List'} the differences — there are ${sp.count}:</div>
+    ${_stSpeaking?`${petSpBlock('st_spot','Describe the differences between Scene A and Scene B.')}
+    <button onclick="_stSeed=(_stSeed+100)%300+100;renderShowAndTell()" style="padding:10px 14px;background:var(--card2);border:1px solid var(--border);border-radius:10px;color:var(--muted);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;cursor:pointer">🔄 New scene</button>
+    ${petSpFeedbackFooter(`evaluateShowTellSpeaking('spot',${JSON.stringify(sp.diffs)})`)}`
+    :`<textarea id="st-input" placeholder="1. In Scene A... but in Scene B...\n2. The ... is different because...\n3. ..." style="width:100%;height:110px;background:var(--card2);border:1px solid var(--border);border-radius:10px;color:var(--text);padding:12px;font-size:13px;font-family:'Inter',sans-serif;resize:vertical;outline:none"></textarea>
     <div style="display:flex;gap:8px;margin-top:10px">
       <button onclick="_stSeed=(_stSeed+100)%300+100;renderShowAndTell()" style="padding:10px 14px;background:var(--card2);border:1px solid var(--border);border-radius:10px;color:var(--muted);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;cursor:pointer">🔄 New scene</button>
       <button onclick="submitShowTell('spot',${JSON.stringify(sp.diffs)})" style="flex:1;padding:10px;background:var(--cyan);border:none;border-radius:10px;color:var(--bg);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">Submit to Miss Kamil_IA →</button>
-    </div>`;
+    </div>`}`;
   }
 
   area.innerHTML=`<div style="max-width:680px;margin:0 auto">
     <div style="background:rgba(6,182,212,.06);border:1px solid rgba(6,182,212,.3);border-radius:14px;padding:14px 18px;margin-bottom:14px;display:flex;align-items:center;gap:14px">
-      <div style="font-size:24px">🖼️</div>
+      <div style="font-size:24px">${_stSpeaking?'🎧':'🖼️'}</div>
       <div>
-        <div style="font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:var(--cyan);letter-spacing:2px">SHOW & TELL</div>
-        <div style="font-size:14px;font-weight:700;color:var(--text);margin-top:2px">Describe in English · Miss Kamil_IA evaluates</div>
+        <div style="font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:var(--cyan);letter-spacing:2px">SHOW & TELL${_stSpeaking?' SPEAKING':''}</div>
+        <div style="font-size:14px;font-weight:700;color:var(--text);margin-top:2px">${_stSpeaking?'Speak in English · Miss Kamil_IA listens':'Describe in English · Miss Kamil_IA evaluates'}</div>
       </div>
     </div>
+    ${inputToggle}
+    ${_stSpeaking?`<div style="font-size:11px;color:var(--muted);margin-bottom:10px;padding:8px 12px;background:var(--card2);border-radius:8px">🎙️ Feedback is based on the words you use (grammar, vocabulary, ideas) — pronunciation isn't scored here, since a transcript can't capture it.</div>`:''}
     <div style="display:flex;gap:6px;margin-bottom:14px">${modeBar}</div>
     ${content}
     <div id="st-result" style="margin-top:14px"></div>
@@ -1968,6 +2009,49 @@ Be encouraging, concise, and talk directly to ${getStudentName()}.`;
   }catch(e){
     if(btn){btn.disabled=false;btn.textContent='Submit to Miss Kamil_IA →';}
     result.innerHTML=`<div style="color:var(--red);padding:12px;background:rgba(239,68,68,.08);border-radius:8px">⚠️ ${e.message}</div>`;
+  }
+}
+
+// Gemelo oral de submitShowTell() para Show & Tell Speaking — misma plantilla de feedback en
+// texto libre (no el rubric de bandas de PET Speaking), pero leyendo la transcripción de Whisper
+// (window._petSpTranscripts, llenada por petSpMicToggle) en vez de un textarea. Igual que
+// evaluatePETSpeaking(), NO evalúa pronunciación — solo palabras/gramática de la transcripción.
+async function evaluateShowTellSpeaking(mode,diffs){
+  const qid={describe:'st_describe',justify:'st_justify',story:'st_story',spot:'st_spot'}[mode];
+  const transcript=(window._petSpTranscripts||{})[qid];
+  if(!transcript||!transcript.trim()){showToast('Record your answer first!');return;}
+  const fb=document.getElementById('pet-sp-fb');
+  if(fb)fb.innerHTML=`<div style="text-align:center;padding:20px;color:var(--muted)"><div style="font-size:22px;margin-bottom:8px">🎧</div><div>Miss Kamil_IA is listening...</div></div>`;
+  const modeCtx={describe:'Describe an image out loud, in at least 4 sentences (people, place, actions, atmosphere).',justify:'Select one of two images and justify the choice out loud, in 3-4 sentences.',story:'Tell a 5-6 sentence story connecting 3 images, out loud, using Past Simple or Present tense.',spot:`Find and describe out loud ${diffs?diffs.length:6} differences between two similar scenes. The actual differences are: ${diffs?(Array.isArray(diffs)?diffs.join(', '):diffs):'various'}`}[mode]||mode;
+  const prompt=`You are Miss Kamil_IA, Cambridge B1 PET English teacher. Evaluate a student's SPOKEN response to a Show & Tell task, transcribed with Whisper.
+
+Task: ${modeCtx}
+
+Student's spoken answer (transcribed — judge only the words and grammar used, do NOT comment on pronunciation, accent, or intonation, since a text transcript carries none of that information): "${transcript}"
+
+Evaluate at B1 PET level and respond EXACTLY like this:
+
+⭐ SCORE: [X/5]
+
+✅ WELL DONE:
+[2 specific things — good vocabulary, correct grammar, good expressions]
+
+⚠️ TO IMPROVE:
+[1-2 corrections: "Instead of '...' → say '...' because..."]
+
+💡 USEFUL EXPRESSIONS FOR THIS TASK:
+[2-3 B1 expressions useful for this type of description]
+
+Be encouraging, concise, and talk directly to ${getStudentName()}.`;
+  try{
+    const raw=await callClaude(prompt,700);
+    if(fb)fb.innerHTML=`<div style="background:var(--card);border:1px solid rgba(6,182,212,.3);border-radius:12px;padding:18px">
+      <div style="font-family:'Orbitron',monospace;font-size:9px;color:var(--cyan);letter-spacing:2px;margin-bottom:12px">📋 MISS KAMIL_IA</div>
+      <div style="font-size:13px;line-height:1.8;color:var(--text);white-space:pre-wrap">${raw.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+    </div>`;
+    addKm(60);
+  }catch(e){
+    if(fb)fb.innerHTML=`<div style="color:var(--red);padding:12px;background:rgba(239,68,68,.08);border-radius:8px">⚠️ ${e.message}</div>`;
   }
 }
 // ══ Q&A TRIVIA — OLIVER BLACKWOOD ══
@@ -6853,8 +6937,8 @@ function petSpBlock(qid,text,numLabel){
   </div>`;
 }
 
-function petSpFeedbackFooter(){
-  return `<button class="submit-btn" style="width:100%;margin-top:8px" onclick="evaluatePETSpeaking()">🗣️ Get feedback from Miss Kamil_IA</button>
+function petSpFeedbackFooter(evalCall){
+  return `<button class="submit-btn" style="width:100%;margin-top:8px" onclick="${evalCall||'evaluatePETSpeaking()'}">🗣️ Get feedback from Miss Kamil_IA</button>
     <div id="pet-sp-fb" style="margin-top:12px"></div>`;
 }
 
