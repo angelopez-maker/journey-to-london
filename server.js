@@ -185,7 +185,7 @@ app.post('/api/tts', rateLimit(60), async (req, res) => {
         model: 'gpt-4o-mini-tts',
         voice: voice || 'echo',
         input: text.slice(0, 2000),
-        instructions: instructions || 'Speak as a warm, energetic young British English man in his twenties — clear pronunciation, natural pace, friendly and encouraging.',
+        instructions: instructions || 'Speak as an upbeat, enthusiastic British teenager, around 16-18 years old — energetic and playful, clear pronunciation, natural conversational pace, genuinely excited and fun.',
         response_format: 'mp3',
       }),
     });
