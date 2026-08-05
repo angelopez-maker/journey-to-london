@@ -1392,18 +1392,72 @@ document.addEventListener('click',function _voiceInit(){
   setTimeout(()=>{_cachedVoice=null;getBestVoice();},300);
 },{once:true});
 
-function speak(text,rate=0.9,lang='en-GB'){
-  window.speechSynthesis.cancel();
-  const u=new SpeechSynthesisUtterance(text);
-  u.lang=lang;u.rate=rate;
-  const doSpeak=()=>{const v=getBestVoice();if(v)u.voice=v;window.speechSynthesis.speak(u);};
-  if(window.speechSynthesis.getVoices().length>0){doSpeak();}
-  else{
-    const h=()=>{window.speechSynthesis.removeEventListener('voiceschanged',h);doSpeak();};
-    window.speechSynthesis.addEventListener('voiceschanged',h);
-    setTimeout(doSpeak,600); // safety fallback
+// ══ TTS — voz real con OpenAI (reemplaza speechSynthesis nativo) ══
+// Antes: window.speechSynthesis, robótica pero instantánea y offline, con voces distintas
+// según el navegador/SO de cada compu. Ahora: llama a /api/tts (modelo gpt-4o-mini-tts de
+// OpenAI, mismo OPENAI_API_KEY que Whisper) para una voz real, joven y británica, controlada
+// con "instructions" en vez de depender de qué voces vengan instaladas localmente. Si la
+// llamada falla, tarda demasiado, o el navegador no puede reproducir el audio, cae
+// automáticamente de vuelta a speechSynthesis — la voz nueva nunca debe ser el motivo de que
+// algo se sienta roto frente a los niños.
+const OLIVER_TTS_INSTRUCTIONS='Speak as a warm, energetic young British English man in his twenties — clear pronunciation, natural pace, friendly and encouraging, like a supportive older student. Natural intonation, not robotic.';
+const TTS_TIMEOUT_MS=6000;
+let _ttsAudio=null; // <audio> actualmente sonando, si estamos usando OpenAI TTS
+
+// Detiene cualquier audio en curso, sea del motor nuevo (OpenAI) o del nativo (fallback).
+function ttsStop(){
+  if(_ttsAudio){try{_ttsAudio.pause();}catch(e){}_ttsAudio=null;}
+  if(window.speechSynthesis)window.speechSynthesis.cancel();
+}
+
+// text: lo que se dice. opts: {rate, instructions, onEnd, fallback}
+// fallback: función que reproduce con speechSynthesis — cada módulo trae la suya (elige voz
+// masculina/general, pitch, etc.) para no perder sus particularidades si hay que caer a ella.
+async function ttsSpeak(text,opts={}){
+  ttsStop();
+  const {rate=1,instructions=OLIVER_TTS_INSTRUCTIONS,onEnd,fallback}=opts||{};
+  if(!text||!text.trim()){if(onEnd)onEnd();return;}
+  const doFallback=()=>{if(fallback)fallback();else if(onEnd)onEnd();};
+  try{
+    const ctrl=new AbortController();
+    const timer=setTimeout(()=>ctrl.abort(),TTS_TIMEOUT_MS);
+    const r=await fetch('/api/tts',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({text,instructions}),
+      signal:ctrl.signal
+    });
+    clearTimeout(timer);
+    if(!r.ok)throw new Error('tts http '+r.status);
+    const data=await r.json();
+    if(!data.audio)throw new Error('no audio');
+    const audio=new Audio(`data:${data.mimeType||'audio/mpeg'};base64,${data.audio}`);
+    audio.playbackRate=rate;
+    _ttsAudio=audio;
+    audio.onended=()=>{if(_ttsAudio===audio)_ttsAudio=null;if(onEnd)onEnd();};
+    audio.onerror=()=>{if(_ttsAudio===audio)_ttsAudio=null;doFallback();};
+    await audio.play();
+  }catch(e){
+    doFallback();
   }
-  return u;
+}
+
+function speak(text,rate=0.9,lang='en-GB',onEnd){
+  ttsSpeak(text,{
+    rate,onEnd,
+    fallback:()=>{
+      const u=new SpeechSynthesisUtterance(text);
+      u.lang=lang;u.rate=rate;
+      if(onEnd)u.onend=onEnd;
+      const doSpeak=()=>{const v=getBestVoice();if(v)u.voice=v;window.speechSynthesis.speak(u);};
+      if(window.speechSynthesis.getVoices().length>0){doSpeak();}
+      else{
+        const h=()=>{window.speechSynthesis.removeEventListener('voiceschanged',h);doSpeak();};
+        window.speechSynthesis.addEventListener('voiceschanged',h);
+        setTimeout(doSpeak,600); // safety fallback
+      }
+    }
+  });
 }
 
 // ══ NAVIGATION ══
@@ -2197,13 +2251,17 @@ function getBestMaleVoice(preferBritish=false){
 }
 
 function oliverSpeak(text){
-  if(!window.speechSynthesis)return;
-  window.speechSynthesis.cancel();
-  const u=new SpeechSynthesisUtterance(text);
-  u.lang='en-GB';u.rate=0.92;u.pitch=1.0;
-  const loadVoice=()=>{const v=getBestMaleVoice(true);if(v)u.voice=v;window.speechSynthesis.speak(u);};
-  if(window.speechSynthesis.getVoices().length)loadVoice();
-  else{window.speechSynthesis.onvoiceschanged=loadVoice;}
+  ttsSpeak(text,{
+    rate:0.92,
+    fallback:()=>{
+      if(!window.speechSynthesis)return;
+      const u=new SpeechSynthesisUtterance(text);
+      u.lang='en-GB';u.rate=0.92;u.pitch=1.0;
+      const loadVoice=()=>{const v=getBestMaleVoice(true);if(v)u.voice=v;window.speechSynthesis.speak(u);};
+      if(window.speechSynthesis.getVoices().length)loadVoice();
+      else{window.speechSynthesis.onvoiceschanged=loadVoice;}
+    }
+  });
 }
 
 
@@ -2560,27 +2618,32 @@ function _ketPlayAudio(){
   const part=parts[partIdx];
   const btn=document.getElementById('ket-play-btn');
   const status=document.getElementById('ket-audio-status');
-  if(!window.speechSynthesis)return;
-  window.speechSynthesis.cancel();
   let text='';
   if(part.id===2){text=part.audioText||'';}
   else{text=(part.items||[]).map((item,i)=>`Conversation ${i+1}. ${item.audioText}`).join(' ... ');}
-  const u=new SpeechSynthesisUtterance(text);
-  u.lang='en-GB';u.rate=0.85;u.pitch=1.0;
-  const v=getBestMaleVoice(true);if(v)u.voice=v;
   if(btn){btn.textContent='🔊 Playing...';btn.style.background='rgba(139,92,246,.4)';}
   if(status)status.textContent='Audio playing — listen carefully...';
-  u.onend=()=>{
+  const onEnd=()=>{
     if(btn){btn.textContent='▶ Play Again';btn.style.background='#8b5cf6';}
     if(status)status.textContent='Done. Answer the questions below.';
   };
-  window.speechSynthesis.speak(u);
+  ttsSpeak(text,{
+    rate:0.85,onEnd,
+    fallback:()=>{
+      if(!window.speechSynthesis){onEnd();return;}
+      const u=new SpeechSynthesisUtterance(text);
+      u.lang='en-GB';u.rate=0.85;u.pitch=1.0;
+      const v=getBestMaleVoice(true);if(v)u.voice=v;
+      u.onend=onEnd;
+      window.speechSynthesis.speak(u);
+    }
+  });
 }
 
 function _ketSubmitListenPart(){
   const {parts,partIdx}=window._ketListen;
   const part=parts[partIdx];
-  window.speechSynthesis.cancel();
+  ttsStop();
   if(part.id===2){
     const ans={};
     Object.entries(part.notes||{}).forEach(([k,v],i)=>{ans[i]=(document.getElementById(`ket-ln-${i}`)?.value||'').trim().toLowerCase();});
@@ -3820,9 +3883,11 @@ function renderListening(d){
 
 function playText(rate=1){
   if(!window._listenText) return;
-  const u=speak(window._listenText,rate);
   const btn=document.getElementById('play-btn');
-  if(btn){btn.textContent='🔊 Playing...';btn.classList.add('playing');u.onend=()=>{btn.textContent='▶ Play again';btn.classList.remove('playing');};}
+  if(btn){btn.textContent='🔊 Playing...';btn.classList.add('playing');}
+  speak(window._listenText,rate,'en-GB',()=>{
+    if(btn){btn.textContent='▶ Play again';btn.classList.remove('playing');}
+  });
 }
 
 // ══ WRITING ══
@@ -6750,7 +6815,10 @@ function petSpeak(btnOrText){
 function petSpeakAllQ(){
   const qs=_petCurrentData?.questions||_petCurrentData?.topics||[];
   let i=0;
-  function next(){if(i>=qs.length)return;speak(qs[i++],0.9);setTimeout(next,3500);}
+  // Encadena con el callback real de "terminó de hablar" en vez de una espera fija — con
+  // speak() de otro tamaño de latencia según fallback (audio real vs. speechSynthesis nativo),
+  // un tiempo fijo cortaba preguntas a mitad de frase. Pausa corta entre preguntas.
+  function next(){if(i>=qs.length)return;speak(qs[i++],0.9,'en-GB',()=>setTimeout(next,400));}
   next();
 }
 function petComplete(km){addKm(km);showToast(`📝 Section complete! +${km} km!`);
@@ -7533,14 +7601,19 @@ function addMsg(role,text){
 function speakTutor(text,onDone){
   isTutorSpeaking=true;
   setStatus('🔊 Tutor speaking...','speaking');
-  window.speechSynthesis.cancel();
-  const u=new SpeechSynthesisUtterance(text);
-  u.lang='en-GB';u.rate=0.9;u.pitch=0.9;
-  u.onend=()=>{isTutorSpeaking=false;if(onDone)onDone();};
-  u.onerror=()=>{isTutorSpeaking=false;if(onDone)onDone();};
-  const loadVoice=()=>{const v=getBestMaleVoice();if(v)u.voice=v;window.speechSynthesis.speak(u);};
-  if(window.speechSynthesis.getVoices().length)loadVoice();
-  else{window.speechSynthesis.onvoiceschanged=loadVoice;}
+  const finish=()=>{isTutorSpeaking=false;if(onDone)onDone();};
+  ttsSpeak(text,{
+    rate:0.9,onEnd:finish,
+    fallback:()=>{
+      const u=new SpeechSynthesisUtterance(text);
+      u.lang='en-GB';u.rate=0.9;u.pitch=0.9;
+      u.onend=finish;
+      u.onerror=finish;
+      const loadVoice=()=>{const v=getBestMaleVoice(true);if(v)u.voice=v;window.speechSynthesis.speak(u);};
+      if(window.speechSynthesis.getVoices().length)loadVoice();
+      else{window.speechSynthesis.onvoiceschanged=loadVoice;}
+    }
+  });
 }
 
 async function sendUserMessage(text){
@@ -7583,7 +7656,7 @@ Content safety rules (this student is a child — these matter a lot):
 
 async function endConversation(){
   micReset();
-  window.speechSynthesis.cancel();
+  ttsStop();
   if(convHistory.length<3){
     addMsg('tutor',"We barely started! Let's talk more next time. 😊");return;
   }
