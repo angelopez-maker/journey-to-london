@@ -6024,16 +6024,22 @@ Return JSON: {"title":"Part 3 — Longer Writing","type":"story OR article","pro
 Return JSON: {"title":"Listening Part 1 — Short Recordings","items":[{"script":"[Speaker A]: ... [Speaker B]: ...","question":"...","options":["A: text","B: text","C: text"],"answer":"B"},...7]}`,
 
     'sp1':`Create a Cambridge B1 PET Speaking Part 1 interview for a ${getAge()}-year-old Chilean student. ${topicHint}
-8 examiner questions about the student's life, opinions, and experiences. Mix of factual and opinion questions.
-Return JSON: {"title":"Speaking Part 1 — Interview","questions":["Tell me about your family.","What do you like doing at weekends?",...8 total]}`,
+Follow the real exam rhythm, in two phases:
+Phase 1 (3-4 short warm-up questions): simple, very easy factual personal questions — name, age, where the student lives, who they live with, school. These build confidence at the very start, so keep them short and easy.
+Phase 2 (4-5 broader questions): opinions and experiences — best friend, hobbies and free time, weekend plans, favourite school subject, travel, technology. These should invite a longer, more developed answer than Phase 1.
+Return exactly 8 questions total, Phase 1 questions first, then Phase 2.
+Return JSON: {"title":"Speaking Part 1 — Interview","questions":["What's your name?","How old are you?","Where do you live?","Who do you live with?","Tell me about your best friend.","What do you like doing at weekends?",...8 total]}`,
 
     'sp2':`Create a Cambridge B1 PET Speaking Part 2 task for a ${getAge()}-year-old Chilean student. ${topicHint}
 Describe a photo scenario (describe what you'd see). Include examiner instructions + 3 follow-up questions.
 Return JSON: {"title":"Speaking Part 2 — Photo Description","photoDescription":"[Describe the scene the photo would show, e.g.: Two teenagers are sitting in a café...]","instructions":"Describe this photo. Talk about what you can see, who the people are, and what is happening.","followUp":["What do you think the people are talking about?","Do you enjoy going to places like this?","Describe a similar experience you've had."]}`,
 
     'sp3':`Create a Cambridge B1 PET Speaking Part 3 collaborative task for a ${getAge()}-year-old Chilean student. ${topicHint}
-A scenario where two students discuss options and reach a decision. Include the situation, 5 visual prompt descriptions, and the task.
-Return JSON: {"title":"Speaking Part 3 — Collaborative Task","situation":"You and your friend are planning a birthday party for a classmate...","prompts":["A: Outdoor barbecue","B: Cinema trip","C: Bowling","D: Home party","E: Restaurant"],"task":"Discuss the options and decide which two would be most suitable.","followUp":["Which two did you choose and why?","Would your classmate prefer something else?"]}`,
+A scenario where two students discuss options and reach a decision — same format as the real exam. Here is a real example of the exact style to match (a teacher wants a class to learn about something, and there are several different ways to do it, each shown as a short picture-prompt-style option):
+Example: {"situation":"A teacher wants his class to learn more about space.","prompts":["Stargazing at night","Watching a documentary in class","Visiting a science/space museum","Reading books about space in groups","A classroom lecture","Playing a space video game","Researching together on a tablet"],"task":"Talk together about the different ways to learn about space, and say which students would find most interesting."}
+Generate an ORIGINAL scenario in the same spirit (a teacher, parent, or group deciding the best way to do something) — 5 to 7 short visual-prompt-style options (2-5 words each, like the example, NOT full sentences) and a task asking the pair to discuss and agree on the best one(s).
+Also include a short "tips" list of useful agreeing/disagreeing phrases for this discussion (this part of the exam is specifically about making suggestions, agreeing and disagreeing).
+Return JSON: {"title":"Speaking Part 3 — Collaborative Task","situation":"...","prompts":["...","...","...","...","..."],"task":"Discuss the options and say which would be best.","followUp":["Which one did you choose and why?","Would everyone agree with your choice?"],"tips":["Agreeing: So do I! / Me too! / I think so too! / Exactly!","Disagreeing: I don't think so... / I'm not so sure... / I don't agree, because...","Suggesting: What about...? / How about...? / Why don't we...?"]}`,
 
     'rp4':`Create a Cambridge B1 PET Reading Part 4 exercise for a ${getAge()}-year-old Chilean student. ${topicHint}
 A longer text (200-250 words, narrative or descriptive) followed by 5 multiple-choice questions with 4 options each (A/B/C/D). Questions test inference, detail, main idea, and vocabulary in context.
@@ -6057,7 +6063,7 @@ Return JSON: {"title":"Listening Part 4 — True/False Statements","conversation
 
     'sp4':`Create a Cambridge B1 PET Speaking Part 4 discussion for a ${getAge()}-year-old Chilean student. ${topicHint}
 A follow-up discussion based on the Part 3 topic. 5 opinion questions that require extended answers and personal views. Mix of general and personal questions.
-Return JSON: {"title":"Speaking Part 4 — Discussion","questions":["Do you think it's important for young people to spend time outdoors? Why / Why not?","How has technology changed the way young people spend their free time?","Do you prefer spending time with friends or alone? Tell me more.","What would you say is the most important skill for young people to learn today?","If you could change one thing about your school, what would it be and why?"],"tips":["Use: In my opinion... / I believe... / On the other hand...","Give a reason for every opinion","Try to speak for at least 30 seconds per answer"]}`,
+Return JSON: {"title":"Speaking Part 4 — Discussion","questions":["Do you think it's important for young people to spend time outdoors? Why / Why not?","How has technology changed the way young people spend their free time?","Do you prefer spending time with friends or alone? Tell me more.","What would you say is the most important skill for young people to learn today?","If you could change one thing about your school, what would it be and why?"],"tips":["Agreeing: So do I! / Me too! / I think so too! / Exactly!","Disagreeing: I don't think so... / I'm not so sure... / I don't agree, because...","Giving reasons: In my opinion... / I believe... / because...","Try to speak for at least 30 seconds per answer"]}`,
   };
 
   // Default prompt for sections without a specific one
@@ -6077,6 +6083,7 @@ function renderPETSection(s,d){
   _petCurrentSection=s;
   _petListeningScripts=[];
   _petComodinReset(); // fresh lifelines per section
+  window._petSpTranscripts={}; window._petSpQuestionText={}; // fresh Speaking recordings per section
 
   const area=document.getElementById('module-content-area');
   const partColors={Reading:'var(--blue)',Writing:'var(--gold)',Listening:'var(--purple)',Speaking:'var(--green)'};
@@ -6362,18 +6369,11 @@ function renderPETSection(s,d){
   } else if(s.id==='sp1'&&d.questions){
     html+=`<div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.3);border-radius:12px;
       padding:12px 16px;margin-bottom:14px;font-size:13px;color:var(--muted)">
-      🎤 Answer each question aloud. Click <strong>▶</strong> to hear it first.
+      🎤 Click <strong>▶</strong> to hear each question, then <strong>Record answer</strong> to answer it out loud.
     </div>`;
-    html+=d.questions.map((q,i)=>`
-      <div class="writing-prompt" style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px">
-        <span style="font-family:'Orbitron',monospace;font-size:11px;color:${col};min-width:22px;padding-top:3px">${i+1}</span>
-        <span style="flex:1;font-size:15px;line-height:1.6">${q}</span>
-        <button onclick="petSpeak(this)"
-          data-text="${q.replace(/"/g,'&quot;')}"
-          style="background:var(--green,#22c55e);color:#fff;border:none;border-radius:8px;
-            padding:6px 12px;cursor:pointer;font-size:14px;white-space:nowrap">▶</button>
-      </div>`).join('');
-    html+=`<button class="submit-btn" style="width:100%;margin-top:12px" onclick="petSpeakAllQ()">▶ Read all aloud</button>`;
+    html+=d.questions.map((q,i)=>petSpBlock(`sp1_${i}`,q,i+1)).join('');
+    html+=`<button class="pron-hint-btn" style="width:100%;margin-top:8px" onclick="petSpeakAllQ()">▶ Read all aloud</button>`;
+    html+=petSpFeedbackFooter();
 
   // ── Speaking Part 2: Photo description ──
   } else if(s.id==='sp2'&&d.photoDescription){
@@ -6382,15 +6382,10 @@ function renderPETSection(s,d){
       <button onclick="speak(${JSON.stringify(d.photoDescription||'').replace(/'/g,"\\'")})"
         style="margin-left:10px;background:var(--green,#22c55e);color:#fff;border:none;
           border-radius:6px;padding:4px 10px;cursor:pointer;font-size:13px">▶</button>
-    </div>
-    <div class="writing-prompt" style="margin-bottom:12px"><strong>Task:</strong> ${d.instructions||''}</div>`;
-    if(d.followUp)html+=d.followUp.map(q=>`
-      <div style="margin-top:8px;padding:8px 12px;background:var(--card);border-radius:8px;font-size:14px;
-        display:flex;align-items:center;gap:10px">${q}
-        <button onclick="speak(${JSON.stringify(q||'').replace(/'/g,"\\'")})"
-          style="background:var(--green,#22c55e);color:#fff;border:none;border-radius:6px;
-            padding:3px 8px;cursor:pointer;font-size:12px;white-space:nowrap">▶</button>
-      </div>`).join('');
+    </div>`;
+    html+=petSpBlock('sp2_main',d.instructions||'Describe this photo.');
+    if(d.followUp)html+=d.followUp.map((q,i)=>petSpBlock(`sp2_fu_${i}`,q)).join('');
+    html+=petSpFeedbackFooter();
 
   // ── Speaking Part 3: Collaborative task ──
   } else if(s.id==='sp3'&&d.situation){
@@ -6398,29 +6393,30 @@ function renderPETSection(s,d){
     html+=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:16px">
       ${(d.prompts||[]).map(p=>`<div style="background:var(--card);border:1px solid var(--border);
         border-radius:10px;padding:12px;font-size:14px;font-weight:600;text-align:center">${p}</div>`).join('')}
-    </div>
-    <div class="writing-prompt" style="margin-bottom:12px"><strong>Task:</strong> ${d.task||''}</div>`;
-    if(d.followUp)html+=`<div><strong style="font-size:13px;color:var(--muted)">Follow-up:</strong>
-      ${d.followUp.map(q=>`<div style="margin-top:8px;padding:8px 12px;background:var(--card);
-        border-radius:8px;font-size:14px">${q}</div>`).join('')}</div>`;
-
-  // ── Speaking Part 4: Discussion ──
-  } else if(s.id==='sp4'&&(d.questions||d.topics)){
-    const qs=d.questions||d.topics||[];
-    html+=`<div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.3);
-      border-radius:12px;padding:12px 16px;margin-bottom:14px;font-size:13px;color:var(--muted)">
-      🎤 Discuss these topics and give your opinions aloud. Aim for 30+ seconds per answer.
     </div>`;
     if((d.tips||[]).length){html+=`<div style="background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.25);
       border-radius:10px;padding:10px 14px;margin-bottom:14px">
       <div style="font-size:10px;font-weight:700;color:var(--gold2);letter-spacing:1px;margin-bottom:6px">💡 USEFUL PHRASES</div>
       ${d.tips.map(t=>`<div style="font-size:12px;color:var(--muted);margin-bottom:3px">• ${t}</div>`).join('')}
     </div>`;}
-    html+=qs.map((q,i)=>`
-      <div class="writing-prompt" style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px">
-        <span style="font-family:'Orbitron',monospace;font-size:11px;color:${col};min-width:22px;padding-top:3px">${i+1}</span>
-        <span style="flex:1;font-size:15px">${q}</span>
-      </div>`).join('');
+    html+=petSpBlock('sp3_main',d.task||'Discuss the options and decide.');
+    if(d.followUp)html+=d.followUp.map((q,i)=>petSpBlock(`sp3_fu_${i}`,q)).join('');
+    html+=petSpFeedbackFooter();
+
+  // ── Speaking Part 4: Discussion ──
+  } else if(s.id==='sp4'&&(d.questions||d.topics)){
+    const qs=d.questions||d.topics||[];
+    html+=`<div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.3);
+      border-radius:12px;padding:12px 16px;margin-bottom:14px;font-size:13px;color:var(--muted)">
+      🎤 Discuss these topics and give your opinions — click <strong>Record answer</strong> for each one.
+    </div>`;
+    if((d.tips||[]).length){html+=`<div style="background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.25);
+      border-radius:10px;padding:10px 14px;margin-bottom:14px">
+      <div style="font-size:10px;font-weight:700;color:var(--gold2);letter-spacing:1px;margin-bottom:6px">💡 USEFUL PHRASES</div>
+      ${d.tips.map(t=>`<div style="font-size:12px;color:var(--muted);margin-bottom:3px">• ${t}</div>`).join('')}
+    </div>`;}
+    html+=qs.map((q,i)=>petSpBlock(`sp4_${i}`,q,i+1)).join('');
+    html+=petSpFeedbackFooter();
 
   } else {
     // Fallback: show structured data instead of raw JSON
@@ -6759,6 +6755,168 @@ function petSpeakAllQ(){
 }
 function petComplete(km){addKm(km);showToast(`📝 Section complete! +${km} km!`);
   if(_petFullExamActive)runPETFull();else runPET();}
+
+// ══ PET SPEAKING — grabación con Whisper (mismo patrón que Q&A/KET/Pronunciation/Talking) ══
+// Cada pregunta/tarea de sp1-sp4 se renderiza con petSpBlock(): texto + ▶ (oírla) + micrófono
+// start/stop/reset (reutiliza micStart/micStopAndTranscribe/micReset, ya compartidos por toda
+// la app) + un área de transcripción. Los textos y transcripciones quedan en
+// window._petSpQuestionText / window._petSpTranscripts (reseteados por sección en
+// renderPETSection) para que evaluatePETSpeaking() los use al pedir feedback.
+function petSpBlock(qid,text,numLabel){
+  window._petSpQuestionText=window._petSpQuestionText||{};
+  window._petSpQuestionText[qid]=text;
+  const esc=String(text).replace(/"/g,'&quot;');
+  return `<div class="writing-prompt" style="margin-bottom:12px">
+    <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:8px">
+      ${numLabel!=null?`<span style="font-family:'Orbitron',monospace;font-size:11px;color:var(--green,#22c55e);min-width:20px;padding-top:3px">${numLabel}</span>`:''}
+      <span style="flex:1;font-size:15px;line-height:1.6">${text}</span>
+      <button onclick="petSpeak(this)" data-text="${esc}"
+        style="background:var(--green,#22c55e);color:#fff;border:none;border-radius:8px;padding:6px 12px;cursor:pointer;font-size:14px;white-space:nowrap;flex-shrink:0">▶</button>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button id="petsp-btn-${qid}" onclick="petSpMicToggle('${qid}')"
+        style="flex:1;padding:9px;background:rgba(34,197,94,.1);border:2px solid rgba(34,197,94,.3);border-radius:8px;
+          color:#22c55e;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;cursor:pointer">🎤 Record answer</button>
+      <button id="petsp-reset-${qid}" onclick="petSpMicReset('${qid}')" style="display:none;padding:9px 12px;
+        background:#2b2d31;border:2px solid #3d4045;border-radius:8px;color:#8b949e;font-family:'Rajdhani',sans-serif;
+        font-weight:700;font-size:13px;cursor:pointer">🔄</button>
+    </div>
+    <div id="petsp-tx-${qid}" style="margin-top:6px;font-size:13px;color:var(--muted);font-style:italic;min-height:18px"></div>
+  </div>`;
+}
+
+function petSpFeedbackFooter(){
+  return `<button class="submit-btn" style="width:100%;margin-top:8px" onclick="evaluatePETSpeaking()">🗣️ Get feedback from Miss Kamil_IA</button>
+    <div id="pet-sp-fb" style="margin-top:12px"></div>`;
+}
+
+async function petSpMicToggle(qid){
+  const btn=document.getElementById(`petsp-btn-${qid}`),resetBtn=document.getElementById(`petsp-reset-${qid}`),tx=document.getElementById(`petsp-tx-${qid}`);
+  if(!micIsRecording()){
+    if(btn){btn.style.background='rgba(239,68,68,.2)';btn.style.borderColor='#ef4444';btn.textContent='🔴 Stop recording';}
+    if(resetBtn)resetBtn.style.display='block';
+    if(tx)tx.textContent='Listening... click "Stop recording" when done.';
+    micStart().catch(()=>{if(tx)tx.textContent='Mic not available — check permissions.';});
+  } else {
+    if(btn){btn.style.background='rgba(34,197,94,.1)';btn.style.borderColor='rgba(34,197,94,.3)';btn.textContent='🎤 Record answer';btn.disabled=true;}
+    if(resetBtn)resetBtn.style.display='none';
+    if(tx)tx.textContent='Transcribing...';
+    const text=await micStopAndTranscribe();
+    window._petSpTranscripts=window._petSpTranscripts||{};
+    window._petSpTranscripts[qid]=text||'';
+    if(tx)tx.textContent=text?`"${text}"`:'(no speech detected — try again)';
+    if(btn)btn.disabled=false;
+  }
+}
+
+function petSpMicReset(qid){
+  micReset();
+  const btn=document.getElementById(`petsp-btn-${qid}`),resetBtn=document.getElementById(`petsp-reset-${qid}`),tx=document.getElementById(`petsp-tx-${qid}`);
+  if(btn){btn.style.background='rgba(34,197,94,.1)';btn.style.borderColor='rgba(34,197,94,.3)';btn.textContent='🎤 Record answer';}
+  if(resetBtn)resetBtn.style.display='none';
+  if(tx)tx.textContent='';
+  if(window._petSpTranscripts)delete window._petSpTranscripts[qid];
+}
+
+// Evaluación de Miss Kamil_IA sobre las respuestas grabadas — mismo espíritu que evaluatePETWriting()
+// (rubric de Cambridge, bandas 0-5) pero con el rubric REAL de Speaking, no el de Writing:
+// Grammar & Vocabulary, Discourse Management, Interactive Communication. Se omite a propósito
+// "Pronunciation" — no es medible desde una transcripción de texto (Whisper ya normaliza el
+// habla a texto ideal), y decir lo contrario sería inventar una métrica que no tenemos cómo
+// sostener. Si el chequeo de nivel/consistencia del audio importa, eso lo sigue evaluando un
+// profesor real escuchando en vivo.
+async function evaluatePETSpeaking(){
+  const s=_petCurrentSection||{};
+  const transcripts=window._petSpTranscripts||{};
+  const qText=window._petSpQuestionText||{};
+  const answered=Object.keys(transcripts).filter(k=>transcripts[k]&&transcripts[k].trim());
+  if(!answered.length){showToast('Record at least one answer first!');return;}
+  const fb=document.getElementById('pet-sp-fb');
+  if(fb)fb.innerHTML=`<div class="loading-text" style="padding:12px">Miss Kamil_IA is reading your transcripts...</div>`;
+
+  const qa=answered.map(qid=>`Q: ${qText[qid]||qid}\nA (spoken, transcribed by Whisper): "${transcripts[qid]}"`).join('\n\n');
+  const profile=getStudentProfile();
+  const weakCtx=profile.weakAreas.slice(0,3).join('; ');
+  const prompt=`You are a Cambridge B1 PET Speaking examiner evaluating a ${getAge()}-year-old Chilean student (${getStudentName()}).
+Task type: ${s.title||'PET Speaking'}
+Known weak areas: ${weakCtx||'—'}
+Below are the questions/tasks and the student's SPOKEN answers, transcribed with Whisper. Judge only the words and structures actually used — do NOT invent or assume anything about accent, pronunciation, or intonation, since a text transcript carries none of that information.
+${qa}
+
+Assess using the 3 official Cambridge PET Speaking criteria that CAN be judged from a text transcript (skip Pronunciation entirely):
+Return ONLY valid JSON:
+{
+  "band": 3,
+  "dimensions": {"grammarVocabulary":3,"discourseManagement":3,"interactiveCommunication":3},
+  "strengths": ["strength 1 (1 sentence)","strength 2"],
+  "corrections": [{"wrong":"incorrect phrase","correct":"corrected version","rule":"grammar rule in 1 line"}],
+  "feedback": "2-sentence overall comment, warm and encouraging",
+  "tip": "one specific actionable tip for next time"
+}
+Provide 2-3 corrections max. Be encouraging but precise. Band scale 0-5.`;
+
+  try{
+    const raw=await callClaude(prompt,700);
+    const ev=parseJSON(raw);
+    const band=typeof ev.band==='number'?ev.band:parseInt(ev.band)||3;
+    const dim=ev.dimensions||{grammarVocabulary:band,discourseManagement:band,interactiveCommunication:band};
+    const dimColors=[null,'#f87171','#fb923c','var(--gold2)','#a3e635','#4ade80'];
+    const bandColor=dimColors[Math.min(5,band)]||'var(--muted)';
+    const km=band>=5?120:band===4?100:band===3?75:band===2?50:30;
+    addKm(km);_petSessionScore+=km;
+
+    const dimBar=(label,val)=>{
+      const pct=Math.round((val/5)*100);
+      const c=dimColors[Math.min(5,val)]||'var(--muted)';
+      return `<div style="margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px">
+          <span style="color:var(--muted)">${label}</span><span style="color:${c};font-weight:700">${val}/5</span>
+        </div>
+        <div style="height:6px;background:var(--card2);border-radius:3px;overflow:hidden">
+          <div style="height:100%;width:${pct}%;background:${c};border-radius:3px;transition:width .5s"></div>
+        </div>
+      </div>`;
+    };
+
+    fb.innerHTML=`<div class="result-box" style="border-color:${bandColor}">
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px">
+        <div style="text-align:center;background:var(--card2);border-radius:12px;padding:12px 20px;min-width:80px">
+          <div style="font-family:'Orbitron',monospace;font-size:28px;font-weight:900;color:${bandColor}">${band}</div>
+          <div style="font-size:10px;color:var(--muted);letter-spacing:1px">BAND / 5</div>
+        </div>
+        <div style="flex:1">
+          ${dimBar('Grammar & Vocabulary',dim.grammarVocabulary||band)}
+          ${dimBar('Discourse Management',dim.discourseManagement||band)}
+          ${dimBar('Interactive Communication',dim.interactiveCommunication||band)}
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--muted);font-style:italic;margin-bottom:14px">
+        ℹ️ Pronunciation isn't scored here — a text transcript can't capture accent or intonation. This only checks the words and grammar you used.
+      </div>
+      ${(ev.strengths||[]).length?`<div style="margin-bottom:14px">
+        <div style="font-size:10px;font-weight:700;color:#4ade80;letter-spacing:1px;margin-bottom:6px">✅ STRENGTHS</div>
+        ${(ev.strengths||[]).map(str=>`<div style="font-size:13px;color:var(--text);padding:5px 10px;background:rgba(74,222,128,.07);border-radius:8px;margin-bottom:4px">• ${str}</div>`).join('')}
+      </div>`:''}
+      ${(ev.corrections||[]).length?`<div style="margin-bottom:14px">
+        <div style="font-size:10px;font-weight:700;color:#f87171;letter-spacing:1px;margin-bottom:6px">✏️ CORRECTIONS</div>
+        ${(ev.corrections||[]).map(c=>`<div style="font-size:13px;padding:8px 12px;background:rgba(248,113,113,.06);border-radius:8px;margin-bottom:5px;line-height:1.7">
+          <span style="color:#f87171;text-decoration:line-through">${c.wrong}</span>
+          <span style="color:var(--muted)"> → </span>
+          <span style="color:#4ade80;font-weight:700">${c.correct}</span>
+          ${c.rule?`<br><span style="font-size:11px;color:var(--muted)">📌 ${c.rule}</span>`:''}
+        </div>`).join('')}
+      </div>`:''}
+      <p style="font-size:14px;line-height:1.7;margin-bottom:8px;color:var(--text)">${ev.feedback||''}</p>
+      ${ev.tip?`<p style="font-size:13px;color:var(--gold2)">💡 ${ev.tip}</p>`:''}
+      <div style="margin-top:14px;font-size:12px;color:rgba(139,92,246,.8);font-style:italic;border-top:1px solid var(--border);padding-top:12px">
+        🕷️ ${band>=4?'"Excellent work! This is B1 quality."':band===3?'"Good effort — keep practising to push it to the next band."':'"Keep going! Every recording makes you stronger."'}
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-top:8px">+${km} km added</div>
+    </div>`;
+
+    showToast(`🗣️ Speaking: Band ${band}/5 — +${km} km!`);
+  }catch(e){if(fb)fb.innerHTML=`<div class="error-box">Evaluation failed. ${e.message}</div>`;}
+}
 
 function runPETFull(minutes){
   const area=document.getElementById('module-content-area');
