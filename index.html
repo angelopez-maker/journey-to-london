@@ -3355,13 +3355,32 @@ Return ONLY this JSON:
 }
 
 function bcCheckGate(){
-  const sel=document.querySelector('input[name="bc_gate_q"]:checked');
-  const fb=document.getElementById('bc-gate-fb');
-  if(!sel){fb.innerHTML=`<div style="color:var(--muted);font-size:13px">Please select a summary first.</div>`;return;}
   const book=window._bcGateBook,ch=window._bcGateCh,correct=window._bcGateAnswer;
   const key=_bcKey(book,ch);
+  const fb=document.getElementById('bc-gate-fb');
+
+  // Defensa extra: si por cualquier motivo este gate ya quedó bloqueado (ej. el alumno alcanzó
+  // a enviar una respuesta antes y volvió a intentar en la misma pantalla), no evaluar de nuevo.
+  const existing=getBCFreeProgress()[key];
+  if(existing?.blockedUntil && new Date()<new Date(existing.blockedUntil)){
+    const hrs=Math.ceil((new Date(existing.blockedUntil)-new Date())/3600000);
+    fb.innerHTML=`<div style="color:var(--muted);font-size:13px">⏳ Try again in ~${hrs}h.</div>`;
+    _bcLockGateForm();
+    return;
+  }
+  if(existing?.status==='done'){
+    fb.innerHTML=`<div style="color:var(--muted);font-size:13px">This chapter is already unlocked.</div>`;
+    return;
+  }
+
+  const sel=document.querySelector('input[name="bc_gate_q"]:checked');
+  if(!sel){fb.innerHTML=`<div style="color:var(--muted);font-size:13px">Please select a summary first.</div>`;return;}
   const progress=getBCFreeProgress();
   const bookEsc=book.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+
+  // Una sola oportunidad de envío por gate: se bloquea el formulario apenas se contesta (bien o
+  // mal), para que no se pueda usar la respuesta correcta recién revelada para reintentar altiro.
+  _bcLockGateForm();
 
   if(sel.value===correct){
     progress[key]={status:'done'};
@@ -3381,6 +3400,14 @@ function bcCheckGate(){
       <br><span style="color:#f87171;font-size:13px">Re-read the chapter and come back in 2 hours to try again.</span>
     </div>`;
   }
+}
+
+// Deshabilita las alternativas y el botón de envío del gate, para que una vez contestado
+// (bien o mal) no se pueda volver a intentar en la misma pantalla.
+function _bcLockGateForm(){
+  document.querySelectorAll('input[name="bc_gate_q"]').forEach(r=>r.disabled=true);
+  const btn=document.querySelector('button[onclick="bcCheckGate()"]');
+  if(btn){btn.disabled=true;btn.style.opacity='.5';btn.style.cursor='not-allowed';}
 }
 
 async function bcGenerateLesson(book,ch){
