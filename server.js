@@ -157,6 +157,51 @@ app.post('/api/transcribe', rateLimit(30), async (req, res) => {
   }
 });
 
+// ── OpenAI TTS proxy ────────────────────────────────────────────────────────────
+// Genera audio real (voz de Oliver / tutor / narrador) con el modelo TTS de OpenAI, en vez de
+// la síntesis nativa del navegador (robótica y distinta según SO/navegador). Mismo patrón de
+// seguridad que /api/transcribe — key solo en servidor, rate limit. Reutiliza la misma
+// OPENAI_API_KEY ya configurada para Whisper (el permiso "Text-to-speech: Request" ya está
+// habilitado en esa key). Si esta llamada falla o se demora, el cliente (ttsSpeak() en
+// index.html) cae automáticamente de vuelta a speechSynthesis — la voz nueva nunca debe ser el
+// motivo de que algo se sienta roto frente a los niños.
+app.post('/api/tts', rateLimit(60), async (req, res) => {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey)
+    return res.status(500).json({ error: { message: 'OpenAI API key not configured on server.' } });
+
+  const { text, instructions, voice } = req.body || {};
+  if (!text || !text.trim())
+    return res.status(400).json({ error: { message: 'Missing text.' } });
+
+  try {
+    const response = await fetch('https://api.openai.com/v1/audio/speech', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini-tts',
+        voice: voice || 'echo',
+        input: text.slice(0, 2000),
+        instructions: instructions || 'Speak as a warm, energetic young British English man in his twenties — clear pronunciation, natural pace, friendly and encouraging.',
+        response_format: 'mp3',
+      }),
+    });
+
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      return res.status(response.status).json({ error: errData.error || { message: 'OpenAI TTS error.' } });
+    }
+
+    const buffer = Buffer.from(await response.arrayBuffer());
+    res.json({ audio: buffer.toString('base64'), mimeType: 'audio/mpeg' });
+  } catch (err) {
+    res.status(500).json({ error: { message: err.message } });
+  }
+});
+
 // ── Fallback: serve index.html ─────────────────────────────────────────────────
 app.get('*', (req, res) => {
   // Only serve HTML for non-API routes
