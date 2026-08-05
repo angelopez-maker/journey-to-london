@@ -3278,13 +3278,112 @@ function openFernandoBookClub(){
 
 function bcCh(d){const i=document.getElementById('bc-ch');if(i)i.value=Math.max(1,parseInt(i.value||1)+d);}
 
+// ── Book Club (Fernando, libro libre) — control de capítulo ──────────────────
+// Antes de mostrar la lección de Miss Kamil_IA, el alumno debe elegir cuál de 3 resúmenes
+// describe correctamente el capítulo (solo alguien que lo leyó de verdad acierta) — mismo
+// mecanismo que ya existía en el Book Club de catálogo fijo (checkBookChapter/renderBookChapter),
+// adaptado aquí para un libro/capítulo escritos a mano. Progreso guardado en localStorage,
+// clave "libro|capítulo" en minúscula. Si falla, se bloquea 2h antes de reintentar.
+function _bcKey(book,ch){return `${(book||'').trim().toLowerCase()}|${ch}`;}
+function getBCFreeProgress(){try{return JSON.parse(localStorage.getItem('fer_bc_free_progress')||'{}');}catch(e){return {};}}
+function saveBCFreeProgress(d){localStorage.setItem('fer_bc_free_progress',JSON.stringify(d));}
+
 async function startBookClubChapter(){
   const book=document.getElementById('bc-book')?.value?.trim()||'Unknown book';
   const ch=parseInt(document.getElementById('bc-ch')?.value)||1;
   localStorage.setItem('fer_current_book',book);
   localStorage.setItem('fer_current_chapter',String(ch));
+
+  const key=_bcKey(book,ch);
+  const progress=getBCFreeProgress();
+  const entry=progress[key];
+
+  if(entry?.blockedUntil && new Date()<new Date(entry.blockedUntil)){
+    const hrs=Math.ceil((new Date(entry.blockedUntil)-new Date())/3600000);
+    document.getElementById('bc-result').innerHTML=`<div style="text-align:center;padding:20px;color:var(--muted)">
+      ⏳ Re-read Chapter ${ch} and try again in ~${hrs}h.
+    </div>`;
+    return;
+  }
+
+  if(entry?.status==='done'){
+    bcGenerateLesson(book,ch); // ya demostró que leyó este capítulo — directo a la lección
+  } else {
+    bcGenerateGate(book,ch);
+  }
+}
+
+async function bcGenerateGate(book,ch){
   const btn=document.getElementById('bc-btn');
   if(btn){btn.disabled=true;btn.textContent='Miss Kamil_IA is preparing...';}
+  document.getElementById('bc-result').innerHTML=`<div style="text-align:center;padding:24px;color:var(--muted)"><div style="font-size:26px;margin-bottom:10px">🔒</div><div>Preparing the chapter check for Chapter ${ch}...</div></div>`;
+  const prompt=`You are Miss Kamil_IA, a Cambridge B1 PET English teacher. A ${getAge()}-year-old student says they just read Chapter ${ch} of "${book}".
+
+Create a comprehension check where the student must identify WHICH summary accurately describes what happens in that chapter. Only someone who actually read it carefully should be able to answer correctly.
+
+Rules:
+- Write THREE summaries (A, B, C) in B1 English (3-5 sentences each), based on your best knowledge of this book and chapter.
+- ONE summary is accurate. The other TWO have subtle but important wrong details (wrong character, wrong outcome, wrong event) — plausible but incorrect.
+- If you are not fully certain of the real chapter content, still produce three clearly differentiated plausible summaries in the same spirit.
+
+Return ONLY this JSON:
+{"summaries":{"A":"...","B":"...","C":"..."},"answer":"A"}`;
+  try{
+    const raw=await callClaude(prompt,900);
+    const d=parseJSON(raw);
+    if(btn){btn.disabled=false;btn.textContent='📖 Start Chapter Discussion';}
+    window._bcGateAnswer=d.answer;window._bcGateBook=book;window._bcGateCh=ch;
+    const summaries=d.summaries||{};
+    document.getElementById('bc-result').innerHTML=`<div style="background:var(--card);border:1px solid rgba(74,222,128,.25);border-radius:14px;padding:20px">
+      <div style="font-family:'Orbitron',monospace;font-size:10px;color:#4ade80;letter-spacing:2px;margin-bottom:12px">🔒 CHAPTER CHECK — CH. ${ch}</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:14px">Read each summary carefully. Only one correctly describes what happens in this chapter. <strong style="color:#4ade80">Choose the accurate one to unlock the lesson.</strong></div>
+      <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:16px">
+        ${Object.entries(summaries).map(([letter,text])=>`
+          <label style="display:flex;align-items:flex-start;gap:12px;cursor:pointer;padding:14px 16px;border-radius:12px;border:2px solid var(--border);transition:border-color .2s" onmouseover="this.style.borderColor='#4ade80'" onmouseout="this.style.borderColor='var(--border)'">
+            <input type="radio" name="bc_gate_q" value="${letter}" style="accent-color:#4ade80;margin-top:3px;flex-shrink:0">
+            <div><strong style="color:#4ade80;font-family:'Orbitron',monospace;font-size:11px">Summary ${letter}</strong>
+            <div style="font-size:14px;line-height:1.75;margin-top:4px;color:var(--text)">${text}</div></div>
+          </label>`).join('')}
+      </div>
+      <button class="submit-btn" style="width:100%" onclick="bcCheckGate()">Submit answer ✓</button>
+      <div id="bc-gate-fb" style="margin-top:14px"></div>
+    </div>`;
+  }catch(e){
+    if(btn){btn.disabled=false;btn.textContent='📖 Start Chapter Discussion';}
+    document.getElementById('bc-result').innerHTML=`<div style="color:var(--red);padding:12px;background:rgba(239,68,68,.08);border-radius:8px">⚠️ ${e.message}</div>`;
+  }
+}
+
+function bcCheckGate(){
+  const sel=document.querySelector('input[name="bc_gate_q"]:checked');
+  const fb=document.getElementById('bc-gate-fb');
+  if(!sel){fb.innerHTML=`<div style="color:var(--muted);font-size:13px">Please select a summary first.</div>`;return;}
+  const book=window._bcGateBook,ch=window._bcGateCh,correct=window._bcGateAnswer;
+  const key=_bcKey(book,ch);
+  const progress=getBCFreeProgress();
+  const bookEsc=book.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+
+  if(sel.value===correct){
+    progress[key]={status:'done'};
+    saveBCFreeProgress(progress);
+    addKm(50);
+    showToast(`📖 Chapter ${ch} unlocked! +50 km`);
+    fb.innerHTML=`<div class="result-box" style="border-color:#4ade80;background:rgba(34,197,94,.1)">
+      ✅ Correct! Chapter unlocked. +50 km
+      <br><button class="submit-btn" style="margin-top:10px;width:100%" onclick="bcGenerateLesson('${bookEsc}',${ch})">Continue to lesson →</button>
+    </div>`;
+  } else {
+    const unblockAt=new Date(Date.now()+2*60*60*1000).toISOString();
+    progress[key]={status:'blocked',blockedUntil:unblockAt};
+    saveBCFreeProgress(progress);
+    fb.innerHTML=`<div class="result-box" style="border-color:#f87171;background:rgba(239,68,68,.1)">
+      ❌ Not quite. The correct answer is <strong>Summary ${correct}</strong>.
+      <br><span style="color:#f87171;font-size:13px">Re-read the chapter and come back in 2 hours to try again.</span>
+    </div>`;
+  }
+}
+
+async function bcGenerateLesson(book,ch){
   document.getElementById('bc-result').innerHTML=`<div style="text-align:center;padding:24px;color:var(--muted)"><div style="font-size:26px;margin-bottom:10px">📖</div><div>Preparing Chapter ${ch} of "${book}"...</div></div>`;
   const prompt=`You are Miss Kamil_IA, a Cambridge B1 PET English teacher. Create Book Club content for a ${getAge()}-year-old student reading "${book}", Chapter ${ch}.
 
@@ -3310,7 +3409,6 @@ B. [personal connection question — relate to Fernando's own life]
 Make it engaging and appropriate for a ${getAge()}-year-old B1 student.`;
   try{
     const raw=await callClaude(prompt,1200);
-    if(btn){btn.disabled=false;btn.textContent='📖 Start Chapter Discussion';}
     document.getElementById('bc-result').innerHTML=`<div style="background:var(--card);border:1px solid rgba(74,222,128,.25);border-radius:14px;padding:20px">
       <div style="font-size:13px;line-height:1.8;color:var(--text);white-space:pre-wrap">${raw.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
       <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap">
@@ -3320,7 +3418,6 @@ Make it engaging and appropriate for a ${getAge()}-year-old B1 student.`;
     </div>`;
     addKm(50);
   }catch(e){
-    if(btn){btn.disabled=false;btn.textContent='📖 Start Chapter Discussion';}
     document.getElementById('bc-result').innerHTML=`<div style="color:var(--red);padding:12px;background:rgba(239,68,68,.08);border-radius:8px">⚠️ ${e.message}</div>`;
   }
 }
