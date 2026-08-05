@@ -1989,9 +1989,34 @@ async function startQASession(topicId){
     const raw=await callClaude(topic.prompt);
     const questions=parseJSON(raw);
     if(!Array.isArray(questions)||questions.length===0)throw new Error('bad');
-    window._qaSession={questions,topicId,topic,results:[]};
+    window._qaSession={questions:await verifyQATrivia(questions,topic.label),topicId,topic,results:[]};
     renderQAQuestion(0);
   }catch(e){area.innerHTML=`<div class="error-box">⚠️ Oliver couldn't reach the library. Try again!<br><br><button class="submit-btn" onclick="openQATrivia()">← Back</button></div>`;}
+}
+
+// Validador de consistencia — Q&A Trivia (Oliver Blackwood): a diferencia del validador de KET
+// (que solo revisa consistencia interna contra el propio texto generado), acá SÍ hace falta un
+// fact-check contra el mundo real, porque las preguntas son de hechos reales (fútbol, historia,
+// cultura general). El error real que motivó esto: Oliver respondió "Alemania" para los
+// mundiales de 1974 Y 1978 (1978 lo ganó Argentina — parece confundir con el finalista
+// perdedor). También revisa que la dificultad/vocabulario sea apropiada para el nivel del
+// estudiante (hallazgo de la revisión externa de ChatGPT). Si el chequeo mismo falla, se usan
+// las preguntas originales — no bloquea la sesión.
+async function verifyQATrivia(questions,topicLabel){
+  if(!questions||!questions.length)return questions;
+  try{
+    const raw=await callClaude(`You are a strict fact-checker and level reviewer for a "${topicLabel}" trivia set aimed at a ${getAge()}-year-old English learner (${getLevelDesc()}).
+For EACH question in the JSON array below, check two things:
+1) FACTUAL ACCURACY — is "answer" the correct, verifiable real-world answer to "question"? Watch especially for common mix-ups (e.g. confusing a losing finalist with the actual winner, wrong years/dates, wrong game mechanics). If "answer" is wrong, correct it to the true answer.
+2) LEVEL — is the question's vocabulary and complexity appropriate for this student's level? If a question is too advanced, obscure, or ambiguous, simplify "question" (and "answer" if needed) while keeping the same topic.
+Keep "hint_tense", "hint_example", "hp_correct" and "hp_wrong" as they are unless they no longer make sense after a correction — in that case, adjust them minimally to stay consistent. Do not change the number of questions or the JSON structure.
+Questions: ${JSON.stringify(questions)}
+Return ONLY the corrected JSON array of ${questions.length} objects, same structure as the input, no markdown, no explanation.`,3000);
+    const d=parseJSON(raw);
+    return (Array.isArray(d)&&d.length===questions.length)?d:questions;
+  }catch(e){
+    return questions;
+  }
 }
 
 function renderQAQuestion(idx){
@@ -2237,6 +2262,26 @@ function _ketCard(id,icon,title,desc,color){
 
 async function ketGo(s){const m={reading:ketReading,writing:ketWriting,listening:ketListening,speaking:ketSpeaking};if(m[s])await m[s]();}
 
+// Validador de consistencia interna (Reading y Listening comparten este helper): la IA genera
+// el texto (passage/audioText) Y la clave de respuestas en la misma llamada, así que a veces
+// puede marcar como correcta una opción que su propio texto no sostiene. Esta segunda llamada
+// NO hace fact-check contra el mundo real — solo revisa que cada respuesta se sostenga con el
+// texto que la propia IA escribió, y corrige la clave si hace falta. Si el chequeo mismo falla,
+// se usan las respuestas originales — no bloquea el test (mismo criterio que verifyVocabPairs).
+async function verifyKETConsistency(parts,sourceLabel){
+  if(!parts||!parts.length)return parts;
+  try{
+    const raw=await callClaude(`You are a strict Cambridge A2 Key (KET) exam-answer checker. Below is a KET test section in JSON, already written with its own answer key ("ans" for multiple-choice items, "answers" for note/cloze completion). Your ONLY job is internal consistency: verify that each marked answer is actually correct according to the ${sourceLabel} given in the SAME JSON — do not use outside/real-world knowledge, only check whether the text provided supports the marked answer. If a marked answer contradicts or isn't supported by its own text, correct it to the option/word that IS supported. Do not change passages, questions, options, or audio text — only fix answer keys that are wrong.
+Test JSON: ${JSON.stringify({parts})}
+Return ONLY the corrected JSON, exact same structure, same number of parts and items:
+{"parts":[...]}`,4000);
+    const d=parseJSON(raw);
+    return (d&&Array.isArray(d.parts)&&d.parts.length===parts.length)?d.parts:parts;
+  }catch(e){
+    return parts;
+  }
+}
+
 // ── READING ─────────────────────────────────────────────────────────────────
 
 async function ketReading(){
@@ -2273,7 +2318,7 @@ Return ONLY valid JSON — no markdown, no explanation:
 Produce ORIGINAL content following this exact structure. Keep questions realistic and A2-appropriate.`,4000);
     const d=parseJSON(raw);
     if(!d?.parts?.length)throw new Error('bad json');
-    window._ketRead={parts:d.parts,answers:{},partIdx:0};
+    window._ketRead={parts:await verifyKETConsistency(d.parts,'passage/context'),answers:{},partIdx:0};
     _ketRenderReadPart();
   }catch(e){
     const area=document.getElementById('module-content-area');
@@ -2455,7 +2500,7 @@ Return ONLY valid JSON:
 ]}`,3000);
     const d=parseJSON(raw);
     if(!d?.parts?.length)throw new Error('bad');
-    window._ketListen={parts:d.parts,answers:{},partIdx:0};
+    window._ketListen={parts:await verifyKETConsistency(d.parts,'audioText/transcript'),answers:{},partIdx:0};
     _ketRenderListenPart();
   }catch(e){
     area.innerHTML=`<div style="max-width:640px;margin:0 auto;background:#111214;border-radius:14px;padding:24px;text-align:center"><div style="color:#ef4444;margin-bottom:12px">⚠️ Error. Please try again.</div><button onclick="ketListening()" style="padding:10px 20px;background:#8b5cf6;border:none;border-radius:8px;color:#fff;cursor:pointer;font-family:'Rajdhani',sans-serif;font-weight:700">Try Again</button> <button onclick="openKETDiagnostic()" style="padding:10px 20px;background:rgba(255,255,255,.08);border:1px solid #333;border-radius:8px;color:#888;cursor:pointer;font-family:'Rajdhani',sans-serif;font-weight:700">← Back</button></div>`;
