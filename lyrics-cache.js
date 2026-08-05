@@ -20,4 +20,207 @@ const LYRICS_CACHE={
   'shakira|whenever, wherever':`Lucky you were born that far away so\nWe could both make fun of distance\nLucky that I love a foreign land for\nThe lucky fact of your existence\nBaby, I would climb the Andes solely\nTo count the freckles on your body\nNever could imagine there were only\nTen million ways to love somebody\n\nWhenever, wherever\nWe're meant to be together\nI'll be there and you'll be near\nAnd that's the deal, my dear\nThereover, hereunder\nYou'll never have to wonder\nWe can always play by ear\nBut that's the deal, my dear\n\nLucky that my lips not only mumble\nThey spill kisses like a fountain\nLucky that my breasts are small and humble\nSo you don't confuse them with mountains\nLucky I have strong legs like my mother\nTo run for cover when I need it\nAnd these two eyes that for no other\nThe day you leave will cry a river\n\nWhenever, wherever\nWe're meant to be together\nI'll be there and you'll be near\nAnd that's the deal, my dear\nThereover, hereunder\nYou've got me head over heels\nThere's nothing left to fear\nIf you really feel the way I feel`,
   'shakira|don\'t bother':`She's got the kind of look that defies gravity\nShe's the greatest cook\nAnd she's fat free\nShe's been to private school\nAnd she speaks perfect French\nShe's got her perfect friends\nOh, isn't she cool?\nShe practices Tai Chi\nShe'd never lose her nerve\nShe's more than you deserve\nShe's just far better than me\n\nSo don't bother\nI won't die of deception\nI promise you won't ever see me cry\nDon't feel sorry\nAnd don't bother, I'll be fine\nBut she's waiting\nThe ring you gave to her will lose its shine\nSo don't bother, be unkind\n\nI'm sure she doesn't know\nHow to touch you like I would\nI beat her at that one good\nDon't you think so?\nShe's almost six feet tall\nShe must think I'm a flea\nI'm really a cat, you see\nAnd it's not my last life at all\n\nSo don't bother\nI won't die of deception\nI promise you won't ever see me cry\nDon't feel sorry\nDon't bother, I'll be fine\nBut she's waiting\nThe ring you gave to her will lose its shine\nSo don't bother, be unkind\n\nFor you, I'd give up all I own\nAnd move to a communist country\nIf you came with me, of course\nAnd I'd file my nails so they don't hurt you\nAnd lose those pounds, learn about football\nIf it made you stay, but you won't, but you won't\n\nSo don't bother\nI'll be fine, I'll be fine\nPromise you won't ever see me cry\nAnd after all, I'm glad that I'm not your type`,
   'simply red|if you don\'t know me by now':`If you don't know me by now\nYou will never never never know me\n\nAll the things that we've been through\nYou should understand me\nLike I understand you\nNow girl I know the difference\nBetween right and wrong\nI ain't gonna do nothing\nTo break up our happy home\n\nDon't get so excited\nWhen I come home a little late at night\nCos we only act like children\nWhen we argue fuss and fight\n\nIf you don't know me by now\nYou will never never never know me\n\nWe've all got our own funny moods\nI've got mine, woman you've got yours too\nJust trust in me like I trust in you\nAs long as we've been together\nIt should be so easy to do\n\nJust get yourself together\nOr we might as well say goodbye\nWhat good is a love affair\nWhen you can't see eye to eye\n\nIf you don't know me by now\nYou will never\nNever never know me`,
+  'earth, wind & fire|september':`Do you remember the 21st night of September?
+Love was changing the minds of pretenders
+While chasing the clouds away
+Our hearts were ringing
+In the key that our souls were singing
+As we danced in the night
+Remember, how the stars stole the night away
+
+Ah, ah, ah
+Ba-dee-ya, say, do you remember?
+Ba-dee-ya, dancin' in September
+Ba-dee-ya, never was a cloudy day
+Ba-du-da, ba-du-da, ba-du-da, ba-du
+Ba-du-da, ba-du, ba-du-da, ba-du
+Ba-du-da, ba-du, ba-du-da
+
+My thoughts are with you
+Holding hands with your heart to see you
+Only blue talk and love
+Remember, how we knew love was here to stay
+Now December found the love
+That we shared in September
+Only blue talk and love
+Remember, the true love we share today
+Hey, hey, hey
+
+Ba-dee-ya, say, do you remember?
+Ba-dee-ya, dancin' in September
+Ba-dee-ya, never was a cloudy day
+There was a
+Ba-dee-ya, say, do you remember?
+Ba-dee-ya, dancin' in September
+Ba-dee-ya, golden dreams were shiny days
+The bell was ringing
+Our souls were singing
+Do you remember?
+Never was a cloudy day, yeaw
+There was a
+Ba-dee-ya, say, do you remember?
+Ba-dee-ya, dancin' in September
+Ba-dee-ya, never was a cloudy day
+There was a
+Ba-dee-ya, say, do you remember?
+Ba-dee-ya, dancin' in September
+Ba-dee-ya, golden dreams were shiny days
+Ba-dee-ya, dee-ya, dee-ya
+Ba-dee-ya, dee-ya, dee-ya
+Ba-dee-ya, dee-ya, dee-ya, dee-ya
+Ba-dee-ya, dee-ya, dee-ya
+Ba-dee-ya, dee-ya, dee-ya
+Ba-dee-ya, dee-ya`,
+  'the proclaimers|i\'m gonna be (500 miles)':`When I wake up
+Well, I know I'm gonna be
+I'm gonna be the man who wakes up next to you
+When I go out
+Yeah, I know I'm gonna be
+I'm gonna be the man who goes along with you
+If I get drunk
+Well, I know I'm gonna be
+I'm gonna be the man who gets drunk next to you
+And if I haver
+Yeah, I know I'm gonna be
+I'm gonna be the man who's haverin' to you
+But I would walk five hundred miles
+And I would walk five hundred more
+Just to be the man who walked a thousand miles
+To fall down at your door
+When I'm workin'
+Yes, I know I'm gonna be
+I'm gonna be the man who's workin' hard for you
+And when the money
+Comes in for the work I do
+I'll pass almost every penny on to you
+When I come home (when I come home)
+Oh, I know I'm gonna be
+I'm gonna be the man who comes back home to you
+And if I grow old
+Well, I know I'm gonna be
+I'm gonna be the man who's growin' old with you
+But I would walk five hundred miles
+And I would walk five hundred more
+Just to be the man who walked a thousand miles
+To fall down at your door
+Da-da-da-da (da-da-da-da)
+Da-da-da-da (da-da-da-da)
+Da-da-dum-diddy-dum-diddy-dum-diddy-da-da-da
+Da-da-da-da (da-da-da-da)
+Da-da-da-da (da-da-da-da)
+Da-da-dum-diddy-dum-diddy-dum-diddy-da-da-da
+When I'm lonely
+Well, I know I'm gonna be
+I'm gonna be the man who's lonely without you
+And when I'm dreamin'
+Well, I know I'm gonna dream
+I'm gonna dream about the time when I'm with you
+When I go out (when I go out)
+Well, I know I'm gonna be
+I'm gonna be the man who goes along with you
+And when I come home (when I come home)
+Yes, I know I'm gonna be
+I'm gonna be the man who comes back home with you
+I'm gonna be the man who's comin' home with you
+But I would walk five hundred miles
+And I would walk five hundred more
+Just to be the man who walked a thousand miles
+To fall down at your door
+Da-da-da-da (da-da-da-da)
+Da-da-da-da (da-da-da-da)
+Da-da-dum-diddy-dum-diddy-dum-diddy-da-da-da
+Da-da-da-da (da-da-da-da)
+Da-da-da-da (da-da-da-da)
+Da-da-dum-diddy-dum-diddy-dum-diddy-da-da-da
+Da-da-da-da (da-da-da-da)
+Da-da-da-da (da-da-da-da)
+Da-da-dum-diddy-dum-diddy-dum-diddy-da-da-da
+Da-da-da-da (da-da-da-da)
+Da-da-da-da (da-da-da-da)
+Da-da-dum-diddy-dum-diddy-dum-diddy-da-da-da
+And I would walk five hundred miles
+And I would walk five hundred more
+Just to be the man who walked a thousand miles
+To fall down at your door`,
+  'lady gaga|shallow':`Tell me something, girl
+Are you happy in this modern world?
+Or do you need more?
+Is there something else you're searching for?
+
+I'm falling
+In all the good times
+I find myself longing for change
+And in the bad times, I fear myself
+
+Tell me something, boy
+Aren't you tired trying to fill that void?
+Or do you need more?
+Ain't it hard keeping it so hardcore?
+
+I'm falling
+In all the good times
+I find myself longing for change
+And in the bad times, I fear myself
+
+I'm off the deep end, watch as I dive in
+I'll never meet the ground
+Crash through the surface
+Where they can't hurt us
+We're far from the shallow now
+
+In the shallow, shallow
+In the shallow, shallow
+In the shallow, shallow
+We're far from the shallow now
+
+I'm off the deep end, watch as I dive in
+I'll never meet the ground
+Crash through the surface
+Where they can't hurt us
+We're far from the shallow now
+
+In the shallow, shallow
+In the shallow, shallow
+In the shallow, shallow
+We're far from the shallow now`,
+  'a-ha|take on me':`We're talking away
+I don't know what I'm to say
+I'll say it anyway
+Today's another day to find you
+Shying away
+I'll be coming for your love, okay?
+
+Take on me (take on me)
+Take me on (take on me)
+I'll be gone
+In a day or two
+
+So needless to say
+I'm odds and ends
+But I'll be stumbling away
+Slowly learning that life is okay
+Say after me
+It's no better to be safe than sorry
+
+Take on me (take on me)
+Take me on (take on me)
+I'll be gone
+In a day or two
+
+All things that you say
+Is it life or just to play my worries away?
+You're all the things I've got to remember
+You're shying away
+I'll be coming for you anyway
+
+Take on me (take on me)
+Take me on (take on me)
+I'll be gone
+In a day
+
+Take on me (take on me)
+Take me on (take on me)
+I'll be gone (take on me)
+In a day`,
+
 };
