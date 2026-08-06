@@ -3436,11 +3436,45 @@ async function startBookClubChapter(){
   }
 }
 
+// Si Angel confirmó y cargó el texto real de este libro/capítulo en el servidor (ver server.js —
+// /api/book-chapter), lo usamos como base real en vez de "lo que la IA recuerda del libro". Nunca
+// se le muestra este texto al alumno (el gate solo muestra los 3 resúmenes) — es solo la fuente de
+// verdad interna para que la IA escriba el chequeo. Si no hay match (libro no cargado, o cargado con
+// otro título/capítulo), devuelve null y bcGenerateGate() sigue con el comportamiento de siempre.
+async function fetchConfirmedChapter(book,ch){
+  try{
+    const res=await fetch(`/api/book-chapter?book=${encodeURIComponent(book)}&chapter=${encodeURIComponent(ch)}`);
+    if(!res.ok)return null;
+    const d=await res.json();
+    return d.text?d:null;
+  }catch(e){return null;}
+}
+
 async function bcGenerateGate(book,ch){
   const btn=document.getElementById('bc-btn');
   if(btn){btn.disabled=true;btn.textContent='Miss Kamil_IA is preparing...';}
   document.getElementById('bc-result').innerHTML=`<div style="text-align:center;padding:24px;color:var(--muted)"><div style="font-size:26px;margin-bottom:10px">🔒</div><div>Preparing the chapter check for Chapter ${ch}...</div></div>`;
-  const prompt=`You are Miss Kamil_IA, a Cambridge B1 PET English teacher. A ${getAge()}-year-old student says they just read Chapter ${ch} of "${book}".
+  const confirmed=await fetchConfirmedChapter(book,ch);
+  const prompt=confirmed
+    ? `You are Miss Kamil_IA, a Cambridge B1 PET English teacher. A ${getAge()}-year-old student says they just read Chapter ${ch} of "${confirmed.title}".
+
+Below is the REAL text of that chapter. Use it as the ground truth for what actually happens — do not invent or guess.
+
+Create a comprehension check where the student must identify WHICH summary accurately describes what happens in that chapter. Only someone who actually read it carefully should be able to answer correctly.
+
+Rules:
+- Write THREE summaries in B1 English (3-5 sentences each), based strictly on the real chapter text below.
+- ONE summary is accurate and reflects what really happens in the text. The other TWO have subtle but important wrong details (wrong character, wrong outcome, wrong event) — plausible but incorrect, and clearly contradicted by the real text if you look closely.
+- Do not quote the chapter text directly in your summaries — write your own original sentences.
+
+REAL CHAPTER TEXT:
+"""
+${confirmed.text}
+"""
+
+Return ONLY this JSON (do not label them A/B/C yourself — just put the accurate one in "correctSummary" and the two inaccurate ones in "wrongSummaries"):
+{"correctSummary":"...","wrongSummaries":["...","..."]}`
+    : `You are Miss Kamil_IA, a Cambridge B1 PET English teacher. A ${getAge()}-year-old student says they just read Chapter ${ch} of "${book}".
 
 Create a comprehension check where the student must identify WHICH summary accurately describes what happens in that chapter. Only someone who actually read it carefully should be able to answer correctly.
 
