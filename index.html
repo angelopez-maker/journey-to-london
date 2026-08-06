@@ -1649,6 +1649,17 @@ function getMoversCalendarUnit(){
   return {unitName:unit.name,topic:unit.topic,vocab:unit.vocab||''};
 }
 
+// El vocab de cada unit siempre viene en el mismo orden fijo (definido en CURRICULUM). Si se lo
+// pasamos tal cual al prompt, el modelo se ancla a las primeras palabras de la lista y genera
+// básicamente la MISMA historia/personajes cada vez que se repite un ejercicio del mismo unit
+// (detectado en R&W Part 5 — "A Favourite Toy Shop" siempre daba panda/pirate/clown/parrot/cage/
+// lion/kangaroo, exactamente las primeras 7 palabras del vocab). Barajamos acá antes de inyectarlo
+// en cualquier prompt de Movers para que la variedad no dependa de que el modelo "elija al azar".
+function shuffledVocab(unitCtx){
+  if(!unitCtx||!unitCtx.vocab)return '';
+  return unitCtx.vocab.split(',').map(w=>w.trim()).filter(Boolean).sort(()=>Math.random()-0.5).join(', ');
+}
+
 function updateFerWeekCard(){
   const card=document.getElementById('fer-week-card');
   if(!card)return;
@@ -3335,18 +3346,30 @@ async function bcGenerateGate(book,ch){
 Create a comprehension check where the student must identify WHICH summary accurately describes what happens in that chapter. Only someone who actually read it carefully should be able to answer correctly.
 
 Rules:
-- Write THREE summaries (A, B, C) in B1 English (3-5 sentences each), based on your best knowledge of this book and chapter.
+- Write THREE summaries in B1 English (3-5 sentences each), based on your best knowledge of this book and chapter.
 - ONE summary is accurate. The other TWO have subtle but important wrong details (wrong character, wrong outcome, wrong event) — plausible but incorrect.
 - If you are not fully certain of the real chapter content, still produce three clearly differentiated plausible summaries in the same spirit.
 
-Return ONLY this JSON:
-{"summaries":{"A":"...","B":"...","C":"..."},"answer":"A"}`;
+Return ONLY this JSON (do not label them A/B/C yourself — just put the accurate one in "correctSummary" and the two inaccurate ones in "wrongSummaries"):
+{"correctSummary":"...","wrongSummaries":["...","..."]}`;
   try{
     const raw=await callClaude(prompt,900);
     const d=parseJSON(raw);
     if(btn){btn.disabled=false;btn.textContent='📖 Start Chapter Discussion';}
-    window._bcGateAnswer=d.answer;window._bcGateBook=book;window._bcGateCh=ch;
-    const summaries=d.summaries||{};
+    // Ojo: el modelo tiende a anclarse en el ejemplo del prompt y "elegir" siempre la misma
+    // posición como correcta (detectamos que daba "A" en casi todos los capítulos). Por eso acá
+    // NO confiamos en que el modelo elija la posición — barajamos nosotros mismos en el cliente
+    // con Math.random, así la posición correcta es realmente 1/3 cada vez.
+    const pool=[{text:d.correctSummary,correct:true},...(d.wrongSummaries||[]).map(t=>({text:t,correct:false}))];
+    for(let i=pool.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [pool[i],pool[j]]=[pool[j],pool[i]];
+    }
+    const letters=['A','B','C'];
+    const summaries={};
+    let correctLetter='A';
+    pool.forEach((item,i)=>{ summaries[letters[i]]=item.text; if(item.correct) correctLetter=letters[i]; });
+    window._bcGateAnswer=correctLetter;window._bcGateBook=book;window._bcGateCh=ch;
     document.getElementById('bc-result').innerHTML=`<div style="background:var(--card);border:1px solid rgba(74,222,128,.25);border-radius:14px;padding:20px">
       <div style="font-family:'Orbitron',monospace;font-size:10px;color:#4ade80;letter-spacing:2px;margin-bottom:12px">🔒 CHAPTER CHECK — CH. ${ch}</div>
       <div style="font-size:13px;color:var(--muted);margin-bottom:14px">Read each summary carefully. Only one correctly describes what happens in this chapter. <strong style="color:#4ade80">Choose the accurate one to unlock the lesson.</strong></div>
@@ -5383,7 +5406,7 @@ async function runMoversRW6(){
   let topicHint='';
   if(unitCtx){
     topicHint=`The story should relate to the topic "${unitCtx.unitName}" (${unitCtx.topic}).
-Prefer vocabulary from this list where natural: ${unitCtx.vocab}.`;
+Prefer vocabulary from this list where natural: ${shuffledVocab(unitCtx)}.`;
   } else {
     topicHint='Use everyday A1 topics (food, animals, family, school, weather, body, clothes).';
   }
@@ -5543,7 +5566,7 @@ function checkMoversRW6(){
 async function runMoversRW1(){
   showLoading('Preparing Part 1...');
   const unitCtx=getMoversCalendarUnit();
-  const topicHint=unitCtx?`Use the topic "${unitCtx.unitName}". Prefer vocabulary: ${unitCtx.vocab}.`:'Use Cambridge A1 Movers topics (animals, toys, food, clothes, school, etc).';
+  const topicHint=unitCtx?`Use the topic "${unitCtx.unitName}". Prefer vocabulary: ${shuffledVocab(unitCtx)}.`:'Use Cambridge A1 Movers topics (animals, toys, food, clothes, school, etc).';
   const prompt=`You are a Cambridge A1 Movers Reading & Writing Part 1 generator.
 Create a matching exercise: 8 named characters (people or animals) each with one clear characteristic sentence, and 5 clue descriptions where each clue matches exactly one of the 8 characters. The other 3 are distractors.
 ${topicHint}
@@ -5625,7 +5648,7 @@ function checkMoversRW1(){
 async function runMoversRW2(){
   showLoading('Preparing Part 2...');
   const unitCtx=getMoversCalendarUnit();
-  const topicHint=unitCtx?`Topic: "${unitCtx.unitName}". Vocabulary: ${unitCtx.vocab}.`:'Everyday topics: TV and films, hobbies, school, animals, food, sports.';
+  const topicHint=unitCtx?`Topic: "${unitCtx.unitName}". Vocabulary: ${shuffledVocab(unitCtx)}.`:'Everyday topics: TV and films, hobbies, school, animals, food, sports.';
   const prompt=`You are a Cambridge A1 Movers Reading & Writing Part 2 generator.
 Create a short conversation between two children (give them names). One child (B) has 5 lines that are blank — the student must choose the correct response for each from 3 options. The options must be natural English at A1 Movers level; the two wrong options must be clearly wrong in context but grammatically plausible.
 ${topicHint}
@@ -5704,7 +5727,7 @@ function checkMoversRW2(){
 async function runMoversRW3(){
   showLoading('Preparing Part 3...');
   const unitCtx=getMoversCalendarUnit();
-  const topicHint=unitCtx?`Topic: "${unitCtx.unitName}". Vocabulary: ${unitCtx.vocab}.`:'Topics: animals, nature, food, school, sports, weather.';
+  const topicHint=unitCtx?`Topic: "${unitCtx.unitName}". Vocabulary: ${shuffledVocab(unitCtx)}.`:'Topics: animals, nature, food, school, sports, weather.';
   const prompt=`You are a Cambridge A1 Movers Reading & Writing Part 3 generator.
 Write a short factual or story paragraph (55-75 words, A1 Movers level) with exactly 8 numbered gaps __(1)__ to __(8)__. Provide a word box of exactly 10 words: the 8 correct answers plus 2 distractors that are plausible but wrong in context. Each word in the word box is used at most once.
 ${topicHint}
@@ -5764,7 +5787,7 @@ function checkMoversRW3(){
 async function runMoversRW4(){
   showLoading('Preparing Part 4...');
   const unitCtx=getMoversCalendarUnit();
-  const topicHint=unitCtx?`Topic: "${unitCtx.unitName}". Vocabulary: ${unitCtx.vocab}.`:'Use Cambridge A1 Movers topics.';
+  const topicHint=unitCtx?`Topic: "${unitCtx.unitName}". Vocabulary: ${shuffledVocab(unitCtx)}.`:'Use Cambridge A1 Movers topics.';
   const prompt=`You are a Cambridge A1 Movers Reading & Writing Part 4 generator.
 Write a short informational or narrative text (60-80 words, A1 Movers level) with exactly 6 numbered gaps __(1)__ to __(6)__. For each gap provide 3 options (A, B, C) where only one is grammatically and contextually correct. The wrong options must be the same word class as the correct answer.
 ${topicHint}
@@ -5818,11 +5841,11 @@ function checkMoversRW4(){
 async function runMoversRW5(){
   showLoading('Preparing Part 5...');
   const unitCtx=getMoversCalendarUnit();
-  const topicHint=unitCtx?`Topic: "${unitCtx.unitName}". Vocabulary: ${unitCtx.vocab}.`:'Use Cambridge A1 Movers topics (weather, animals, outdoor activities, school, food, etc.).';
+  const topicHint=unitCtx?`Topic: "${unitCtx.unitName}". Vocabulary: ${shuffledVocab(unitCtx)}.`:'Use Cambridge A1 Movers topics (weather, animals, outdoor activities, school, food, etc.).';
   const prompt=`You are a Cambridge A1 Movers Reading & Writing Part 5 generator.
 Write a short story (55-70 words, A1 Movers level). Then write 6 separate sentence-completion items about the story. Each item is an incomplete sentence with exactly ONE word missing, shown as ___. The student reads the story and writes the missing word.
 ${topicHint}
-Rules: Each answer is exactly one common English word that appears in or is clearly supported by the story. No proper nouns as answers. Vary the word types tested (nouns, verbs, adjectives, prepositions, adverbs).
+Rules: Each answer is exactly one common English word that appears in or is clearly supported by the story. No proper nouns as answers. Vary the word types tested (nouns, verbs, adjectives, prepositions, adverbs). Use a different main character name and a different combination of vocabulary words than you might normally default to — this exercise gets regenerated often, so avoid always reaching for the same "obvious" character/items for this topic.
 Return ONLY valid JSON:
 {"story":"Last Sunday, Emma went to the park with her dog Max. It was a sunny day. They played with a red ball and Max ran very fast. After that, they sat under a big tree and had some sandwiches. Emma was very happy.","sentences":[
   {"n":1,"text":"Emma went to the ___ last Sunday.","answer":"park"},
@@ -5885,7 +5908,7 @@ async function runMoversL(part){
   const info=MOCK_PART_INFO[part];
   showLoading(`Preparing ${info.label}...`);
   const unitCtx=getMoversCalendarUnit();
-  const topicHint=unitCtx?`Topic: "${unitCtx.unitName}". Vocabulary: ${unitCtx.vocab}.`:'Use Cambridge A1 Movers topics.';
+  const topicHint=unitCtx?`Topic: "${unitCtx.unitName}". Vocabulary: ${shuffledVocab(unitCtx)}.`:'Use Cambridge A1 Movers topics.';
   const formats={
     l1:`Generate a Listening Part 1 exercise: 5 items. Each has a person's name and one activity/object. The student listens to descriptions and matches people to activities.
 Return JSON: {"items":[{"name":"Lucy","activity":"swimming","clue":"Lucy loves the water and goes to the pool every morning."},... 5 items],"distractors":["cycling","painting","cooking"]}`,
@@ -7563,20 +7586,16 @@ async function openBookChapter(bookId,chNum){
 Create a comprehension exercise where Fernando must identify WHICH summary is the accurate description of the chapter. Only someone who actually READ the chapter carefully can answer correctly.
 
 Rules:
-- Write THREE summaries (A, B, C) of the chapter in B1 English (4-5 sentences each)
+- Write THREE summaries of the chapter in B1 English (4-5 sentences each)
 - ONE summary is ACCURATE and describes exactly what happens
 - TWO summaries have SUBTLE but important differences — wrong character actions, wrong outcomes, wrong details — plausible but incorrect
 - A vocabulary word from the chapter with its English definition
 
-Return ONLY this JSON:
+Return ONLY this JSON (do not label them A/B/C yourself — just put the accurate one in "correctSummary" and the two inaccurate ones in "wrongSummaries"):
 {
   "question": "Which summary correctly describes what happens in Chapter ${chNum}: ${ch.title}?",
-  "summaries": {
-    "A": "summary text A...",
-    "B": "summary text B...",
-    "C": "summary text C..."
-  },
-  "answer": "A",
+  "correctSummary": "summary text...",
+  "wrongSummaries": ["summary text...", "summary text..."],
   "vocabWord": "word",
   "vocabDef": "definition in simple English"
 }`;
@@ -7590,12 +7609,23 @@ Return ONLY this JSON:
 
 function renderBookChapter(book,chNum,ch,d){
   const area=document.getElementById('module-content-area');
+  // El modelo tiende a anclarse en el ejemplo del prompt y "elegir" siempre la misma posición
+  // como correcta — por eso barajamos nosotros mismos acá (Math.random) en vez de confiar en
+  // que el modelo elija una posición al azar. Ver mismo fix en bcGenerateGate().
+  const pool=[{text:d.correctSummary,correct:true},...(d.wrongSummaries||[]).map(t=>({text:t,correct:false}))];
+  for(let i=pool.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [pool[i],pool[j]]=[pool[j],pool[i]];
+  }
+  const letters=['A','B','C'];
+  const summaries={};
+  let correctLetter='A';
+  pool.forEach((item,i)=>{ summaries[letters[i]]=item.text; if(item.correct) correctLetter=letters[i]; });
+
   // Store answer globally to avoid JSON-in-onclick
-  window._bcCurrentAnswer=d.answer;
+  window._bcCurrentAnswer=correctLetter;
   window._bcCurrentBookId=book.id;
   window._bcCurrentChNum=chNum;
-
-  const summaries=d.summaries||{};
   area.innerHTML=`<div style="max-width:660px;margin:0 auto">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
       <button class="pron-hint-btn" onclick="runBookClub()">← Back</button>
