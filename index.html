@@ -1743,6 +1743,22 @@ function moversRandomTopic(){
   return MOVERS_MINI_MOCK_TOPICS[Math.floor(Math.random()*MOVERS_MINI_MOCK_TOPICS.length)];
 }
 
+// Material CONFIRMADO por Angel contra lo que Rodrigo ve realmente en el colegio (no un tema al
+// azar) — solo se llena acá cuando hay confirmación real, parte por parte. Ojo: esto NO es el texto
+// literal de Cambridge (derechos de autor) — es un resumen propio de personajes/escenario/vocabulario,
+// que el prompt usa como ancla obligatoria. Se le pide a la IA reescribir una versión NUEVA cada vez
+// sobre esa misma base (no reproducir la misma historia palabra por palabra) — así el ejercicio sigue
+// midiendo comprensión real aunque Rodrigo lo repita varias veces en la semana, y sigue reflejando el
+// contenido real de la clase en vez de un tema genérico inventado.
+const MOVERS_CONFIRMED_MATERIAL={
+  rw5:{
+    confirmedOn:'2026-08-06',
+    source:'Lesson plan oficial "A1 Movers Reading and Writing Part 5" (Cambridge) — confirmado por Angel contra lo que Rodrigo ve en clases esta semana.',
+    summary:`A girl named Daisy travels with her mother and father from the city to the countryside to visit her grandma and grandad. On the way there is rain and different weather. At grandma's farm, Daisy sees the farmhouse and things around it (the story mentions trucks, even though a picture in the original shows chickens — a detail worth keeping in mind if adapting). By the end of the day Daisy feels happy but tired. Key vocabulary: countryside, city, mother, father, parents, rain, house, farm, grandma, grandad, inside, outside, happy, tired.`
+  }
+};
+function moversConfirmedMaterial(part){ return MOVERS_CONFIRMED_MATERIAL[part]||null; }
+
 function updateFerWeekCard(){
   const card=document.getElementById('fer-week-card');
   if(!card)return;
@@ -5920,12 +5936,21 @@ function checkMoversRW4(){
 
 async function runMoversRW5(){
   showLoading('Preparing Part 5...');
-  const topicHint=`Topic: ${moversRandomTopic()}.`;
+  const confirmed=moversConfirmedMaterial('rw5');
+  // Si Angel confirmó que este material es EXACTAMENTE lo que Rodrigo ve en el colegio esta semana,
+  // lo usamos como ancla obligatoria (personajes/escenario/vocabulario reales) en vez del tema al
+  // azar — pero le pedimos a la IA redactar una versión NUEVA cada vez sobre esa misma base, no
+  // reproducir la historia real palabra por palabra (evita problema de derechos de autor Y evita que
+  // Rodrigo se la aprenda de memoria si repite el ejercicio varias veces en la semana).
+  const topicHint=confirmed
+    ? `CONFIRMED CLASSROOM MATERIAL — this is what the student is actually studying in school this week (${confirmed.source}). Base your story on this exact content: ${confirmed.summary}
+IMPORTANT: write an ORIGINAL retelling in your own words each time — same characters, setting and vocabulary, but a fresh version of the story and fresh sentences, never a word-for-word copy.`
+    : `Topic: ${moversRandomTopic()}.
+Real Cambridge example style (official A1 Movers R&W Part 5 lesson plan): a story about a girl, Daisy, who travels with her parents to the countryside, visits her grandma's farm, sees the weather and animals, and feels happy but tired by the end — everyday, concrete, first-person-adjacent narration a child can picture.`;
   const prompt=`You are a Cambridge A1 Movers Reading & Writing Part 5 generator.
 Write a short story (55-70 words, A1 Movers level). Then write 6 separate sentence-completion items about the story. Each item is an incomplete sentence with exactly ONE word missing, shown as ___. The student reads the story and writes the missing word.
 ${topicHint}
-Real Cambridge example style (official A1 Movers R&W Part 5 lesson plan): a story about a girl, Daisy, who travels with her parents to the countryside, visits her grandma's farm, sees the weather and animals, and feels happy but tired by the end — everyday, concrete, first-person-adjacent narration a child can picture.
-Rules: Each answer is exactly one common English word that appears in or is clearly supported by the story. No proper nouns as answers. Vary the word types tested (nouns, verbs, adjectives, prepositions, adverbs). Use a different main character name and a different combination of vocabulary words than you might normally default to — this exercise gets regenerated often, so avoid always reaching for the same "obvious" character/items for this topic.
+Rules: Each answer is exactly one common English word that appears in or is clearly supported by the story. No proper nouns as answers. Vary the word types tested (nouns, verbs, adjectives, prepositions, adverbs). Use a different main character name${confirmed?' (unless the confirmed material names one)':''} and a different combination of vocabulary words than you might normally default to — this exercise gets regenerated often, so avoid always reaching for the same "obvious" character/items for this topic.
 Return ONLY valid JSON:
 {"story":"Last Sunday, Emma went to the park with her dog Max. It was a sunny day. They played with a red ball and Max ran very fast. After that, they sat under a big tree and had some sandwiches. Emma was very happy.","sentences":[
   {"n":1,"text":"Emma went to the ___ last Sunday.","answer":"park"},
