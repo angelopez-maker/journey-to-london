@@ -1601,6 +1601,37 @@ async function downloadReportPDF(filename,title,subtitle,sections){
   }
 }
 
+// ══ MY JOURNEY — reflexión personal, separada del análisis técnico ══
+// A diferencia del resto del reporte (que evalúa aciertos/errores), esta sección la llena el
+// propio niño con sus palabras — nunca la IA. Idioma libre a propósito (español o inglés, lo que
+// le salga más natural): con qué idioma elige responder es en sí mismo un termómetro de confianza,
+// no algo que haya que forzar. Sin nota, sin corrección — solo un recuerdo del momento (Principio 11).
+const MY_JOURNEY_QUESTIONS=[
+  {k:'proud',label:'🌟 ¿De qué me siento orgulloso/a esta vez?',sub:"What am I proud of this time?"},
+  {k:'surprise',label:'😮 Algo que me sorprendió',sub:'Something that surprised me'},
+  {k:'improve',label:'🎯 Algo que quiero mejorar',sub:'Something I want to improve'},
+  {k:'challenge',label:'🚀 Mi próximo desafío',sub:'My next challenge'},
+  {k:'sentence',label:'💬 Una frase en inglés que antes no podía decir... y ahora sí',sub:"A sentence in English I couldn't say before, but now I can"}
+];
+function myJourneyBlock(prefix){
+  return `<div style="background:linear-gradient(135deg,#241a2e,#2a1e38);border:1px solid rgba(192,132,252,.3);border-radius:14px;padding:18px;margin-bottom:16px">
+    <div style="font-family:'Orbitron',monospace;font-size:12px;color:#c084fc;letter-spacing:2px;margin-bottom:4px">🌟 MY JOURNEY</div>
+    <div style="font-size:12px;color:#8b949e;margin-bottom:14px">Esto no se evalúa ni tiene nota — es solo para ti. Puedes escribir en español o en inglés, como te salga más natural.</div>
+    ${MY_JOURNEY_QUESTIONS.map(q=>`<div style="margin-bottom:12px">
+      <label style="display:block;font-size:13px;color:#e0d0f5;margin-bottom:2px">${q.label}</label>
+      <div style="font-size:11px;color:#666;margin-bottom:6px;font-style:italic">${q.sub}</div>
+      <textarea id="${prefix}-journey-${q.k}" rows="2" placeholder="..." style="width:100%;background:#1a1622;border:1px solid #3d3050;border-radius:8px;padding:8px 10px;color:#e0d0f5;font-size:13px;font-family:inherit;resize:vertical;box-sizing:border-box"></textarea>
+    </div>`).join('')}
+  </div>`;
+}
+function collectMyJourney(prefix){
+  return MY_JOURNEY_QUESTIONS.map(q=>{
+    const el=document.getElementById(`${prefix}-journey-${q.k}`);
+    const val=el?el.value.trim():'';
+    return val?{q:`${q.label} / ${q.sub}`,a:val}:null;
+  }).filter(Boolean);
+}
+
 // ══ NAVIGATION ══
 function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0);}
 const PROFILE_BOOK={rodrigo:'CAM_MOVERS',fernando:'NCUB1'};
@@ -3171,6 +3202,7 @@ function _ketRenderResults(r,scores){
       <div style="color:#c9d1d9;font-size:13px;line-height:1.7">${r.roadmapToBl}</div>
       ${r.priority?`<div style="margin-top:10px;background:rgba(251,191,36,.08);border-radius:6px;padding:8px;font-size:12px;color:var(--gold2)">🎯 Priority focus right now: <strong>${r.priority.toUpperCase()}</strong></div>`:''}
     </div>`:''}
+    ${myJourneyBlock('ket')}
     <button onclick="downloadKETReportPDF()" style="width:100%;padding:12px;margin-bottom:10px;background:rgba(255,255,255,.06);border:1px solid #333;border-radius:8px;color:#c9d1d9;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;cursor:pointer">📄 Download PDF Report</button>
     <div style="display:flex;gap:10px">
       <button onclick="openKETDiagnostic()" style="flex:1;padding:12px;background:rgba(255,255,255,.06);border:1px solid #333;border-radius:8px;color:#888;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;cursor:pointer">← Redo Section</button>
@@ -3197,6 +3229,8 @@ function downloadKETReportPDF(){
     r?.criticalGaps?.length?{heading:'Gaps críticos',lines:r.criticalGaps.map(x=>`• ${x}`)}:null,
     r?.roadmapToBl?{heading:'Roadmap a B1',lines:[r.roadmapToBl,r.priority?`Prioridad ahora: ${r.priority.toUpperCase()}`:'']}:null,
   ];
+  const journey=collectMyJourney('ket');
+  if(journey.length)sections.push({heading:'🌟 My Journey — reflexión personal (sin nota, en palabras propias del estudiante)',lines:journey.flatMap(j=>[j.q,j.a,''])});
   downloadReportPDF(`KET_Diagnostico_${getStudentName().replace(/\s+/g,'_')}_${dateTag}.pdf`,'KET Diagnostic Report',`${getStudentName()} · Journey to London`,sections);
 }
 
@@ -7583,6 +7617,7 @@ function _petRenderResults(r,agg){
       <div style="color:#c9d1d9;font-size:13px;line-height:1.7">${r.roadmapToExam}</div>
       ${r.priority?`<div style="margin-top:10px;background:rgba(251,191,36,.08);border-radius:6px;padding:8px;font-size:12px;color:var(--gold2)">🎯 Priority focus right now: <strong>${r.priority.toUpperCase()}</strong></div>`:''}
     </div>`:''}
+    ${myJourneyBlock('pet')}
     <button onclick="downloadPETReportPDF()" style="width:100%;padding:12px;margin-bottom:10px;background:rgba(255,255,255,.06);border:1px solid #333;border-radius:8px;color:#c9d1d9;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;cursor:pointer">📄 Download PDF Report</button>
     <div style="display:flex;gap:10px">
       <button onclick="runPET()" style="flex:1;padding:12px;background:rgba(255,255,255,.06);border:1px solid #333;border-radius:8px;color:#888;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;cursor:pointer">← PET Training</button>
@@ -7608,6 +7643,8 @@ function downloadPETReportPDF(){
     r?.criticalGaps?.length?{heading:'Gaps críticos',lines:r.criticalGaps.map(x=>`• ${x}`)}:null,
     r?.roadmapToExam?{heading:'Roadmap al examen PET',lines:[r.roadmapToExam,r.priority?`Prioridad ahora: ${r.priority.toUpperCase()}`:'']}:null,
   ];
+  const journey=collectMyJourney('pet');
+  if(journey.length)sections.push({heading:'🌟 My Journey — reflexión personal (sin nota, en palabras propias del estudiante)',lines:journey.flatMap(j=>[j.q,j.a,''])});
   downloadReportPDF(`PET_Reporte_${getStudentName().replace(/\s+/g,'_')}_${dateTag}.pdf`,'PET B1 Report',`${getStudentName()} · Journey to London`,sections);
 }
 
