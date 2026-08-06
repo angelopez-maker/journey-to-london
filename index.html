@@ -1636,28 +1636,28 @@ function _calActive(cal){const t=_calToday();return cal.find(w=>w.start<=t&&t<=w
 function _calNext(cal){const t=_calToday();return cal.find(w=>w.start>t)||null;}
 function _calFmt(iso){const d=new Date(iso+'T12:00:00');return d.toLocaleDateString('es-CL',{day:'numeric',month:'short'});}
 
-// Para los ejercicios de Movers (Mini Mock: R&W1-6, Listening) el tema SIEMPRE sale de la unidad
-// activa según SPELLING_CALENDAR (alineado con lo que Rodrigo ve en el colegio esa semana) — NUNCA
-// de state.currentUnit, que es un global compartido con Free Practice/PET Training y que se queda
-// pegado en lo último que se haya seleccionado ahí, sin relación con la semana real. Ese era el bug:
-// R&W5 quedaba fijo en "A Favourite Toy Shop" para siempre, aunque el calendario ya hubiera avanzado.
-function getMoversCalendarUnit(){
-  const wk=_calActive(SPELLING_CALENDAR)||_calNext(SPELLING_CALENDAR);
-  if(!wk)return null;
-  const unit=CURRICULUM['CAM_MOVERS']?.units?.find(u=>u.topic===wk.unit);
-  if(!unit)return null;
-  return {unitName:unit.name,topic:unit.topic,vocab:unit.vocab||''};
-}
-
-// El vocab de cada unit siempre viene en el mismo orden fijo (definido en CURRICULUM). Si se lo
-// pasamos tal cual al prompt, el modelo se ancla a las primeras palabras de la lista y genera
-// básicamente la MISMA historia/personajes cada vez que se repite un ejercicio del mismo unit
-// (detectado en R&W Part 5 — "A Favourite Toy Shop" siempre daba panda/pirate/clown/parrot/cage/
-// lion/kangaroo, exactamente las primeras 7 palabras del vocab). Barajamos acá antes de inyectarlo
-// en cualquier prompt de Movers para que la variedad no dependa de que el modelo "elija al azar".
-function shuffledVocab(unitCtx){
-  if(!unitCtx||!unitCtx.vocab)return '';
-  return unitCtx.vocab.split(',').map(w=>w.trim()).filter(Boolean).sort(()=>Math.random()-0.5).join(', ');
+// ⚠️ IMPORTANTE — el Mini Mock (R&W1-6, Listening) NUNCA debe tomar su tema de SPELLING_CALENDAR.
+// Hasta el 5 agosto 2026 este archivo tuvo un bug real acá: los generadores de Mini Mock usaban una
+// función (getMoversCalendarUnit, ya eliminada) que sacaba el tema de la unidad de Spelling activa
+// esa semana — así, la historia de R&W Part 5 quedaba forzada al vocabulario de "A Favourite Toy
+// Shop" aunque no tuviera ninguna relación real. Angel lo detectó comparando con el material real:
+// el correo de la profesora (Miss Carla, 8 jul 2026) confirma que Spelling semanal y Mini Mock Exams
+// son 2 de las 5 notas del semestre, cada una con su PROPIO calendario independiente (SPELLING_
+// CALENDAR / MINI_MOCK_CALENDAR) — no hay ninguna relación temática entre ellas, aunque coincidan en
+// fechas por casualidad. Se confirmó además contra el material oficial de Cambridge para R&W Part 5:
+// la historia real es sobre "Daisy" visitando la granja de su abuela (clima, familia, campo) — nada
+// que ver con la unidad de vocabulario de esa semana. Por eso el Mini Mock elige un tema A1 genérico
+// al azar acá en el código (mismo criterio que usamos para el vocab: la aleatoriedad la decide el
+// código, no el modelo, para no anclarse siempre al mismo tema) — SPELLING_CALENDAR solo debe usarse
+// para el módulo de Spelling/Cambridge Units, nunca para generar contenido del Mini Mock.
+const MOVERS_MINI_MOCK_TOPICS=[
+  'weather and the seasons','a family visit to a farm or the countryside','animals and pets',
+  'a day at school','food and mealtimes with family','free time, hobbies and sports',
+  'a day at the park, the beach or the zoo','shopping for clothes or toys','a birthday party',
+  'a trip to the city or the seaside','helping at home or in the garden'
+];
+function moversRandomTopic(){
+  return MOVERS_MINI_MOCK_TOPICS[Math.floor(Math.random()*MOVERS_MINI_MOCK_TOPICS.length)];
 }
 
 function updateFerWeekCard(){
@@ -5402,16 +5402,10 @@ function runMovers(){
 
 async function runMoversRW6(){
   showLoading('Preparing your Part 6 story...');
-  const unitCtx=getMoversCalendarUnit();
-  let topicHint='';
-  if(unitCtx){
-    topicHint=`The story should relate to the topic "${unitCtx.unitName}" (${unitCtx.topic}).
-Prefer vocabulary from this list where natural: ${shuffledVocab(unitCtx)}.`;
-  } else {
-    topicHint='Use everyday A1 topics (food, animals, family, school, weather, body, clothes).';
-  }
+  const topicHint=`The story should relate to this topic: ${moversRandomTopic()}.`;
 
   const prompt=`You are creating a Cambridge A1 Movers Reading & Writing Part 6 exercise for a ${getAge()}-year-old Spanish-speaking child.
+Note: the real Cambridge Part 6 is a picture-based task (students look at a scene and write sentences about it) — this text-only version is a vocabulary/writing practice inspired by it, not an exact replica.
 
 TASK FORMAT: A short story (8-10 sentences) with exactly 8 numbered gaps [(1) through (8)]. Below the story is a word box with 10 words: the 8 correct answers plus 2 distractors. Students choose words from the box to fill each gap.
 
@@ -5565,8 +5559,7 @@ function checkMoversRW6(){
 
 async function runMoversRW1(){
   showLoading('Preparing Part 1...');
-  const unitCtx=getMoversCalendarUnit();
-  const topicHint=unitCtx?`Use the topic "${unitCtx.unitName}". Prefer vocabulary: ${shuffledVocab(unitCtx)}.`:'Use Cambridge A1 Movers topics (animals, toys, food, clothes, school, etc).';
+  const topicHint=`Topic: ${moversRandomTopic()}.`;
   const prompt=`You are a Cambridge A1 Movers Reading & Writing Part 1 generator.
 Create a matching exercise: 8 named characters (people or animals) each with one clear characteristic sentence, and 5 clue descriptions where each clue matches exactly one of the 8 characters. The other 3 are distractors.
 ${topicHint}
@@ -5647,8 +5640,7 @@ function checkMoversRW1(){
 
 async function runMoversRW2(){
   showLoading('Preparing Part 2...');
-  const unitCtx=getMoversCalendarUnit();
-  const topicHint=unitCtx?`Topic: "${unitCtx.unitName}". Vocabulary: ${shuffledVocab(unitCtx)}.`:'Everyday topics: TV and films, hobbies, school, animals, food, sports.';
+  const topicHint=`Topic: ${moversRandomTopic()}.`;
   const prompt=`You are a Cambridge A1 Movers Reading & Writing Part 2 generator.
 Create a short conversation between two children (give them names). One child (B) has 5 lines that are blank — the student must choose the correct response for each from 3 options. The options must be natural English at A1 Movers level; the two wrong options must be clearly wrong in context but grammatically plausible.
 ${topicHint}
@@ -5726,8 +5718,7 @@ function checkMoversRW2(){
 
 async function runMoversRW3(){
   showLoading('Preparing Part 3...');
-  const unitCtx=getMoversCalendarUnit();
-  const topicHint=unitCtx?`Topic: "${unitCtx.unitName}". Vocabulary: ${shuffledVocab(unitCtx)}.`:'Topics: animals, nature, food, school, sports, weather.';
+  const topicHint=`Topic: ${moversRandomTopic()}.`;
   const prompt=`You are a Cambridge A1 Movers Reading & Writing Part 3 generator.
 Write a short factual or story paragraph (55-75 words, A1 Movers level) with exactly 8 numbered gaps __(1)__ to __(8)__. Provide a word box of exactly 10 words: the 8 correct answers plus 2 distractors that are plausible but wrong in context. Each word in the word box is used at most once.
 ${topicHint}
@@ -5786,8 +5777,7 @@ function checkMoversRW3(){
 
 async function runMoversRW4(){
   showLoading('Preparing Part 4...');
-  const unitCtx=getMoversCalendarUnit();
-  const topicHint=unitCtx?`Topic: "${unitCtx.unitName}". Vocabulary: ${shuffledVocab(unitCtx)}.`:'Use Cambridge A1 Movers topics.';
+  const topicHint=`Topic: ${moversRandomTopic()}.`;
   const prompt=`You are a Cambridge A1 Movers Reading & Writing Part 4 generator.
 Write a short informational or narrative text (60-80 words, A1 Movers level) with exactly 6 numbered gaps __(1)__ to __(6)__. For each gap provide 3 options (A, B, C) where only one is grammatically and contextually correct. The wrong options must be the same word class as the correct answer.
 ${topicHint}
@@ -5840,11 +5830,11 @@ function checkMoversRW4(){
 
 async function runMoversRW5(){
   showLoading('Preparing Part 5...');
-  const unitCtx=getMoversCalendarUnit();
-  const topicHint=unitCtx?`Topic: "${unitCtx.unitName}". Vocabulary: ${shuffledVocab(unitCtx)}.`:'Use Cambridge A1 Movers topics (weather, animals, outdoor activities, school, food, etc.).';
+  const topicHint=`Topic: ${moversRandomTopic()}.`;
   const prompt=`You are a Cambridge A1 Movers Reading & Writing Part 5 generator.
 Write a short story (55-70 words, A1 Movers level). Then write 6 separate sentence-completion items about the story. Each item is an incomplete sentence with exactly ONE word missing, shown as ___. The student reads the story and writes the missing word.
 ${topicHint}
+Real Cambridge example style (official A1 Movers R&W Part 5 lesson plan): a story about a girl, Daisy, who travels with her parents to the countryside, visits her grandma's farm, sees the weather and animals, and feels happy but tired by the end — everyday, concrete, first-person-adjacent narration a child can picture.
 Rules: Each answer is exactly one common English word that appears in or is clearly supported by the story. No proper nouns as answers. Vary the word types tested (nouns, verbs, adjectives, prepositions, adverbs). Use a different main character name and a different combination of vocabulary words than you might normally default to — this exercise gets regenerated often, so avoid always reaching for the same "obvious" character/items for this topic.
 Return ONLY valid JSON:
 {"story":"Last Sunday, Emma went to the park with her dog Max. It was a sunny day. They played with a red ball and Max ran very fast. After that, they sat under a big tree and had some sandwiches. Emma was very happy.","sentences":[
@@ -5907,8 +5897,7 @@ function checkMoversRW5(){
 async function runMoversL(part){
   const info=MOCK_PART_INFO[part];
   showLoading(`Preparing ${info.label}...`);
-  const unitCtx=getMoversCalendarUnit();
-  const topicHint=unitCtx?`Topic: "${unitCtx.unitName}". Vocabulary: ${shuffledVocab(unitCtx)}.`:'Use Cambridge A1 Movers topics.';
+  const topicHint=`Topic: ${moversRandomTopic()}.`;
   const formats={
     l1:`Generate a Listening Part 1 exercise: 5 items. Each has a person's name and one activity/object. The student listens to descriptions and matches people to activities.
 Return JSON: {"items":[{"name":"Lucy","activity":"swimming","clue":"Lucy loves the water and goes to the pool every morning."},... 5 items],"distractors":["cycling","painting","cooking"]}`,
