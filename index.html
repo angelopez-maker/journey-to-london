@@ -7721,7 +7721,37 @@ async function openBookChapter(bookId,chNum){
   if(!book||!ch)return;
   showLoading(`Loading Chapter ${chNum}...`);
 
-  const prompt=`You are helping a ${getAge()}-year-old Chilean student practice English reading comprehension for "${book.title}" by C.S. Lewis, Chapter ${chNum}: "${ch.title}".
+  // Misma lógica que bcGenerateGate(): si Angel cargó el texto real de este libro/capítulo en el
+  // servidor, lo usamos como base — la IA nunca inventa de memoria si hay contenido confirmado.
+  const confirmed=await fetchConfirmedChapter(book.title,chNum);
+  const prompt=confirmed
+    ? `You are helping a ${getAge()}-year-old Chilean student practice English reading comprehension for "${confirmed.title}" by ${confirmed.author||'C.S. Lewis'}, Chapter ${chNum}: "${ch.title}".
+
+Below is the REAL text of that chapter. Use it as the ground truth — do not invent or guess.
+
+Create a comprehension exercise where Fernando must identify WHICH summary is the accurate description of the chapter. Only someone who actually READ the chapter carefully can answer correctly.
+
+Rules:
+- Write THREE summaries of the chapter in B1 English (4-5 sentences each), based strictly on the real text below
+- ONE summary is ACCURATE and describes exactly what happens
+- TWO summaries have SUBTLE but important differences — wrong character actions, wrong outcomes, wrong details — plausible but incorrect, and clearly contradicted by the real text if you look closely
+- Do not quote the chapter text directly — write your own original sentences
+- A vocabulary word from the chapter with its English definition
+
+REAL CHAPTER TEXT:
+"""
+${confirmed.text}
+"""
+
+Return ONLY this JSON (do not label them A/B/C yourself — just put the accurate one in "correctSummary" and the two inaccurate ones in "wrongSummaries"):
+{
+  "question": "Which summary correctly describes what happens in Chapter ${chNum}: ${ch.title}?",
+  "correctSummary": "summary text...",
+  "wrongSummaries": ["summary text...", "summary text..."],
+  "vocabWord": "word",
+  "vocabDef": "definition in simple English"
+}`
+    : `You are helping a ${getAge()}-year-old Chilean student practice English reading comprehension for "${book.title}" by C.S. Lewis, Chapter ${chNum}: "${ch.title}".
 
 Create a comprehension exercise where Fernando must identify WHICH summary is the accurate description of the chapter. Only someone who actually READ the chapter carefully can answer correctly.
 
