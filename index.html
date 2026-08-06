@@ -1230,6 +1230,89 @@ function parseJSON(text){
   }
 }
 
+// ⚠️ Sesgo de posición en preguntas de opción múltiple generadas por IA. Detectado el 5 agosto 2026
+// (por Angel probando Book Club — la respuesta correcta salía "A" 5 capítulos seguidos) y confirmado
+// de nuevo al auditar KET/PET/Movers Listening: el ejemplo de JSON embebido en cada prompt muestra
+// una letra fija repetida en varias preguntas de ejemplo (ej. KET Reading Part 1 mostraba "ans":"B"
+// en las 5 preguntas de ejemplo, KET Listening Part 1 en 4 de 5) — el modelo tiende a reproducir esa
+// distribución en vez de variar la posición correcta de verdad. Es grave porque un alumno vivo podría
+// aprender a "adivinar" la letra más frecuente sin necesidad de comprender el texto — exactamente lo
+// que un chequeo de comprensión no debe permitir. Se baraja acá, después de recibir la respuesta del
+// modelo, para que la posición de la respuesta correcta sea 1/n real, sin depender de que el modelo
+// "elija al azar". Dos formatos usados en la app:
+
+// Formato KET: opciones como keys A/B/C(/D) del propio item + campo "ans" con la letra correcta.
+function shuffleKETItem(item){
+  const letters=['A','B','C','D'].filter(L=>item[L]!==undefined);
+  if(letters.length<2||!item.ans||!letters.includes(item.ans))return item;
+  const pairs=letters.map(L=>({text:item[L],correct:L===item.ans}));
+  for(let i=pairs.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [pairs[i],pairs[j]]=[pairs[j],pairs[i]];
+  }
+  const out={...item};
+  letters.forEach((L,i)=>{ out[L]=pairs[i].text; if(pairs[i].correct) out.ans=L; });
+  return out;
+}
+function shuffleKETParts(parts){
+  return (parts||[]).map(p=>p.items?{...p,items:p.items.map(shuffleKETItem)}:p);
+}
+
+// Formato PET / Movers Listening: options como array de textos + campo "answer" con la letra,
+// mapeada por posición (índice 0 = A, 1 = B, ...) — mismo criterio que usan checkPETMC/checkMoversL.
+function shuffleMCOptions(item){
+  if(!Array.isArray(item.options)||item.options.length<2||!item.answer)return item;
+  const ansLetter=(item.answer+'').trim().charAt(0).toUpperCase();
+  const idx=ansLetter.charCodeAt(0)-65;
+  if(idx<0||idx>=item.options.length)return item; // formato inesperado, no tocar
+  const pairs=item.options.map((text,i)=>({text,correct:i===idx}));
+  for(let i=pairs.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [pairs[i],pairs[j]]=[pairs[j],pairs[i]];
+  }
+  const out={...item};
+  out.options=pairs.map(p=>p.text);
+  out.answer=String.fromCharCode(65+pairs.findIndex(p=>p.correct));
+  return out;
+}
+function shuffleMCItems(items){
+  return (items||[]).map(shuffleMCOptions);
+}
+
+// Formato "opciones = respuesta literal" (ej. Movers R&W4 cloze: options son palabras y answer es
+// la palabra correcta en sí, no una letra — la A/B/C que ve el alumno es solo la etiqueta visual del
+// orden). Acá basta barajar el array; la corrección sigue comparando por texto, no por letra.
+function shuffleWordOptions(gap){
+  if(!Array.isArray(gap.options)||gap.options.length<2)return gap;
+  // Fisher-Yates, no .sort(()=>Math.random()-0.5) — ese truco es un shuffle sesgado conocido (no da
+  // 1/n real, tiende a dejar el orden original más seguido de lo esperado), justo lo que queremos
+  // evitar acá.
+  const opts=[...gap.options];
+  for(let i=opts.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [opts[i],opts[j]]=[opts[j],opts[i]];
+  }
+  return {...gap, options:opts};
+}
+
+// Formato "quiz genérico" (Free Practice, Reading, Listening, Playing, VocabMatch de Writing, Test,
+// Versus Mode — todos comparten este shape: options[] + correct = índice o letra, leído después con
+// normalizeCorrectIndex). Mismo hallazgo: varios de estos prompts mostraban "correct":0 fijo en su
+// único ítem de ejemplo — riesgo de que la IA reproduzca esa posición más seguido de lo esperado.
+// normalizeCorrectIndex está definida más abajo en el archivo, pero al ser "function" queda hoisted.
+function shuffleQuizQuestions(questions){
+  return (questions||[]).map(q=>{
+    if(!Array.isArray(q.options)||q.options.length<2)return q;
+    const correctIdx=normalizeCorrectIndex(q.correct,q.options.length);
+    const pairs=q.options.map((text,i)=>({text,correct:i===correctIdx}));
+    for(let i=pairs.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [pairs[i],pairs[j]]=[pairs[j],pairs[i]];
+    }
+    return {...q, options:pairs.map(p=>p.text), correct:pairs.findIndex(p=>p.correct)};
+  });
+}
+
 // ══ PROGRESS DASHBOARD ══
 async function showProgressDashboard(){
   showScreen('screen-progress');
@@ -2524,7 +2607,7 @@ Return ONLY valid JSON — no markdown, no explanation:
 Produce ORIGINAL content following this exact structure. Keep questions realistic and A2-appropriate.`,4000);
     const d=parseJSON(raw);
     if(!d?.parts?.length)throw new Error('bad json');
-    window._ketRead={parts:await verifyKETConsistency(d.parts,'passage/context'),answers:{},partIdx:0};
+    window._ketRead={parts:await verifyKETConsistency(shuffleKETParts(d.parts),'passage/context'),answers:{},partIdx:0};
     _ketRenderReadPart();
   }catch(e){
     const area=document.getElementById('module-content-area');
@@ -2706,7 +2789,7 @@ Return ONLY valid JSON:
 ]}`,3000);
     const d=parseJSON(raw);
     if(!d?.parts?.length)throw new Error('bad');
-    window._ketListen={parts:await verifyKETConsistency(d.parts,'audioText/transcript'),answers:{},partIdx:0};
+    window._ketListen={parts:await verifyKETConsistency(shuffleKETParts(d.parts),'audioText/transcript'),answers:{},partIdx:0};
     _ketRenderListenPart();
   }catch(e){
     area.innerHTML=`<div style="max-width:640px;margin:0 auto;background:#111214;border-radius:14px;padding:24px;text-align:center"><div style="color:#ef4444;margin-bottom:12px">⚠️ Error. Please try again.</div><button onclick="ketListening()" style="padding:10px 20px;background:#8b5cf6;border:none;border-radius:8px;color:#fff;cursor:pointer;font-family:'Rajdhani',sans-serif;font-weight:700">Try Again</button> <button onclick="openKETDiagnostic()" style="padding:10px 20px;background:rgba(255,255,255,.08);border:1px solid #333;border-radius:8px;color:#888;cursor:pointer;font-family:'Rajdhani',sans-serif;font-weight:700">← Back</button></div>`;
@@ -4068,6 +4151,7 @@ Make it engaging, use simple language, be encouraging. Return only valid JSON.`;
   try{
     const raw=await callClaude(prompt);
     const d=parseJSON(raw);
+    if(Array.isArray(d.questions))d.questions=shuffleQuizQuestions(d.questions);
     renderLearning(d,topic);
   }catch(e){showError(e.message);}
 }
@@ -4137,6 +4221,7 @@ Make the passage interesting and age-appropriate. Return only valid JSON.`;
   try{
     const raw=await callClaude(prompt,2000);
     const d=parseJSON(raw);
+    if(Array.isArray(d.questions))d.questions=shuffleQuizQuestions(d.questions);
     renderReading(d);
   }catch(e){showError(e.message);}
 }
@@ -4165,6 +4250,7 @@ Return only valid JSON.`;
   try{
     const raw=await callClaude(prompt,1500);
     const d=parseJSON(raw);
+    if(Array.isArray(d.questions))d.questions=shuffleQuizQuestions(d.questions);
     renderListening(d);
   }catch(e){showError(e.message);}
 }
@@ -4221,6 +4307,7 @@ For vocab_match: write ONE natural sentence per item with a single gap shown as 
   try{
     const raw=await callClaude(prompt,1500);
     const d=parseJSON(raw);
+    if(Array.isArray(d.vocab_match))d.vocab_match=shuffleQuizQuestions(d.vocab_match);
     renderWriting(d);
   }catch(e){showError(e.message);}
 }
@@ -4350,6 +4437,7 @@ Return only valid JSON.`;
   try{
     const raw=await callClaude(prompt,1200);
     const d=parseJSON(raw);
+    if(Array.isArray(d.questions))d.questions=shuffleQuizQuestions(d.questions);
     renderPlaying(d);
   }catch(e){showError(e.message);}
 }
@@ -5662,6 +5750,7 @@ Return ONLY valid JSON:
   try{
     const raw=await callClaude(prompt,1100);
     const d=parseJSON(raw);
+    if(Array.isArray(d.dialogue))d.dialogue=d.dialogue.map(line=>line.gap?shuffleWordOptions(line):line);
     renderMoversRW2(d);
   }catch(e){showError(e.message);}
 }
@@ -5786,6 +5875,7 @@ Return ONLY valid JSON:
   try{
     const raw=await callClaude(prompt,700);
     const d=parseJSON(raw);
+    if(Array.isArray(d.gaps))d.gaps=d.gaps.map(shuffleWordOptions);
     renderMoversRW4(d);
   }catch(e){showError(e.message);}
 }
@@ -5917,6 +6007,7 @@ Use simple, clear language. A1 Movers level. Return ONLY valid JSON.`;
   try{
     const raw=await callClaude(prompt,800);
     const d=parseJSON(raw);
+    if(Array.isArray(d.items))d.items=shuffleMCItems(d.items);
     renderMoversL(part,d);
   }catch(e){showError(e.message);}
 }
@@ -6451,6 +6542,7 @@ Return a JSON object with "title" and all content needed to practise this part.`
   try{
     const raw=await callClaude(prompt,2000);
     const d=parseJSON(raw);
+    if(Array.isArray(d.items))d.items=shuffleMCItems(d.items);
     renderPETSection(s,d);
   }catch(e){showError('Could not generate exercise. '+e.message);}
 }
@@ -7843,6 +7935,7 @@ Make ALL 5 questions about "${topic}". For every "explanation", clearly state WH
   try{
     const raw=await callClaude(prompt,1800);
     const d=parseJSON(raw);
+    if(Array.isArray(d.questions))d.questions=shuffleQuizQuestions(d.questions);
     renderTest(d);
   }catch(e){showError(e.message);}
 }
