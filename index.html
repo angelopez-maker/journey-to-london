@@ -925,7 +925,7 @@ const MODEL = 'claude-haiku-4-5-20251001';
 // _micBusy es un lock síncrono: evita que dos llamadas a micStart() casi simultáneas (ej. un
 // doble-click, o eventos de teclado + click superpuestos) disparen dos grabaciones a la vez,
 // donde la segunda pisa a la primera a medio camino y se pierde el audio ya capturado.
-let _micRecorder=null, _micChunks=[], _micStream=null, _micBusy=false;
+let _micRecorder=null, _micChunks=[], _micStream=null, _micBusy=false, _micStartedAt=0;
 
 function micIsRecording(){return !!(_micRecorder&&_micRecorder.state==='recording');}
 
@@ -939,6 +939,7 @@ async function micStart(){
     _micRecorder=new MediaRecorder(_micStream,{mimeType});
     _micRecorder.ondataavailable=e=>{if(e.data&&e.data.size>0)_micChunks.push(e.data);};
     _micRecorder.start();
+    _micStartedAt=Date.now();
   } finally {
     _micBusy=false;
   }
@@ -977,15 +978,34 @@ function micStopAndTranscribe(){
   });
 }
 
-// Descarta la grabación en curso sin transcribir (botón "Reset / try again").
+// Umbral mínimo antes de dejar cancelar una grabación en curso (6 agosto). Angel notó que Fer,
+// al hablar en inglés, tiende a cortar la grabación a mitad de una idea y partir de nuevo — un
+// patrón de "escape" (empezar → dudar → borrar) que con la repetición entrena exactamente lo
+// contrario de lo que se quiere (que aprenda a seguir adelante después de un tropiezo, no a
+// evitarlo). No se toca el caso de "ya terminé de hablar y quiero grabar de nuevo" — ese es un
+// reintento legítimo y sigue libre. Esto solo frena el "cortar ANTES de terminar la idea": los
+// primeros MIC_RESET_GRACE_MS de cada grabación, el botón de reset no cancela de verdad — solo
+// avisa con un mensaje breve y calmado. Es un freno de tiempo, no un diálogo que se pueda saltar
+// sin leer (a propósito, pensando en que Fer es rápido y detecta atajos).
+const MIC_RESET_GRACE_MS = 2500;
+
+// Descarta la grabación en curso sin transcribir (botón "Reset / try again"). Devuelve true si
+// canceló de verdad, false si todavía no pasó el tiempo mínimo (ver nota arriba) — quien llama
+// debe chequear el valor de retorno antes de actualizar la UI a "grabación cancelada".
 function micReset(){
   if(_micRecorder&&_micRecorder.state==='recording'){
+    const elapsed=Date.now()-_micStartedAt;
+    if(elapsed<MIC_RESET_GRACE_MS){
+      showToast('Take a breath — try to finish your idea first 🙂');
+      return false;
+    }
     _micRecorder.onstop=null;
     try{_micRecorder.stop();}catch(e){}
   }
   if(_micStream){_micStream.getTracks().forEach(t=>t.stop());_micStream=null;}
   _micChunks=[];
   _micRecorder=null;
+  return true;
 }
 const TOTAL_KM = 11700;
 const MILESTONES = [500,1000,2500,5000,7500,10000,11700];
@@ -2416,7 +2436,7 @@ async function qaMicToggle(){
   }
 }
 function qaMicReset(){
-  micReset();
+  if(!micReset())return;
   const btn=document.getElementById('qa-mic-btn'),el=document.getElementById('qa-transcript'),resetBtn=document.getElementById('qa-reset-btn');
   const s=window._qaSession;
   if(btn&&s){btn.style.background=s.topic.colorBg;btn.style.borderColor=s.topic.colorBorder;btn.textContent='🎤 Start recording';}
@@ -3051,7 +3071,7 @@ async function _ketSpMicToggle(){
   }
 }
 function _ketSpMicReset(){
-  micReset();
+  if(!micReset())return;
   const btn=document.getElementById('ket-sp-btn'),el=document.getElementById('ket-sp-transcript'),resetBtn=document.getElementById('ket-sp-reset-btn');
   if(btn){btn.style.background='rgba(34,197,94,.1)';btn.style.borderColor='rgba(34,197,94,.3)';btn.textContent='🎤 Start recording';}
   if(resetBtn)resetBtn.style.display='none';
@@ -5318,7 +5338,7 @@ async function pronMicToggle(){
   }
 }
 function pronMicReset(){
-  micReset();
+  if(!micReset())return;
   const btn=document.getElementById('pron-mic-btn'),resetBtn=document.getElementById('pron-reset-btn');
   if(btn)btn.classList.remove('recording','success','fail');
   if(resetBtn)resetBtn.style.display='none';
@@ -7376,7 +7396,7 @@ async function petSpMicToggle(qid){
 }
 
 function petSpMicReset(qid){
-  micReset();
+  if(!micReset())return;
   const btn=document.getElementById(`petsp-btn-${qid}`),resetBtn=document.getElementById(`petsp-reset-${qid}`),tx=document.getElementById(`petsp-tx-${qid}`);
   if(btn){btn.style.background='rgba(34,197,94,.1)';btn.style.borderColor='rgba(34,197,94,.3)';btn.textContent='🎤 Record answer';}
   if(resetBtn)resetBtn.style.display='none';
@@ -8227,7 +8247,7 @@ async function micToggleTalking(){
   }
 }
 function micResetTalking(){
-  micReset();
+  if(!micReset())return;
   isListening=false;
   const btn=document.getElementById('mic-btn'),resetBtn=document.getElementById('talking-reset-btn');
   if(btn)btn.classList.remove('active');
