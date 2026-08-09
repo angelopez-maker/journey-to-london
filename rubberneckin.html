@@ -161,7 +161,18 @@
 
 <div class="rk-test-badge">Rubberneckin' — test build, not linked from the app</div>
 
+<!-- Diagnóstico visible en pantalla — solo para esta fase de prueba, para no depender de
+     que Angel abra la consola del navegador (F12). Se llena y se muestra solo si algo falla. -->
+<div id="rk-debug" style="display:none;position:fixed;bottom:34px;left:12px;right:12px;z-index:999;
+  background:rgba(0,0,0,.88);color:#fbbf24;font:12px/1.5 monospace;padding:10px 14px;
+  border-radius:8px;white-space:pre-wrap;"></div>
+
 <script>
+function rkDebugLog(msg){
+  console.warn('Rubberneckin:', msg);
+  const el = document.getElementById('rk-debug');
+  if(el){ el.textContent = '⚠️ ' + msg; el.style.display = 'block'; }
+}
 // ══ Datos de las 8 estaciones ══
 // Coordenadas de los hotspots son % del contenedor del mapa (aspect-ratio fijo 1408:768,
 // mismo tamaño que el PNG original) — estimadas a ojo sobre los roundels ya dibujados en
@@ -206,57 +217,86 @@ const RK_STATIONS = [
 // no la app), invisible, sin controles. Angel: pega acá el ID del video de "Rubberneckin'"
 // (Elvis Presley) que quieras usar — con esto vacío, el módulo funciona igual, solo sin música.
 const RK_YOUTUBE_ID = 'ub7uWTgjA1s';
-let _rkAudioFrame = null;
+let _rkPlayer = null;       // instancia de YT.Player una vez creada
+let _rkYTApiReady = false;  // true cuando el script externo de YouTube ya cargó
 
-// Los navegadores SIEMPRE permiten autoplay si el video arranca muteado — pero nunca
-// garantizan autoplay CON sonido, ni siquiera con un click real del usuario, cuando el
-// video vive en un iframe de otro dominio (youtube.com) sin historial previo con ese
-// dominio. El truco estándar: arrancar muteado (garantizado) y desmutear un instante
-// después vía la API de mensajes de YouTube (postMessage), todavía dentro de la misma
-// interacción. No es 100% infalible en todos los navegadores, por eso el botón 🔊 manual
-// en el menú queda como respaldo garantizado (ver rkToggleAudioManual).
-function rkPlayWelcomeAudio(){
-  if(!RK_YOUTUBE_ID || _rkAudioFrame) return;
-  _rkAudioFrame = document.createElement('iframe');
-  _rkAudioFrame.style.cssText = 'position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;border:0;';
-  _rkAudioFrame.allow = 'autoplay; encrypted-media';
-  _rkAudioFrame.src = `https://www.youtube.com/embed/${RK_YOUTUBE_ID}?autoplay=1&mute=1&controls=0&modestbranding=1&enablejsapi=1&playsinline=1&origin=${encodeURIComponent(location.origin)}`;
-  document.body.appendChild(_rkAudioFrame);
-  _rkAudioFrame.addEventListener('load', () => setTimeout(rkUnmuteWelcomeAudio, 400));
+// Se usa la API oficial de YouTube (no un iframe "a mano" con postMessage a ciegas) porque
+// necesitamos saber con certeza CUÁNDO el reproductor ya está listo para recibir comandos
+// (evento onReady) en vez de adivinar un tiempo de espera fijo, que es frágil y depende de
+// la velocidad de conexión de cada uno. Arranca muteado (eso el navegador siempre lo
+// permite) y se desmutea apenas el reproductor avisa que está listo — todavía dentro de la
+// misma interacción del usuario. Cualquier error queda registrado en la consola (F12) con
+// el prefijo "Rubberneckin:" para poder diagnosticar sin adivinar.
+function rkLoadYouTubeApi(onReady){
+  if(window.YT && window.YT.Player){ onReady(); return; }
+  const prevCallback = window.onYouTubeIframeAPIReady;
+  window.onYouTubeIframeAPIReady = () => { _rkYTApiReady = true; if(prevCallback) prevCallback(); onReady(); };
+  if(!document.getElementById('rk-yt-api-script')){
+    const tag = document.createElement('script');
+    tag.id = 'rk-yt-api-script';
+    tag.src = 'https://www.youtube.com/iframe_api';
+    tag.onerror = () => rkDebugLog('no se pudo cargar la API de YouTube (¿bloqueada por un adblock/red?).');
+    document.head.appendChild(tag);
+  }
 }
-function rkSendYTCommand(func){
-  if(!_rkAudioFrame || !_rkAudioFrame.contentWindow) return;
-  _rkAudioFrame.contentWindow.postMessage(JSON.stringify({event:'command',func,args:[]}), 'https://www.youtube.com');
+function rkPlayWelcomeAudio(){
+  if(!RK_YOUTUBE_ID || _rkPlayer) return;
+  const holder = document.createElement('div');
+  holder.id = 'rk-yt-holder';
+  holder.style.cssText = 'position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;';
+  document.body.appendChild(holder);
+  rkLoadYouTubeApi(() => {
+    try{
+      _rkPlayer = new YT.Player('rk-yt-holder', {
+        videoId: RK_YOUTUBE_ID,
+        playerVars:{autoplay:1, mute:1, controls:0, modestbranding:1, playsinline:1, rel:0},
+        events:{
+          onReady: e => {
+            try{ e.target.unMute(); e.target.setVolume(70); e.target.playVideo(); }
+            catch(err){ rkDebugLog('audio onReady falló — ' + err); }
+          },
+          onError: e => rkDebugLog('YouTube player error, código ' + e.data)
+        }
+      });
+    }catch(err){ rkDebugLog('no se pudo crear el reproductor — ' + err); }
+  });
 }
 function rkUnmuteWelcomeAudio(){
-  rkSendYTCommand('unMute');
-  rkSendYTCommand('playVideo');
+  if(!_rkPlayer){ rkPlayWelcomeAudio(); return; }
+  try{ _rkPlayer.unMute(); _rkPlayer.setVolume(70); _rkPlayer.playVideo(); }
+  catch(err){ rkDebugLog('unmute manual falló — ' + err); }
 }
 function rkStopWelcomeAudio(){
-  if(_rkAudioFrame){_rkAudioFrame.remove();_rkAudioFrame=null;}
+  if(_rkPlayer){ try{ _rkPlayer.stopVideo(); }catch(e){} }
 }
 // Botón 🔊 del menú — respaldo manual garantizado: si el audio nunca arrancó, lo arranca;
-// si ya está sonando pero mudo (el truco de arriba no funcionó en este navegador), lo
-// desmutea. Al ser un click directo del usuario sobre esta misma página, siempre funciona.
+// si ya está sonando pero mudo, lo desmutea. Al ser un click directo del usuario sobre
+// esta misma página (no dentro del iframe de YouTube), siempre debería funcionar.
 function rkToggleAudioManual(){
-  if(!_rkAudioFrame){ rkPlayWelcomeAudio(); }
-  else { rkUnmuteWelcomeAudio(); }
+  rkUnmuteWelcomeAudio();
 }
 
 // ══ Pantalla completa ══
 // Igual que el audio, el navegador solo deja pedir fullscreen como resultado directo de
-// un click real del usuario — por eso se dispara en el mismo tap de Portada 1. Si falla o
-// no está disponible (ej. Safari de iPhone/iPad no soporta este API), falla en silencio y
-// el módulo sigue funcionando normal, solo sin ocultar los bordes del navegador.
+// un click real del usuario — por eso se dispara en el mismo tap de Portada 1 y también
+// está disponible como botón manual (⛶) en el menú. Si falla o no está disponible (ej.
+// Safari de iPhone/iPad no soporta este API), queda registrado en consola (F12) con el
+// prefijo "Rubberneckin:" y el módulo sigue funcionando normal, solo sin ocultar los
+// bordes del navegador.
 function rkEnterFullscreen(){
+  if(document.fullscreenElement || document.webkitFullscreenElement){
+    console.warn('Rubberneckin: ya está en fullscreen.');
+    return;
+  }
   const el = document.documentElement;
   const req = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
-  if(!req){ console.warn('Rubberneckin: Fullscreen API no disponible en este navegador.'); return; }
+  if(!req){ rkDebugLog('Fullscreen API no disponible en este navegador.'); return; }
   try{
     const p = req.call(el);
-    if(p && p.catch) p.catch(err => console.warn('Rubberneckin: fullscreen rechazado —', err));
-  }catch(e){ console.warn('Rubberneckin: fullscreen falló —', e); }
+    if(p && p.catch) p.catch(err => rkDebugLog('fullscreen rechazado — ' + err));
+  }catch(e){ rkDebugLog('fullscreen falló — ' + e); }
 }
+document.addEventListener('fullscreenerror', () => rkDebugLog('fullscreenerror — el navegador rechazó el pedido de pantalla completa.'));
 
 // ══ Navegación entre pantallas ══
 function rkGoto(id){
