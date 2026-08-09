@@ -58,7 +58,11 @@
     opacity:0;pointer-events:none;transition:opacity .5s ease;}
   .screen.active{opacity:1;pointer-events:auto;z-index:2;}
 
-  .rk-menu-controls{position:absolute;top:16px;right:16px;z-index:3;display:flex;gap:8px;}
+  /* Fijos por encima de TODAS las .screen (que llegan hasta z-index:2 cuando están activas),
+     para que nunca desaparezcan al cambiar de pantalla — ver comentario junto al HTML. */
+  .rk-menu-controls{position:fixed;top:16px;right:16px;z-index:20;display:flex;gap:8px;
+    transition:opacity .3s ease;}
+  .rk-menu-controls.rk-hidden{opacity:0;pointer-events:none;}
   .rk-icon-btn{width:38px;height:38px;border-radius:50%;background:rgba(18,18,42,.55);
     border:1px solid var(--border);color:var(--text);font-size:16px;cursor:pointer;
     display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
@@ -112,15 +116,18 @@
 
   /* ── Survival Kit — primera estación con mecánica real ── */
   .rk-sk-wrap{display:none;flex:1;flex-direction:column;align-items:center;justify-content:flex-start;
-    padding:28px 24px;gap:14px;overflow-y:auto;width:100%;max-width:600px;margin:0 auto;text-align:left;}
-  .rk-sk-missions{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;width:100%;}
-  .rk-sk-mission-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;
-    cursor:pointer;display:flex;align-items:center;gap:12px;transition:border-color .2s,background .2s;
-    text-align:left;font-family:inherit;}
+    padding:28px 24px;gap:14px;overflow-y:auto;width:100%;max-width:640px;margin:0 auto;text-align:left;}
+  /* Una columna, filas más altas — a pedido de Angel (8 agosto): las tarjetas en grilla se
+     sentían chicas; en una sola columna cada misión ocupa todo el ancho disponible y el botón
+     completo es el área de click, más fácil de tocar para Rodrigo (9 años). */
+  .rk-sk-missions{display:flex;flex-direction:column;gap:12px;width:100%;}
+  .rk-sk-mission-card{background:var(--card);border:1px solid var(--border);border-radius:14px;
+    padding:18px 20px;min-height:64px;cursor:pointer;display:flex;align-items:center;gap:16px;
+    transition:border-color .2s,background .2s;text-align:left;font-family:inherit;width:100%;}
   .rk-sk-mission-card:hover{border-color:var(--gold);background:var(--card2);}
-  .rk-sk-mission-icon{font-size:28px;flex-shrink:0;}
-  .rk-sk-mission-title{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;color:var(--text);}
-  .rk-sk-mission-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+  .rk-sk-mission-icon{font-size:34px;flex-shrink:0;}
+  .rk-sk-mission-title{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:16px;color:var(--text);}
+  .rk-sk-mission-sub{font-size:12px;color:var(--muted);margin-top:3px;}
   .rk-sk-missions-title{font-family:'Orbitron',monospace;font-size:15px;color:var(--gold2);margin-bottom:2px;}
   .rk-sk-back{align-self:flex-start;padding:7px 14px;background:transparent;border:1px solid var(--border);
     border-radius:8px;color:var(--muted);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:12px;
@@ -182,10 +189,6 @@
 
 <!-- Menú funcional — mapa del Tube claro, 8 estaciones clickeables -->
 <div id="screen-menu" class="screen">
-  <div class="rk-menu-controls">
-    <button class="rk-icon-btn" onclick="rkEnterFullscreen()" title="Fullscreen">⛶</button>
-    <button class="rk-icon-btn" id="rk-audio-btn" onclick="rkToggleAudioManual()" title="Mute/unmute music">🔊</button>
-  </div>
   <div class="rk-map-wrap">
     <img src="rubberneckin-assets/covers/menu.png" alt="Rubberneckin' — tap a station to start an activity">
     <div id="rk-hotspots"></div>
@@ -216,6 +219,18 @@
   <!-- Survival Kit — primera estación con mecánica real (8 agosto). Oculto para las otras
        7 estaciones, que siguen mostrando #rk-station-body de arriba ("Coming soon"). -->
   <div class="rk-sk-wrap" id="rk-sk-wrap"></div>
+</div>
+
+<!-- Controles globales (fullscreen + mute) — a partir del 8 de agosto (noche) viven FUERA de
+     cualquier .screen, como hermanos fijos por encima de todas ellas (z-index más alto que
+     .screen.active), para que no desaparezcan al entrar a una estación/misión. Antes vivían
+     solo dentro de #screen-menu y el botón de mute se perdía justo cuando más se necesitaba
+     (adentro de Survival Kit, con música de fondo compitiendo con la actividad). Se ocultan
+     solo durante las 3 portadas de entrada (rkGoto se encarga vía la clase rk-hidden), donde
+     todavía no tiene sentido mostrarlos. -->
+<div class="rk-menu-controls" id="rk-global-controls">
+  <button class="rk-icon-btn" onclick="rkEnterFullscreen()" title="Fullscreen">⛶</button>
+  <button class="rk-icon-btn" id="rk-audio-btn" onclick="rkToggleAudioManual()" title="Mute/unmute music">🔊</button>
 </div>
 
 <div class="rk-test-badge">Rubberneckin' — test build, not linked from the app</div>
@@ -370,10 +385,16 @@ function rkEnterFullscreen(){
 document.addEventListener('fullscreenerror', () => rkDebugLog('fullscreenerror — el navegador rechazó el pedido de pantalla completa.'));
 
 // ══ Navegación entre pantallas ══
+const RK_COVER_SCREENS = ['screen-cover1','screen-cover2','screen-cover3'];
 function rkGoto(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   window.scrollTo(0,0);
+  // Controles globales (⛶/🔊): ocultos solo durante la secuencia de portadas — a partir del
+  // menú (y dentro de cada estación/misión) siempre visibles, a pedido de Angel tras notar que
+  // el botón de mute desaparecía justo al entrar a Survival Kit.
+  const controls = document.getElementById('rk-global-controls');
+  if(controls) controls.classList.toggle('rk-hidden', RK_COVER_SCREENS.includes(id));
 }
 
 let _rkTimer = null;
