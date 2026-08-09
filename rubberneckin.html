@@ -113,10 +113,12 @@
 </head>
 <body>
 
-<!-- Portada 1 — pared con título, tap para empezar (dispara el audio de bienvenida) -->
-<div id="screen-cover1" class="screen rk-cover" onclick="rkAdvanceToCover2()">
+<!-- Portada 1 — pared con título, tap para empezar (dispara fullscreen + audio de
+     bienvenida, y se queda en esta misma imagen ya expandida unos segundos — efecto
+     "IMAX" — antes de avanzar a Portada 2. Un segundo tap salta de inmediato.) -->
+<div id="screen-cover1" class="screen rk-cover" onclick="rkTapCover1()">
   <img src="rubberneckin-assets/covers/portada1.jpg" alt="Journey to London presents Rubberneckin'">
-  <div class="rk-cover-hint">Tap to begin</div>
+  <div class="rk-cover-hint" id="rk-cover1-hint">Tap to begin</div>
 </div>
 
 <!-- Portada 2 — pared de posters, auto-avanza o tap para saltar -->
@@ -331,17 +333,31 @@ function rkClearTimer(){ if(_rkTimer){clearTimeout(_rkTimer);_rkTimer=null;} }
 // crear el reproductor de YouTube justo al lado, en el mismo tick, parece ser lo que
 // hacía que el navegador ignorara el pedido de fullscreen en algunos casos; ahora el
 // audio se dispara con un pequeño delay (sigue contando como parte del mismo gesto).
-function rkAdvanceToCover2(){
-  rkClearTimer();
+//
+// Efecto "IMAX" (a pedido de Angel): en vez de saltar a Portada 2 apenas se dispara el
+// fullscreen, nos quedamos en Portada 1 — ya expandida a pantalla completa, sin bordes
+// del navegador — unos segundos más, para que se sienta como una expansión real, antes
+// de recién ahí avanzar. Un segundo tap sobre Portada 1 salta ese tramo de inmediato
+// (mismo patrón de "tap para saltar" que el resto de las portadas).
+let _rkCover1Tapped = false;
+function rkTapCover1(){
+  if(_rkCover1Tapped){ rkClearTimer(); rkAdvanceToCover2(); return; }
+  _rkCover1Tapped = true;
+  const hint = document.getElementById('rk-cover1-hint');
+  if(hint) hint.style.display = 'none';
   rkEnterFullscreen();
   setTimeout(rkPlayWelcomeAudio, 50);
+  _rkTimer = setTimeout(rkAdvanceToCover2, 3000);
+}
+function rkAdvanceToCover2(){
+  rkClearTimer();
   rkGoto('screen-cover2');
-  _rkTimer = setTimeout(rkAdvanceToCover3, 2700);
+  _rkTimer = setTimeout(rkAdvanceToCover3, 5000);
 }
 function rkAdvanceToCover3(){
   rkClearTimer();
   rkGoto('screen-cover3');
-  _rkTimer = setTimeout(rkEnterMenu, 2700);
+  _rkTimer = setTimeout(rkEnterMenu, 5000);
 }
 function rkEnterMenu(){
   rkClearTimer();
@@ -365,7 +381,7 @@ function rkEnterStation(id){
     document.getElementById('rk-postcard-img').src = st.img;
     rkGoto('screen-postcard');
     rkClearTimer();
-    _rkTimer = setTimeout(rkSkipPostcard, 3000);
+    _rkTimer = setTimeout(rkSkipPostcard, 5000);
   }
 }
 function rkSkipPostcard(){
