@@ -78,9 +78,19 @@
   @keyframes rkPulse{0%,100%{opacity:.55}50%{opacity:1}}
 
   /* ── Menu screen (Tube map) ── */
+  /* (9 agosto, ronda 3) Angel: el mapa quedaba "flotando" como un rectángulo blanco suelto
+     sobre el fondo oscuro de la app — le faltaba cuerpo. Se agrega un "marco de folleto":
+     .rk-map-wrap ahora es el marco (fondo azul Underground + padding + borde dorado fino vía
+     box-shadow inset + sombra hacia afuera) y .rk-map-frame es la caja interna con aspect-ratio
+     que contiene la imagen y los hotspots — se movió aspect-ratio/max-width ahí para que el
+     marco no cambie cómo se calculan los porcentajes de los hotspots (siguen midiendo contra
+     el mismo box de siempre, solo que ahora vive un nivel más adentro). */
   #screen-menu{align-items:center;justify-content:center;padding:24px;}
-  .rk-map-wrap{position:relative;width:100%;max-width:1408px;aspect-ratio:1408/768;margin:0 auto;}
-  .rk-map-wrap img{width:100%;height:100%;display:block;border-radius:14px;}
+  .rk-map-wrap{width:100%;max-width:1456px;margin:0 auto;padding:14px;border-radius:20px;
+    background:linear-gradient(160deg,#0a3161,#122a52);
+    box-shadow:inset 0 0 0 2px rgba(252,211,77,.55),0 14px 40px rgba(0,0,0,.45);}
+  .rk-map-frame{position:relative;width:100%;aspect-ratio:1408/768;}
+  .rk-map-frame img{width:100%;height:100%;display:block;border-radius:10px;}
   .rk-hotspot{position:absolute;transform:translate(-50%,-50%);border-radius:50%;
     background:transparent;border:1px dashed rgba(255,255,255,.28);cursor:pointer;padding:0;
     transition:background .2s,box-shadow .2s;}
@@ -232,8 +242,10 @@
 <!-- Menú funcional — mapa del Tube claro, 8 estaciones clickeables -->
 <div id="screen-menu" class="screen">
   <div class="rk-map-wrap">
-    <img src="rubberneckin-assets/covers/menu.png" alt="Rubberneckin' — tap a station to start an activity">
-    <div id="rk-hotspots"></div>
+    <div class="rk-map-frame">
+      <img src="rubberneckin-assets/covers/menu.png" alt="Rubberneckin' — tap a station to start an activity">
+      <div id="rk-hotspots"></div>
+    </div>
   </div>
 </div>
 
@@ -556,25 +568,88 @@ function rkBackToMap(){
 //    automático con "Continue →" tras el feedback, y al completar las 5 se
 //    ofrece repetir con un ciclo nuevo (orden re-barajado) o volver al mapa.
 //    "← Map" (arriba) sigue disponible en cualquier momento para salir antes.
+// 4) (9 agosto, ronda 3) Angel notó riesgo de "estación abandonada" — con una
+//    sola versión fija por misión, un segundo/tercer ciclo muestra EXACTAMENTE
+//    lo mismo. Se agregaron variantes de contexto/frase por misión; cuál se
+//    usa se sortea una vez por ciclo (rkSkStartCycle) y queda fija durante ese
+//    ciclo (para que "🔄 Try again" no cambie el escenario a mitad de intento)
+//    — un ciclo nuevo (repetir) vuelve a sortear. Sigue siendo contenido 100%
+//    escrito a mano (nada generado por IA en este paso) — mismo perfil de
+//    riesgo bajo del Principio 13, solo más contenido base.
+// 5) (9 agosto, ronda 3, v2) Angel + Claude Chat afinaron la idea: 5 situaciones
+//    base se mantienen (son el "mapa" del módulo — hello/time/directions/food/
+//    airport), pero cada una pasa de 2 a 5 variantes escritas a mano, con la
+//    MISMA situación pero distinta intención conversacional dentro de ella
+//    (p.ej. en el café: pedir comida, pedir postre, cambiar el plato, pedir
+//    para dos, pedir la cuenta). Esto conecta directo con el Principio 14:
+//    Oliver ya reacciona a la intención comunicativa, no a una frase fija, así
+//    que ampliar el pool de variantes no lo vuelve "generador caótico" — sigue
+//    siendo un pool cerrado, escrito por nosotros, elegido por el sistema.
 // ══════════════════════════════════════════════════════════════════════════
 const RK_SK_SCENARIOS = [
-  {id:'hello', icon:'👋', label:'Say hello',
-    context:'You just landed at Heathrow Airport. A friendly local smiles at you — say hello and introduce yourself!',
-    target:'Hello! My name is ___. Nice to meet you!'},
-  {id:'time', icon:'🕐', label:'Ask the time',
-    context:"You're standing next to Big Ben, but you forgot your watch. Ask someone what time it is.",
-    target:'Excuse me, what time is it, please?'},
-  {id:'directions', icon:'🧭', label:'Ask for directions',
-    context:"You're trying to find Abbey Road, but the streets are confusing. Ask someone for directions.",
-    target:'Excuse me, how do I get to Abbey Road, please?'},
-  {id:'food', icon:'🍟', label:'Order food',
-    context:"You're hungry! You're at a small café near Camden Market. Order something to eat and drink.",
-    target:'Hello! Can I have a chicken sandwich and a lemonade, please?'},
-  {id:'airport', icon:'🛂', label:'At the airport',
-    context:'An officer at passport control asks why you are visiting the UK. Answer them.',
-    target:"I'm here on holiday, for two weeks, with my family."},
+  {id:'hello', icon:'👋', label:'Say hello', variants:[
+    {context:'You just landed at Heathrow Airport. A friendly local smiles at you — say hello and introduce yourself!',
+      target:'Hello! My name is ___. Nice to meet you!'},
+    {context:"Someone at the airport asks you: 'Where are you from?' Answer them.",
+      target:"I'm from Chile."},
+    {context:"Someone asks you: 'Who are you travelling with?' Answer them.",
+      target:"I'm travelling with my family."},
+    {context:"Someone asks you: 'Is this your first time in the UK?' Answer them.",
+      target:"Yes, it's my first time here!"},
+    {context:"You're arriving at your homestay family's house for the first time. Someone opens the door — say hello and introduce yourself!",
+      target:"Hi! I'm ___, nice to meet you!"},
+  ]},
+  {id:'time', icon:'🕐', label:'Ask the time', variants:[
+    {context:"You're standing next to Big Ben, but you forgot your watch. Ask someone what time it is.",
+      target:'Excuse me, what time is it, please?'},
+    {context:"You're waiting for a bus near Piccadilly Circus and you're not sure if you'll make it in time. Ask someone what time it is.",
+      target:'Excuse me, do you know what time it is?'},
+    {context:"You're at Covent Garden and you want to know if the shops are still open. Ask someone the time.",
+      target:'Excuse me, what time is it? I want to know if the shops are still open.'},
+    {context:"You're meeting a friend at Trafalgar Square in a few minutes, but you're not sure how much time you have. Ask someone the time.",
+      target:'Excuse me, could you tell me the time, please?'},
+    {context:"You're at King's Cross Station and you're worried about missing your train. Ask someone the time.",
+      target:"Excuse me, what's the time? I don't want to miss my train."},
+  ]},
+  {id:'directions', icon:'🧭', label:'Ask for directions', variants:[
+    {context:"You're trying to find Abbey Road, but the streets are confusing. Ask someone for directions.",
+      target:'Excuse me, how do I get to Abbey Road, please?'},
+    {context:"You want to watch a movie tonight, but you don't know where the nearest cinema is. Ask someone for directions.",
+      target:'Excuse me, how do I get to the nearest cinema, please?'},
+    {context:"You think you're walking the right way to Piccadilly Circus, but you're not sure. Ask someone to confirm.",
+      target:'Excuse me, is this the way to Piccadilly Circus?'},
+    {context:"You're at a bus stop and you're not sure if this bus goes to Camden Town. Ask the driver.",
+      target:'Excuse me, does this bus go to Camden Town?'},
+    {context:"You want to visit the London Eye, but you're a bit lost. Ask someone for directions.",
+      target:'Excuse me, how do I get to the London Eye, please?'},
+  ]},
+  {id:'food', icon:'🍟', label:'Order food', variants:[
+    {context:"You're hungry! You're at a small café near Camden Market. Order something to eat and drink.",
+      target:'Hello! Can I have a chicken sandwich and a lemonade, please?'},
+    {context:"You've just finished your meal at a café near Camden Market and you're still a bit hungry for something sweet. Order a dessert.",
+      target:'Could I have a slice of chocolate cake, please?'},
+    {context:"The waiter brings you the wrong dish at a café near Camden Market. Politely ask to change it.",
+      target:"Sorry, I think this isn't what I ordered — could I change it, please?"},
+    {context:"You're at a café with your brother and you're ordering for both of you. Order two sandwiches and two drinks.",
+      target:'Can we have two sandwiches and two lemonades, please?'},
+    {context:"You've finished eating at a café near Camden Market and you want to pay. Ask for the bill.",
+      target:'Excuse me, could I have the bill, please?'},
+  ]},
+  {id:'airport', icon:'🛂', label:'At the airport', variants:[
+    {context:'An officer at passport control asks why you are visiting the UK. Answer them.',
+      target:"I'm here on holiday, for two weeks, with my family."},
+    {context:'An officer at passport control asks how long you are staying in the UK. Answer them.',
+      target:"I'm staying for two weeks."},
+    {context:"The officer asks: 'Where are you staying in the UK?' Answer them.",
+      target:"I'm staying at a hotel in London."},
+    {context:"The officer asks: 'Do you have anything to declare?' Answer them.",
+      target:"No, I don't have anything to declare."},
+    {context:"The officer asks: 'Is this your first time visiting the UK?' Answer them.",
+      target:"Yes, it's my first time here."},
+  ]},
 ];
 let _rkSkOrder = [];
+let _rkSkVariant = {};
 let _rkSkIndex = 0;
 let _rkSkCurrent = null;
 let _rkSkTranscript = '';
@@ -609,13 +684,19 @@ function rkSkShowIntro(){
 
 function rkSkStartCycle(){
   _rkSkOrder = rkShuffle(RK_SK_SCENARIOS.map(s => s.id));
+  // Un variant por misión, sorteado una vez por ciclo (no en cada render) — así "Try again"
+  // dentro del mismo intento no cambia el escenario a mitad de camino (ver nota arriba, punto 4).
+  _rkSkVariant = {};
+  RK_SK_SCENARIOS.forEach(s => { _rkSkVariant[s.id] = Math.floor(Math.random() * s.variants.length); });
   _rkSkIndex = 0;
   rkSkRenderMission();
 }
 
 function rkSkRenderMission(){
   if(rkMicIsRecording()) rkMicReset();
-  _rkSkCurrent = RK_SK_SCENARIOS.find(s => s.id === _rkSkOrder[_rkSkIndex]);
+  const _scenario = RK_SK_SCENARIOS.find(s => s.id === _rkSkOrder[_rkSkIndex]);
+  const _variant = _scenario.variants[_rkSkVariant[_scenario.id] || 0];
+  _rkSkCurrent = {..._scenario, ..._variant};
   _rkSkTranscript = '';
   const wrap = document.getElementById('rk-sk-wrap');
   wrap.innerHTML = `
