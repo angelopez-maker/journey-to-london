@@ -42,11 +42,21 @@
   *{margin:0;padding:0;box-sizing:border-box;}
   body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;overflow-x:hidden;}
 
-  .screen{position:relative;z-index:1;display:none;min-height:100vh;min-height:100dvh;}
-  .screen.active{display:flex;flex-direction:column;}
+  /* Todas las pantallas quedan superpuestas (position:fixed) y se diferencian solo por
+     opacidad — así el cambio entre una y otra es un crossfade real (una se apaga
+     mientras la otra se enciende), no un corte instantáneo. */
+  .screen{position:fixed;inset:0;z-index:1;display:flex;flex-direction:column;
+    opacity:0;pointer-events:none;transition:opacity .5s ease;}
+  .screen.active{opacity:1;pointer-events:auto;z-index:2;}
+
+  .rk-menu-controls{position:absolute;top:16px;right:16px;z-index:3;display:flex;gap:8px;}
+  .rk-icon-btn{width:38px;height:38px;border-radius:50%;background:rgba(18,18,42,.55);
+    border:1px solid var(--border);color:var(--text);font-size:16px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+  .rk-icon-btn:hover{border-color:var(--gold);color:var(--gold2);}
 
   /* ── Cover screens (Portada 1 / 2 / 3) ── */
-  .rk-cover{align-items:center;justify-content:center;cursor:pointer;position:relative;
+  .rk-cover{align-items:center;justify-content:center;cursor:pointer;
     background:#000 center/cover no-repeat;}
   .rk-cover img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
   .rk-cover-hint{position:absolute;bottom:26px;left:0;right:0;text-align:center;z-index:2;
@@ -65,7 +75,7 @@
     box-shadow:0 0 0 4px rgba(252,211,77,.18);outline:none;}
 
   /* ── Postcard splash (primera vez que se entra a una estación) ── */
-  #screen-postcard{align-items:center;justify-content:center;cursor:pointer;background:#000;position:relative;}
+  #screen-postcard{align-items:center;justify-content:center;cursor:pointer;background:#000;}
   #screen-postcard img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
 
   /* ── Station screen ── */
@@ -116,6 +126,10 @@
 
 <!-- Menú funcional — mapa del Tube claro, 8 estaciones clickeables -->
 <div id="screen-menu" class="screen">
+  <div class="rk-menu-controls">
+    <button class="rk-icon-btn" onclick="rkEnterFullscreen()" title="Fullscreen">⛶</button>
+    <button class="rk-icon-btn" onclick="rkToggleAudioManual()" title="Music">🔊</button>
+  </div>
   <div class="rk-map-wrap">
     <img src="rubberneckin-assets/covers/menu.png" alt="Rubberneckin' — tap a station to start an activity">
     <div id="rk-hotspots"></div>
@@ -194,16 +208,39 @@ const RK_STATIONS = [
 const RK_YOUTUBE_ID = 'ub7uWTgjA1s';
 let _rkAudioFrame = null;
 
+// Los navegadores SIEMPRE permiten autoplay si el video arranca muteado — pero nunca
+// garantizan autoplay CON sonido, ni siquiera con un click real del usuario, cuando el
+// video vive en un iframe de otro dominio (youtube.com) sin historial previo con ese
+// dominio. El truco estándar: arrancar muteado (garantizado) y desmutear un instante
+// después vía la API de mensajes de YouTube (postMessage), todavía dentro de la misma
+// interacción. No es 100% infalible en todos los navegadores, por eso el botón 🔊 manual
+// en el menú queda como respaldo garantizado (ver rkToggleAudioManual).
 function rkPlayWelcomeAudio(){
   if(!RK_YOUTUBE_ID || _rkAudioFrame) return;
   _rkAudioFrame = document.createElement('iframe');
   _rkAudioFrame.style.cssText = 'position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;border:0;';
-  _rkAudioFrame.allow = 'autoplay';
-  _rkAudioFrame.src = `https://www.youtube.com/embed/${RK_YOUTUBE_ID}?autoplay=1&controls=0&modestbranding=1`;
+  _rkAudioFrame.allow = 'autoplay; encrypted-media';
+  _rkAudioFrame.src = `https://www.youtube.com/embed/${RK_YOUTUBE_ID}?autoplay=1&mute=1&controls=0&modestbranding=1&enablejsapi=1&playsinline=1&origin=${encodeURIComponent(location.origin)}`;
   document.body.appendChild(_rkAudioFrame);
+  _rkAudioFrame.addEventListener('load', () => setTimeout(rkUnmuteWelcomeAudio, 400));
+}
+function rkSendYTCommand(func){
+  if(!_rkAudioFrame || !_rkAudioFrame.contentWindow) return;
+  _rkAudioFrame.contentWindow.postMessage(JSON.stringify({event:'command',func,args:[]}), 'https://www.youtube.com');
+}
+function rkUnmuteWelcomeAudio(){
+  rkSendYTCommand('unMute');
+  rkSendYTCommand('playVideo');
 }
 function rkStopWelcomeAudio(){
   if(_rkAudioFrame){_rkAudioFrame.remove();_rkAudioFrame=null;}
+}
+// Botón 🔊 del menú — respaldo manual garantizado: si el audio nunca arrancó, lo arranca;
+// si ya está sonando pero mudo (el truco de arriba no funcionó en este navegador), lo
+// desmutea. Al ser un click directo del usuario sobre esta misma página, siempre funciona.
+function rkToggleAudioManual(){
+  if(!_rkAudioFrame){ rkPlayWelcomeAudio(); }
+  else { rkUnmuteWelcomeAudio(); }
 }
 
 // ══ Pantalla completa ══
@@ -214,11 +251,11 @@ function rkStopWelcomeAudio(){
 function rkEnterFullscreen(){
   const el = document.documentElement;
   const req = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
-  if(!req) return;
+  if(!req){ console.warn('Rubberneckin: Fullscreen API no disponible en este navegador.'); return; }
   try{
     const p = req.call(el);
-    if(p && p.catch) p.catch(()=>{});
-  }catch(e){}
+    if(p && p.catch) p.catch(err => console.warn('Rubberneckin: fullscreen rechazado —', err));
+  }catch(e){ console.warn('Rubberneckin: fullscreen falló —', e); }
 }
 
 // ══ Navegación entre pantallas ══
@@ -238,12 +275,12 @@ function rkAdvanceToCover2(){
   rkEnterFullscreen();
   rkPlayWelcomeAudio();
   rkGoto('screen-cover2');
-  _rkTimer = setTimeout(rkAdvanceToCover3, 2600);
+  _rkTimer = setTimeout(rkAdvanceToCover3, 2200);
 }
 function rkAdvanceToCover3(){
   rkClearTimer();
   rkGoto('screen-cover3');
-  _rkTimer = setTimeout(rkEnterMenu, 2600);
+  _rkTimer = setTimeout(rkEnterMenu, 2200);
 }
 function rkEnterMenu(){
   rkClearTimer();
