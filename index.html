@@ -929,11 +929,26 @@ let _micRecorder=null, _micChunks=[], _micStream=null, _micBusy=false, _micStart
 
 function micIsRecording(){return !!(_micRecorder&&_micRecorder.state==='recording');}
 
+// Precalienta el micrófono (10 agosto — patrón traído de Rubberneckin'/Survival Kit, validado ahí
+// primero a propósito antes de tocar la app real). Pedir getUserMedia() es lo lento; antes se
+// pedía de nuevo en CADA grabación porque micStopAndTranscribe()/micReset() soltaban el stream al
+// terminar — eso significaba el mismo desfase real cada vez que el niño apretaba grabar (Angel lo
+// reportó con Fernando: "hablo y no se empieza a grabar"). Ahora se pide UNA vez al entrar a una
+// superficie con mic (ver hook en openModule()) y se reutiliza toda la sesión — solo se libera de
+// verdad al salir (micRelease(), hook en showScreen()).
+async function micPrewarm(){
+  if(_micStream&&_micStream.active)return;
+  try{ _micStream=await navigator.mediaDevices.getUserMedia({audio:true}); }
+  catch(e){ /* silencioso a propósito — si falla, micStart() lo reintenta cuando el niño grabe */ }
+}
+
 async function micStart(){
   if(_micBusy||micIsRecording())return;
   _micBusy=true;
   try{
-    _micStream=await navigator.mediaDevices.getUserMedia({audio:true});
+    if(!_micStream||!_micStream.active){
+      _micStream=await navigator.mediaDevices.getUserMedia({audio:true});
+    }
     _micChunks=[];
     const mimeType=(window.MediaRecorder&&MediaRecorder.isTypeSupported('audio/webm;codecs=opus'))?'audio/webm;codecs=opus':'audio/webm';
     _micRecorder=new MediaRecorder(_micStream,{mimeType});
@@ -951,7 +966,8 @@ function micStopAndTranscribe(){
     if(!micIsRecording()){resolve('');return;}
     const mimeType=_micRecorder.mimeType||'audio/webm';
     _micRecorder.onstop=async()=>{
-      if(_micStream){_micStream.getTracks().forEach(t=>t.stop());_micStream=null;}
+      // Ya NO suelta _micStream acá (antes sí) — queda vivo para la próxima grabación de esta
+      // misma sesión; micRelease() es quien lo apaga de verdad al salir de la superficie.
       const blob=new Blob(_micChunks,{type:mimeType});
       _micChunks=[];
       if(blob.size<500){resolve('');return;} // grabación demasiado corta (sin audio real)
@@ -1002,10 +1018,24 @@ function micReset(){
     _micRecorder.onstop=null;
     try{_micRecorder.stop();}catch(e){}
   }
-  if(_micStream){_micStream.getTracks().forEach(t=>t.stop());_micStream=null;}
+  // Ya NO suelta _micStream acá (antes sí) — mismo criterio que micStopAndTranscribe(): el
+  // stream queda listo para el próximo intento; micRelease() lo apaga al salir de verdad.
   _micChunks=[];
   _micRecorder=null;
   return true;
+}
+
+// Suelta el micrófono de verdad — se llama al salir de cualquier superficie con mic (hook en
+// showScreen(), ver más abajo). No tiene sentido dejarlo prendido fuera de una actividad de
+// Speaking. Seguro de llamar aunque no haya nada activo (no-op).
+function micRelease(){
+  if(_micRecorder&&_micRecorder.state==='recording'){
+    _micRecorder.onstop=null;
+    try{_micRecorder.stop();}catch(e){}
+  }
+  if(_micStream){_micStream.getTracks().forEach(t=>t.stop());_micStream=null;}
+  _micChunks=[];
+  _micRecorder=null;
 }
 const TOTAL_KM = 11700;
 const MILESTONES = [500,1000,2500,5000,7500,10000,11700];
@@ -1653,7 +1683,10 @@ function collectMyJourney(prefix){
 }
 
 // ══ NAVIGATION ══
-function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0);}
+// (10 agosto) Salir del área de módulos suelta el mic de verdad, sin importar por qué botón se
+// volvió — showScreen() es el único punto por el que pasan todos los "← Hub"/back de la app, así
+// que es el lugar seguro para el hook en vez de parcharlo botón por botón.
+function showScreen(id){if(id!=='screen-module')micRelease();document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0);}
 const PROFILE_BOOK={rodrigo:'CAM_MOVERS',fernando:'NCUB1'};
 function selectProfile(name){
   state.profile=name;state.level='normal';showScreen('screen-dashboard');
@@ -2269,19 +2302,39 @@ Be encouraging, concise, and talk directly to ${getStudentName()}.`;
   }
 }
 // ══ Q&A TRIVIA — OLIVER BLACKWOOD ══
+// (10 agosto) Regla agregada a los 3 prompts de generación: cada pregunta debe tener exactamente
+// una respuesta correcta e inequívoca — nunca de opinión ("¿quién es el mejor jugador de la
+// historia?"). Decisión tomada con Angel: es más liviano y confiable arreglar esto en el ORIGEN
+// (el generador) que enseñarle al evaluador a arbitrar caso por caso qué preguntas admiten más de
+// una respuesta válida — deja el evalPrompt intacto y más simple. verifyQATrivia() (más abajo)
+// hace de segunda red de seguridad por si alguna pregunta ambigua se cuela igual.
+const QA_SINGLE_ANSWER_RULE = `Every question must have exactly one clear, factual, objectively correct answer — never a question of pure opinion or personal preference (e.g. never ask "who is the best player of all time", "what is the greatest game ever made" — only ask things with a real, verifiable answer).`;
+// (10 agosto) Principio 16 aplicado en la práctica: el modelo NO tiene conocimiento confiable de
+// eventos posteriores a su fecha de corte de entrenamiento — el Mundial 2026 se jugó después de
+// ese corte, así que Oliver no puede "recordarlo" de forma confiable, con el mismo riesgo real que
+// ya causó el error de 1974/1978. En vez de confiar en la memoria del modelo, se ancla el dato
+// verificado (mismo patrón que material confirmado, Principio 10) directo en el prompt — Oliver
+// solo tiene que redactar una pregunta sobre un hecho que ya se le entrega correcto, no recordarlo.
+// Dato verificado por búsqueda web el 10 de agosto: España campeón, venció 1-0 a Argentina en la
+// final (gol de Ferrán Torres en la prórroga) — su segundo título, tras 2010.
+const QA_WORLDCUP_2026_FACT = `Confirmed fact you must use if you reference the 2026 World Cup: Spain won the 2026 FIFA World Cup, beating Argentina 1-0 in the final (Ferrán Torres scored the winning goal in extra time) — Spain's second World Cup title, after 2010. Do not use any other outcome for 2026.`;
 const QA_TOPICS={
   worldcup:{id:'worldcup',icon:'⚽',label:'World Cup',color:'#22c55e',colorBg:'rgba(34,197,94,.08)',colorBorder:'rgba(34,197,94,.3)',desc:'Football history · Past tenses · Numbers',grammar:'Past Simple & Present Perfect',
-    prompt:`You are Oliver Blackwood, a 5th year Ravenclaw student at Hogwarts. Generate exactly 7 World Cup football trivia questions for a ${getAge()}-year-old English learner (B1 PET level). Mix easy and medium difficulty. Cover different World Cups (1966-2022).
+    prompt:`You are Oliver Blackwood, a 5th year Ravenclaw student at Hogwarts. Generate exactly 7 World Cup football trivia questions for a ${getAge()}-year-old English learner (B1 PET level). Mix easy and medium difficulty. Cover different World Cups (1966-2026).
+${QA_WORLDCUP_2026_FACT}
+${QA_SINGLE_ANSWER_RULE}
 Return ONLY a valid JSON array of 7 objects, each with these exact keys:
 "question" (the trivia question), "answer" (correct answer), "hint_tense" (e.g. "Past Simple"), "hint_example" (CRITICAL RULE: this MUST be a Harry Potter sentence only — about Hogwarts characters, spells, or events. It must NEVER mention football, countries, teams, scores, or anything related to the question or its answer. WRONG example: "England won the World Cup in 1966." RIGHT examples: "Harry defeated Voldemort in the final battle." or "Hermione had studied every spell before the exam."), "hp_correct" (short Harry Potter-flavored praise), "hp_wrong" (short encouraging HP-flavored hint).
 No markdown. No explanation. Only the JSON array.`},
   videogames:{id:'videogames',icon:'🎮',label:'Video Games',color:'#a78bfa',colorBg:'rgba(167,139,250,.08)',colorBorder:'rgba(167,139,250,.3)',desc:'Minecraft · Fortnite · FNAF · TF2 · Brawl Stars',grammar:'Present Simple & Comparatives',
     prompt:`You are Oliver Blackwood, a 5th year Ravenclaw student at Hogwarts. Generate exactly 7 video game trivia questions for a ${getAge()}-year-old English learner (B1 PET level). Focus on: Minecraft, Fortnite, Five Nights at Freddy's (FNAF), Team Fortress 2, Brawl Stars. Mix easy and medium difficulty.
+${QA_SINGLE_ANSWER_RULE}
 Return ONLY a valid JSON array of 7 objects, each with these exact keys:
 "question" (the trivia question), "answer" (correct answer), "hint_tense" (e.g. "Present Simple"), "hint_example" (CRITICAL RULE: this MUST be a Harry Potter sentence only — about Hogwarts characters, spells, or events. It must NEVER mention video games, characters from games, or anything related to the question or its answer. WRONG example: "Minecraft uses blocks to build." RIGHT examples: "Dumbledore speaks twelve languages." or "Hermione has studied every spell in the library."), "hp_correct" (short Harry Potter-flavored praise), "hp_wrong" (short encouraging HP-flavored hint).
 No markdown. No explanation. Only the JSON array.`},
   generalTrivia:{id:'generalTrivia',icon:'🌍',label:'General Trivia',color:'#f59e0b',colorBg:'rgba(245,158,11,.08)',colorBorder:'rgba(245,158,11,.3)',desc:'Animals · Geography · Nature · Films',grammar:'Mixed PET tenses',
     prompt:`You are Oliver Blackwood, a 5th year Ravenclaw student at Hogwarts. Generate exactly 7 general knowledge trivia questions for a ${getAge()}-year-old English learner (B1 PET level). Cover: animals, geography, nature, science, popular films. These topics appear in Cambridge PET exams.
+${QA_SINGLE_ANSWER_RULE}
 Return ONLY a valid JSON array of 7 objects, each with these exact keys:
 "question" (the trivia question), "answer" (correct answer), "hint_tense" (e.g. "Present Simple"), "hint_example" (CRITICAL RULE: this MUST be a Harry Potter sentence only — about Hogwarts characters, spells, or events. It must NEVER mention animals, geography, science, films, or anything related to the question or its answer. WRONG example: "The Amazon river is in Brazil." RIGHT examples: "Dumbledore speaks twelve languages." or "Hermione has studied every spell in the library."), "hp_correct" (short Harry Potter-flavored praise), "hp_wrong" (short encouraging HP-flavored hint).
 No markdown. No explanation. Only the JSON array.`}
@@ -2358,9 +2411,11 @@ async function verifyQATrivia(questions,topicLabel){
   if(!questions||!questions.length)return questions;
   try{
     const raw=await callClaude(`You are a strict fact-checker and level reviewer for a "${topicLabel}" trivia set aimed at a ${getAge()}-year-old English learner (${getLevelDesc()}).
-For EACH question in the JSON array below, check two things:
+${QA_WORLDCUP_2026_FACT}
+For EACH question in the JSON array below, check three things:
 1) FACTUAL ACCURACY — is "answer" the correct, verifiable real-world answer to "question"? Watch especially for common mix-ups (e.g. confusing a losing finalist with the actual winner, wrong years/dates, wrong game mechanics). If "answer" is wrong, correct it to the true answer.
 2) LEVEL — is the question's vocabulary and complexity appropriate for this student's level? If a question is too advanced, obscure, or ambiguous, simplify "question" (and "answer" if needed) while keeping the same topic.
+3) AMBIGUITY — does the question have exactly one clear, factual, correct answer, or could it reasonably have more than one valid answer, or is it a matter of opinion (e.g. "who is the best player of all time")? If it's ambiguous or opinion-based, rewrite "question" (and "answer") so it has a single unambiguous correct answer, keeping the same topic.
 Keep "hint_tense", "hint_example", "hp_correct" and "hp_wrong" as they are unless they no longer make sense after a correction — in that case, adjust them minimally to stay consistent. Do not change the number of questions or the JSON structure.
 Questions: ${JSON.stringify(questions)}
 Return ONLY the corrected JSON array of ${questions.length} objects, same structure as the input, no markdown, no explanation.`,3000);
@@ -2419,10 +2474,20 @@ async function qaMicToggle(){
   const btn=document.getElementById('qa-mic-btn'),el=document.getElementById('qa-transcript');
   const resetBtn=document.getElementById('qa-reset-btn'),sendBtn=document.getElementById('qa-send-btn');
   if(!micIsRecording()){
-    if(btn){btn.style.background='rgba(239,68,68,.2)';btn.style.borderColor='#ef4444';btn.textContent='🔴 Stop recording';}
+    // (10 agosto) "Get ready..." ~900ms antes de "Recording" — cue cosmético para que alcancen a
+    // prepararse antes de hablar (mismo patrón validado primero en Rubberneckin'/Survival Kit).
+    // Con el mic precalentado (micPrewarm(), hook en openModule) la grabación real arranca casi
+    // sin delay debajo de este cue, así que nada de lo que digan durante el "Get ready" se pierde.
+    if(btn){btn.style.background='rgba(245,158,11,.15)';btn.style.borderColor='rgba(245,158,11,.4)';btn.textContent='🎙️ Get ready...';}
     if(resetBtn)resetBtn.style.display='block';
-    if(el)el.textContent='Listening... click "Stop recording" when done.';
+    if(el)el.textContent='';
     micStart().catch(e=>{if(el)el.textContent='Mic not available — type below.';});
+    setTimeout(()=>{
+      if(micIsRecording()){
+        if(btn){btn.style.background='rgba(239,68,68,.2)';btn.style.borderColor='#ef4444';btn.textContent='🔴 Stop recording';}
+        if(el)el.textContent='Listening... click "Stop recording" when done.';
+      }
+    },900);
   } else {
     const s=window._qaSession;
     if(btn&&s){btn.style.background=s.topic.colorBg;btn.style.borderColor=s.topic.colorBorder;btn.textContent='🎤 Start recording';btn.disabled=true;}
@@ -2461,6 +2526,7 @@ Correct answer: "${q.answer}"
 Grammar focus: ${q.hint_tense||'correct tense'}
 Student answered: "${answer}"
 Use BRITISH English spelling and vocabulary in your feedback (e.g. "favourite" not "favorite", "colour" not "color") — this student is preparing for Cambridge exams. If the student used American spelling/vocabulary, gently show the British form as part of your feedback.
+If the student's answer shows extra real knowledge, historical nuance, or genuine enthusiasm beyond the minimum needed to answer correctly, acknowledge and celebrate that specifically in your feedback — don't just say "correct" and move on.
 Evaluate and return ONLY valid JSON with these exact keys:
 "correct" (boolean: was the meaning right, even if phrased differently?),
 "grammar_ok" (boolean: did they use ${q.hint_tense||'an appropriate tense'} correctly?),
@@ -3055,10 +3121,17 @@ async function _ketSpMicToggle(){
   const btn=document.getElementById('ket-sp-btn'),el=document.getElementById('ket-sp-transcript');
   const resetBtn=document.getElementById('ket-sp-reset-btn'),nextBtn=document.getElementById('ket-sp-next-btn');
   if(!micIsRecording()){
-    if(btn){btn.style.background='rgba(239,68,68,.2)';btn.style.borderColor='#ef4444';btn.textContent='🔴 Stop recording';}
+    // (10 agosto) "Get ready..." ~900ms — ver comentario equivalente en qaMicToggle().
+    if(btn){btn.style.background='rgba(245,158,11,.15)';btn.style.borderColor='rgba(245,158,11,.4)';btn.textContent='🎙️ Get ready...';}
     if(resetBtn)resetBtn.style.display='block';
-    if(el)el.textContent='Listening... click "Stop recording" when done.';
+    if(el)el.textContent='';
     micStart().catch(e=>{if(el)el.textContent='Mic not available — type below.';});
+    setTimeout(()=>{
+      if(micIsRecording()){
+        if(btn){btn.style.background='rgba(239,68,68,.2)';btn.style.borderColor='#ef4444';btn.textContent='🔴 Stop recording';}
+        if(el)el.textContent='Listening... click "Stop recording" when done.';
+      }
+    },900);
   } else {
     if(btn){btn.style.background='rgba(34,197,94,.1)';btn.style.borderColor='rgba(34,197,94,.3)';btn.textContent='🎤 Start recording';btn.disabled=true;}
     if(resetBtn)resetBtn.style.display='none';
@@ -4074,6 +4147,10 @@ function openModule(mod){
   document.getElementById('mod-title').textContent=m.name.toUpperCase();
   document.getElementById('mod-sub').textContent=getTopic()+' · Level: '+state.level.toUpperCase();
   showScreen('screen-module');
+  // (10 agosto) Precalienta el mic solo donde realmente se usa: Talking (conversación libre),
+  // 'movers' (cubre Q&A Trivia Y KET Diagnostic — openKETDiagnostic() reutiliza este mismo
+  // módulo, ver comentario ahí) y 'pet' (PET Speaking vive dentro del hub de PET).
+  if(['talking','movers','pet'].includes(mod)) micPrewarm();
   const handlers={learning:runLearning,reading:runReading,listening:runListening,
     writing:runWriting,playing:runPlaying,singing:runSinging,watching:runWatching,
     spelling:runSpelling,movers:runMovers,vocabmatch:runVocabMatch,
@@ -7379,10 +7456,17 @@ function petSpFeedbackFooter(evalCall){
 async function petSpMicToggle(qid){
   const btn=document.getElementById(`petsp-btn-${qid}`),resetBtn=document.getElementById(`petsp-reset-${qid}`),tx=document.getElementById(`petsp-tx-${qid}`);
   if(!micIsRecording()){
-    if(btn){btn.style.background='rgba(239,68,68,.2)';btn.style.borderColor='#ef4444';btn.textContent='🔴 Stop recording';}
+    // (10 agosto) "Get ready..." ~900ms — ver comentario equivalente en qaMicToggle().
+    if(btn){btn.style.background='rgba(245,158,11,.15)';btn.style.borderColor='rgba(245,158,11,.4)';btn.textContent='🎙️ Get ready...';}
     if(resetBtn)resetBtn.style.display='block';
-    if(tx)tx.textContent='Listening... click "Stop recording" when done.';
+    if(tx)tx.textContent='';
     micStart().catch(()=>{if(tx)tx.textContent='Mic not available — check permissions.';});
+    setTimeout(()=>{
+      if(micIsRecording()){
+        if(btn){btn.style.background='rgba(239,68,68,.2)';btn.style.borderColor='#ef4444';btn.textContent='🔴 Stop recording';}
+        if(tx)tx.textContent='Listening... click "Stop recording" when done.';
+      }
+    },900);
   } else {
     if(btn){btn.style.background='rgba(34,197,94,.1)';btn.style.borderColor='rgba(34,197,94,.3)';btn.textContent='🎤 Record answer';btn.disabled=true;}
     if(resetBtn)resetBtn.style.display='none';
@@ -8226,11 +8310,19 @@ async function micToggleTalking(){
   const btn=document.getElementById('mic-btn'),resetBtn=document.getElementById('talking-reset-btn');
   if(!isListening){
     isListening=true;window._userFinal='';
-    if(btn)btn.classList.add('active');
+    // (10 agosto) "Get ready..." ~900ms — ver comentario equivalente en qaMicToggle(). Acá el
+    // estado visual "activo" del botón (clase .active) se retrasa junto con el texto, para que
+    // ambos cambien juntos cuando de verdad empieza a grabar.
     if(resetBtn)resetBtn.style.display='inline-block';
-    setStatus('🎙 Listening... click again when done','listening');
+    setStatus('🎙️ Get ready...','listening');
     const live=document.getElementById('transcript-live');if(live)live.textContent='';
     micStart().catch(e=>{setStatus('Mic error — try again.','');isListening=false;if(resetBtn)resetBtn.style.display='none';});
+    setTimeout(()=>{
+      if(isListening){
+        if(btn)btn.classList.add('active');
+        setStatus('🎙 Listening... click again when done','listening');
+      }
+    },900);
   } else {
     isListening=false;
     if(btn){btn.classList.remove('active');btn.disabled=true;}
@@ -8335,8 +8427,15 @@ async function endConversation(){
   setStatus('Evaluating your English...','');
   const age=getAge(),level=getLevelDesc(),topic=getTopic();
   const convText=convHistory.filter(m=>m.role==='user').map(m=>m.content).join(' | ');
+  // (10 agosto) Principio 14 aplicado explícitamente acá — antes el criterio de km/grade quedaba
+  // implícito, a discreción del modelo cada vez. Angel: "una persona que sabe cien palabras de
+  // otro idioma y que con eso se desenvuelve bien" vale más que alguien que sabe mil pero le da
+  // miedo usarlas. Ojo: esto es sobre el PUNTAJE, no sobre los tips — cuando hay un error real de
+  // gramática/orden de palabras, el tip debe seguir siendo explícito y preciso (esa claridad es
+  // la que ayuda a calibrar, no hay que perderla por priorizar la comunicación en la nota).
   const prompt=`Evaluate this English conversation from a ${age}-year-old student. Topic: "${topic}". Level: ${level}.
 Student's messages: "${convText}"
+Judge the km/grade based on whether the student communicated successfully and kept the conversation flowing — not purely on grammatical perfection. A student who expresses themselves clearly with minor grammar slips should score as well as one with flawless grammar but less to say. This does NOT mean the tips should be vague: when there's a real grammar or word-order mistake, explain the correct form clearly and specifically in the tips — that explicit calibration is exactly what helps students learn.
 Return JSON: {"km":100|80|60,"grade":"Excellent|Good|Keep Practicing","strengths":["strength1","strength2"],"tips":["tip1","tip2"],"message":"2-sentence encouraging closing message"}
 Return only valid JSON.`;
   try{

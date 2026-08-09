@@ -150,7 +150,13 @@
   /* Contenedor que agrupa el panel decorativo + el contenido de la misión — es este el que la
      JS muestra/oculta (antes se togglaba directo #rk-sk-wrap); así el panel lateral entra y
      sale junto con el resto sin lógica JS aparte. */
-  .rk-sk-layout{display:none;flex:1;width:100%;}
+  /* min-height:0 (10 agosto) — sin esto, un hijo flex:1 dentro de una columna de altura fija
+     (.screen) crece para caber TODO su contenido en vez de quedar acotado al alto visible, y el
+     overflow-y:auto de más adentro (.rk-sk-wrap) nunca llega a activarse — bug clásico de
+     flexbox. Angel lo encontró en el catálogo de Electric Cinema (20 películas no entraban y no
+     había scroll); mismo arreglo aplicado acá por consistencia, aunque Survival Kit no lo haya
+     mostrado todavía (su contenido siempre fue corto). */
+  .rk-sk-layout{display:none;flex:1;width:100%;min-height:0;}
   /* Panel decorativo (póster "Keep Calm and Carry On", 9 agosto) — solo en pantallas anchas
      (computador). En el celular no hay espacio para un "tercio izquierdo" sin tapar el
      contenido, así que se oculta entero bajo los 900px y la actividad ocupa todo el ancho,
@@ -216,7 +222,7 @@
      Kit (#rk-info-wrap usa la clase .rk-sk-wrap, .rk-sk-card, .rk-sk-actions, .rk-sk-primary-btn/
      .rk-sk-secondary-btn) — solo se agregan las piezas que faltaban: título/bajada, grilla de
      vocabulario y lista de datos curiosos (Electric Cinema). Ver rkRenderInfoStation() en el JS. */
-  .rk-info-layout{display:none;flex:1;width:100%;}
+  .rk-info-layout{display:none;flex:1;width:100%;min-height:0;}
   .rk-info-title{font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:#8a5a06;margin-bottom:8px;}
   .rk-info-blurb{font-size:14px;font-weight:500;line-height:1.6;color:#2a2a40;}
   .rk-fact-list{margin:8px 0 0 18px;font-size:14px;font-weight:500;line-height:1.7;color:#2a2a40;}
@@ -520,7 +526,11 @@ function rkTapCover1(){
   if(hint) hint.style.display = 'none';
   rkEnterFullscreen();
   setTimeout(rkPlayWelcomeAudio, 50);
-  _rkTimer = setTimeout(rkAdvanceToCover2, 3000);
+  // 3000ms → 4500ms (10 agosto, a pedido de Angel): el aviso nativo del navegador ("Presiona ESC
+  // para salir de pantalla completa") se queda unos segundos tras entrar a fullscreen y alcanzaba
+  // a invadir la Portada 2 (las postales) — rompía la inmersión justo cuando más importa. Más
+  // tiempo acá le da margen a que ese aviso se desvanezca solo antes de avanzar.
+  _rkTimer = setTimeout(rkAdvanceToCover2, 4500);
 }
 function rkAdvanceToCover2(){
   rkClearTimer();
