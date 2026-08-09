@@ -92,7 +92,13 @@
   #screen-postcard img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
 
   /* ── Station screen ── */
-  #screen-station{align-items:stretch;}
+  /* Fondo del mapa del Tube (9 agosto) detrás de TODA pantalla de estación — cubre Survival
+     Kit y las 7 en "Coming soon" con un solo cambio. El velo oscuro semitransparente encima de
+     la imagen es lo que la deja "perdida"/tenue sin competir con el texto — la imagen en sí no
+     viene pre-desvanecida, el nivel de opacidad se controla acá. */
+  #screen-station{align-items:stretch;
+    background:linear-gradient(rgba(10,10,26,.90),rgba(10,10,26,.90)),
+      url('rubberneckin-assets/covers/tube_bg.jpg') center/cover no-repeat fixed;}
   .rk-station-banner{height:15vh;min-height:96px;width:100%;background-size:cover;
     background-position:center 22%;position:relative;flex-shrink:0;}
   .rk-station-banner::after{content:'';position:absolute;inset:0;
@@ -118,7 +124,20 @@
      Rediseñado el 9 de agosto (2da ronda de feedback de Angel, ver comentario junto al JS):
      ya no hay picker de 5 misiones sueltas ni frase objetivo visible — ahora es una cadena de
      5 misiones que Oliver va presentando una por una, hablando (TTS) en vez de solo texto. */
-  .rk-sk-wrap{display:none;flex:1;flex-direction:column;align-items:center;justify-content:flex-start;
+  /* Contenedor que agrupa el panel decorativo + el contenido de la misión — es este el que la
+     JS muestra/oculta (antes se togglaba directo #rk-sk-wrap); así el panel lateral entra y
+     sale junto con el resto sin lógica JS aparte. */
+  .rk-sk-layout{display:none;flex:1;width:100%;}
+  /* Panel decorativo (póster "Keep Calm and Carry On", 9 agosto) — solo en pantallas anchas
+     (computador). En el celular no hay espacio para un "tercio izquierdo" sin tapar el
+     contenido, así que se oculta entero bajo los 900px y la actividad ocupa todo el ancho,
+     igual que antes. */
+  .rk-sk-side{display:none;}
+  @media (min-width:900px){
+    .rk-sk-side{display:flex;align-items:center;justify-content:center;flex:0 0 30%;padding:24px;}
+    .rk-sk-side img{width:100%;max-width:230px;border-radius:10px;box-shadow:0 14px 34px rgba(0,0,0,.45);}
+  }
+  .rk-sk-wrap{display:flex;flex:1;flex-direction:column;align-items:center;justify-content:flex-start;
     padding:28px 24px;gap:14px;overflow-y:auto;width:100%;max-width:640px;margin:0 auto;text-align:left;}
   .rk-sk-progress{font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;
     color:var(--muted);text-transform:uppercase;}
@@ -206,8 +225,13 @@
     <div class="rk-station-desc" id="rk-station-desc"></div>
   </div>
   <!-- Survival Kit — primera estación con mecánica real (8 agosto). Oculto para las otras
-       7 estaciones, que siguen mostrando #rk-station-body de arriba ("Coming soon"). -->
-  <div class="rk-sk-wrap" id="rk-sk-wrap"></div>
+       7 estaciones, que siguen mostrando #rk-station-body de arriba ("Coming soon"). El panel
+       lateral (rk-sk-side) es puramente decorativo — el póster "Keep Calm and Carry On" (diseño
+       original de 1939, dominio público) solo se ve en pantallas anchas, ver CSS. -->
+  <div class="rk-sk-layout" id="rk-sk-layout">
+    <div class="rk-sk-side"><img src="rubberneckin-assets/covers/keep_calm_poster.png" alt="Keep Calm and Carry On"></div>
+    <div class="rk-sk-wrap" id="rk-sk-wrap"></div>
+  </div>
 </div>
 
 <!-- Controles globales (fullscreen + mute) — a partir del 8 de agosto (noche) viven FUERA de
@@ -465,7 +489,7 @@ function rkRenderStation(st){
   // el bloque genérico "Coming soon" (#rk-station-body) sin ningún cambio.
   const isSurvival = st.id === 'survival_kit';
   document.getElementById('rk-station-body').style.display = isSurvival ? 'none' : 'flex';
-  document.getElementById('rk-sk-wrap').style.display = isSurvival ? 'flex' : 'none';
+  document.getElementById('rk-sk-layout').style.display = isSurvival ? 'flex' : 'none';
   if(isSurvival){ rkMicPrewarm(); rkSkShowIntro(); }
 }
 function rkBackToMap(){
