@@ -114,48 +114,37 @@
   .rk-coming-soon{font-family:'Orbitron',monospace;font-size:22px;font-weight:900;color:var(--text);}
   .rk-station-desc{max-width:440px;font-size:15px;line-height:1.7;color:var(--muted);}
 
-  /* ── Survival Kit — primera estación con mecánica real ── */
+  /* ── Survival Kit — primera estación con mecánica real ──
+     Rediseñado el 9 de agosto (2da ronda de feedback de Angel, ver comentario junto al JS):
+     ya no hay picker de 5 misiones sueltas ni frase objetivo visible — ahora es una cadena de
+     5 misiones que Oliver va presentando una por una, hablando (TTS) en vez de solo texto. */
   .rk-sk-wrap{display:none;flex:1;flex-direction:column;align-items:center;justify-content:flex-start;
     padding:28px 24px;gap:14px;overflow-y:auto;width:100%;max-width:640px;margin:0 auto;text-align:left;}
-  /* Una columna, filas más altas — a pedido de Angel (8 agosto): las tarjetas en grilla se
-     sentían chicas; en una sola columna cada misión ocupa todo el ancho disponible y el botón
-     completo es el área de click, más fácil de tocar para Rodrigo (9 años). */
-  .rk-sk-missions{display:flex;flex-direction:column;gap:12px;width:100%;}
-  .rk-sk-mission-card{background:var(--card);border:1px solid var(--border);border-radius:14px;
-    padding:18px 20px;min-height:64px;cursor:pointer;display:flex;align-items:center;gap:16px;
-    transition:border-color .2s,background .2s;text-align:left;font-family:inherit;width:100%;}
-  .rk-sk-mission-card:hover{border-color:var(--gold);background:var(--card2);}
-  .rk-sk-mission-icon{font-size:34px;flex-shrink:0;}
-  .rk-sk-mission-title{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:16px;color:var(--text);}
-  .rk-sk-mission-sub{font-size:12px;color:var(--muted);margin-top:3px;}
-  .rk-sk-missions-title{font-family:'Orbitron',monospace;font-size:15px;color:var(--gold2);margin-bottom:2px;}
-  .rk-sk-back{align-self:flex-start;padding:7px 14px;background:transparent;border:1px solid var(--border);
-    border-radius:8px;color:var(--muted);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:12px;
-    cursor:pointer;}
-  .rk-sk-back:hover{border-color:var(--gold);color:var(--gold2);}
-  .rk-sk-context{font-size:14px;line-height:1.6;color:var(--muted);}
-  .rk-sk-target{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;
-    display:flex;align-items:flex-start;gap:10px;width:100%;}
-  .rk-sk-target-text{flex:1;font-size:16px;line-height:1.5;color:var(--text);}
-  .rk-sk-hear-btn{background:var(--green);color:#fff;border:none;border-radius:8px;padding:6px 12px;
-    cursor:pointer;font-size:14px;flex-shrink:0;}
-  .rk-sk-mic-row{display:flex;gap:8px;width:100%;}
-  .rk-sk-mic-btn{flex:1;padding:11px;background:rgba(16,185,129,.1);border:2px solid rgba(16,185,129,.3);
-    border-radius:10px;color:var(--green);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;
-    cursor:pointer;}
-  .rk-sk-mic-btn:disabled{opacity:.6;cursor:default;}
-  .rk-sk-reset-btn{display:none;padding:11px 14px;background:var(--card2);border:2px solid var(--border);
-    border-radius:10px;color:var(--muted);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;
-    cursor:pointer;}
-  .rk-sk-transcript{font-size:13px;color:var(--muted);font-style:italic;min-height:18px;}
-  .rk-sk-feedback-btn{width:100%;padding:11px;background:var(--gold);border:none;border-radius:10px;
-    color:#1a1a0a;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer;}
-  .rk-sk-feedback-btn:disabled{opacity:.5;cursor:default;}
+  .rk-sk-progress{font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;
+    color:var(--muted);text-transform:uppercase;}
   .rk-sk-oliver{display:flex;gap:10px;align-items:flex-start;background:var(--card);border:1px solid var(--border);
     border-radius:12px;padding:12px;width:100%;}
   .rk-sk-oliver img{width:38px;height:38px;border-radius:50%;object-fit:cover;flex-shrink:0;}
   .rk-sk-oliver-name{font-weight:700;color:var(--gold2);font-size:13px;margin-bottom:4px;}
   .rk-sk-oliver-text{font-size:13px;line-height:1.6;color:var(--text);}
+  .rk-sk-hear-btn{background:var(--green);color:#fff;border:none;border-radius:8px;padding:6px 12px;
+    cursor:pointer;font-size:14px;flex-shrink:0;align-self:center;}
+  .rk-sk-mic-row{display:flex;gap:8px;width:100%;}
+  .rk-sk-mic-btn{flex:1;padding:13px;background:rgba(16,185,129,.1);border:2px solid rgba(16,185,129,.3);
+    border-radius:10px;color:var(--green);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;
+    cursor:pointer;}
+  .rk-sk-mic-btn:disabled{opacity:.6;cursor:default;}
+  .rk-sk-reset-btn{display:none;padding:13px 14px;background:var(--card2);border:2px solid var(--border);
+    border-radius:10px;color:var(--muted);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;
+    cursor:pointer;}
+  .rk-sk-transcript{font-size:13px;color:var(--muted);font-style:italic;min-height:18px;}
+  .rk-sk-actions{display:flex;gap:8px;width:100%;}
+  .rk-sk-primary-btn{flex:1;padding:13px;background:var(--gold);border:none;border-radius:10px;
+    color:#1a1a0a;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer;}
+  .rk-sk-secondary-btn{padding:13px 16px;background:transparent;border:1px solid var(--border);
+    border-radius:10px;color:var(--muted);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;
+    cursor:pointer;}
+  .rk-sk-secondary-btn:hover{border-color:var(--gold);color:var(--gold2);}
 
   /* ── Debug/test badge (recordatorio de que es build de prueba) ── */
   .rk-test-badge{position:fixed;bottom:10px;right:12px;z-index:50;font-family:'Rajdhani',sans-serif;
@@ -477,100 +466,147 @@ function rkRenderStation(st){
   const isSurvival = st.id === 'survival_kit';
   document.getElementById('rk-station-body').style.display = isSurvival ? 'none' : 'flex';
   document.getElementById('rk-sk-wrap').style.display = isSurvival ? 'flex' : 'none';
-  if(isSurvival) rkSkShowMissions();
+  if(isSurvival){ rkMicPrewarm(); rkSkShowIntro(); }
 }
 function rkBackToMap(){
-  if(rkMicIsRecording()) rkMicReset(); // no dejar una grabación colgando si se sale a mitad de camino
+  rkMicRelease(); // libera el micrófono del todo — no tiene sentido dejarlo prendido fuera de Survival Kit
   rkGoto('screen-menu');
 }
 
 // ══════════════════════════════════════════════════════════════════════════
-// SURVIVAL KIT — primera estación con mecánica real (8 de agosto, noche)
+// SURVIVAL KIT — primera estación con mecánica real (8-9 de agosto)
 // Única de las 8 con Speaking. v1 acordada con Angel: 4-5 escenarios reales de
 // supervivencia en Londres, sin evaluar pronunciación (igual criterio que
 // Show & Tell oral) — el feedback de Oliver se enfoca en vocabulario/gramática/
 // si el mensaje se entendería, nunca en cómo sonó, porque un transcript de
 // Whisper no lleva esa información (mismo argumento que evaluatePETSpeaking()
 // en index.html, línea ~7407).
+//
+// Rediseño del 9 de agosto — feedback real de Angel/Fer probando en Railway:
+// 1) La frase objetivo estaba visible en pantalla, así que grabar era solo
+//    LEER la respuesta, no producirla — se sacó de la vista por completo (ya
+//    no existe ningún lugar donde se muestre o se escuche literal antes de
+//    intentarlo; si el intento queda muy lejos, Oliver la modela recién en el
+//    feedback, como ya decía el prompt).
+// 2) Todo era texto — Oliver nunca hablaba (ni el contexto de la misión ni el
+//    feedback), lo que hacía que la "estación de Speaking" se sintiera como
+//    Q&A Trivia (que sí es 100% texto). Ahora Oliver habla ambos momentos con
+//    rkTtsSpeak(), con un botón ▶ de respaldo por si el autoplay no corre.
+// 3) Las 5 misiones eran un menú de tarjetas sueltas y terminar una te dejaba
+//    sin nada más que hacer. Ahora es una cadena: orden barajado (Fisher-
+//    Yates, Principio 9 — nunca confiar en random ingenuo) al entrar, avance
+//    automático con "Continue →" tras el feedback, y al completar las 5 se
+//    ofrece repetir con un ciclo nuevo (orden re-barajado) o volver al mapa.
+//    "← Map" (arriba) sigue disponible en cualquier momento para salir antes.
 // ══════════════════════════════════════════════════════════════════════════
 const RK_SK_SCENARIOS = [
-  {id:'hello', icon:'👋', title:'Say hello', sub:'Meeting someone',
-    context:'You just landed at Heathrow Airport. A friendly local smiles and says hello.',
+  {id:'hello', icon:'👋', label:'Say hello',
+    context:'You just landed at Heathrow Airport. A friendly local smiles at you — say hello and introduce yourself!',
     target:'Hello! My name is ___. Nice to meet you!'},
-  {id:'time', icon:'🕐', title:'Ask the time', sub:'Near Big Ben',
-    context:"You're standing next to Big Ben, but you forgot your watch.",
+  {id:'time', icon:'🕐', label:'Ask the time',
+    context:"You're standing next to Big Ben, but you forgot your watch. Ask someone what time it is.",
     target:'Excuse me, what time is it, please?'},
-  {id:'directions', icon:'🧭', title:'Ask for directions', sub:'A bit lost',
-    context:"You're trying to find Abbey Road, but the streets are confusing.",
+  {id:'directions', icon:'🧭', label:'Ask for directions',
+    context:"You're trying to find Abbey Road, but the streets are confusing. Ask someone for directions.",
     target:'Excuse me, how do I get to Abbey Road, please?'},
-  {id:'food', icon:'🍟', title:'Order food', sub:'At a café',
-    context:"You're hungry! You're at a small café near Camden Market.",
+  {id:'food', icon:'🍟', label:'Order food',
+    context:"You're hungry! You're at a small café near Camden Market. Order something to eat and drink.",
     target:'Hello! Can I have a chicken sandwich and a lemonade, please?'},
-  {id:'airport', icon:'🛂', title:'At the airport', sub:'Passport control',
-    context:'An officer at passport control asks why you are visiting the UK.',
+  {id:'airport', icon:'🛂', label:'At the airport',
+    context:'An officer at passport control asks why you are visiting the UK. Answer them.',
     target:"I'm here on holiday, for two weeks, with my family."},
 ];
+let _rkSkOrder = [];
+let _rkSkIndex = 0;
 let _rkSkCurrent = null;
 let _rkSkTranscript = '';
+let _rkSkLastSpoken = '';
 
-function rkSkShowMissions(){
-  if(rkMicIsRecording()) rkMicReset();
-  _rkSkCurrent = null;
-  _rkSkTranscript = '';
-  const wrap = document.getElementById('rk-sk-wrap');
-  wrap.innerHTML = `
-    <div class="rk-sk-missions-title">🗣️ Pick a mission</div>
-    <div class="rk-sk-missions">
-      ${RK_SK_SCENARIOS.map(sc => `
-        <button class="rk-sk-mission-card" onclick="rkSkOpen('${sc.id}')">
-          <span class="rk-sk-mission-icon">${sc.icon}</span>
-          <span>
-            <div class="rk-sk-mission-title">${sc.title}</div>
-            <div class="rk-sk-mission-sub">${sc.sub}</div>
-          </span>
-        </button>
-      `).join('')}
-    </div>`;
+// Fisher-Yates real (Principio 9) — un random ingenuo sobre una lista de 5 se siente "rachado"
+// (misma misión dos veces seguidas, por ejemplo); esto sí garantiza una mezcla pareja.
+function rkShuffle(arr){
+  const a = arr.slice();
+  for(let i = a.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
 }
 
-function rkSkOpen(id){
-  const sc = RK_SK_SCENARIOS.find(s => s.id === id);
-  if(!sc) return;
+// Pantalla de arranque con botón real (9 de agosto, a pedido de Angel: "un botón que sea
+// partir la supervivencia"). Doble beneficio: da un momento claro de "esto está por empezar"
+// en vez de caer directo en la misión 1, y ese click es el gesto real del usuario al que
+// queda ligado el primer audio de Oliver — más confiable que intentar reproducirlo apenas
+// se termina de renderizar la estación (que puede venir de un timeout, no de un click, si la
+// postal se saltó sola a los 5 segundos).
+function rkSkShowIntro(){
+  const wrap = document.getElementById('rk-sk-wrap');
+  wrap.innerHTML = `
+    <div class="rk-sk-oliver">
+      <img src="Avatar/oliver-blackwood.png" alt="Oliver Blackwood">
+      <div><div class="rk-sk-oliver-name">Oliver Blackwood</div><div class="rk-sk-oliver-text">Ready for 5 quick missions around London? Let's see what you've got!</div></div>
+    </div>
+    <button class="rk-sk-primary-btn" style="width:100%" onclick="rkSkStartCycle()">🎒 Start Survival Kit</button>`;
+}
+
+function rkSkStartCycle(){
+  _rkSkOrder = rkShuffle(RK_SK_SCENARIOS.map(s => s.id));
+  _rkSkIndex = 0;
+  rkSkRenderMission();
+}
+
+function rkSkRenderMission(){
   if(rkMicIsRecording()) rkMicReset();
-  _rkSkCurrent = sc;
+  _rkSkCurrent = RK_SK_SCENARIOS.find(s => s.id === _rkSkOrder[_rkSkIndex]);
   _rkSkTranscript = '';
   const wrap = document.getElementById('rk-sk-wrap');
   wrap.innerHTML = `
-    <button class="rk-sk-back" onclick="rkSkShowMissions()">← Missions</button>
-    <div class="rk-sk-context">${rkEscapeHtml(sc.context)}</div>
-    <div class="rk-sk-target">
-      <span class="rk-sk-target-text">${rkEscapeHtml(sc.target)}</span>
-      <button class="rk-sk-hear-btn" onclick="rkSkHear()" title="Hear it">▶</button>
+    <div class="rk-sk-progress">Mission ${_rkSkIndex + 1} of ${_rkSkOrder.length} · ${_rkSkCurrent.icon} ${rkEscapeHtml(_rkSkCurrent.label)}</div>
+    <div class="rk-sk-oliver">
+      <img src="Avatar/oliver-blackwood.png" alt="Oliver Blackwood">
+      <div><div class="rk-sk-oliver-name">Oliver Blackwood</div><div class="rk-sk-oliver-text">${rkEscapeHtml(_rkSkCurrent.context)}</div></div>
+      <button class="rk-sk-hear-btn" onclick="rkSkReplay()" title="Hear it">▶</button>
     </div>
     <div class="rk-sk-mic-row">
       <button class="rk-sk-mic-btn" id="rk-sk-mic-btn" onclick="rkSkMicToggle()">🎤 Record your try</button>
       <button class="rk-sk-reset-btn" id="rk-sk-reset-btn" onclick="rkSkMicReset()">🔄</button>
     </div>
     <div class="rk-sk-transcript" id="rk-sk-transcript"></div>
-    <button class="rk-sk-feedback-btn" id="rk-sk-feedback-btn" onclick="rkSkGetFeedback()" disabled>🗣️ Get feedback from Oliver</button>
     <div id="rk-sk-oliver-area"></div>`;
+  _rkSkLastSpoken = _rkSkCurrent.context;
+  rkTtsSpeak(_rkSkCurrent.context); // best-effort (ligado al click que trajo hasta acá); ▶ es el respaldo
 }
 
-function rkSkHear(){
-  if(_rkSkCurrent) rkTtsSpeak(_rkSkCurrent.target);
+function rkSkReplay(){
+  if(_rkSkLastSpoken) rkTtsSpeak(_rkSkLastSpoken);
 }
 
+// Botón grabar → "🎙️ Get ready..." ~900ms → "🔴 Recording". La grabación REAL arranca apenas se
+// aprieta (rkMicStart ya casi no tiene delay gracias al precalentado — ver rkMicPrewarm), así que
+// nada de lo que digan durante el "Get ready" se pierde; el cue es solo para que alcancen a
+// prepararse antes de hablar (pedido de Angel — "como en la radio").
 async function rkSkMicToggle(){
   const btn = document.getElementById('rk-sk-mic-btn');
   const resetBtn = document.getElementById('rk-sk-reset-btn');
   const tx = document.getElementById('rk-sk-transcript');
-  const fbBtn = document.getElementById('rk-sk-feedback-btn');
   if(!rkMicIsRecording()){
-    btn.style.background = 'rgba(239,68,68,.2)'; btn.style.borderColor = '#ef4444'; btn.textContent = '🔴 Stop recording';
+    document.getElementById('rk-sk-oliver-area').innerHTML = '';
+    btn.disabled = true;
+    btn.style.background = 'rgba(245,158,11,.15)'; btn.style.borderColor = 'rgba(245,158,11,.4)'; btn.textContent = '🎙️ Get ready...';
     resetBtn.style.display = 'block';
-    tx.textContent = 'Listening... click "Stop recording" when done.';
-    fbBtn.disabled = true;
-    rkMicStart().catch(() => { tx.textContent = 'Mic not available — check permissions.'; });
+    tx.textContent = '';
+    try{
+      await rkMicStart();
+    }catch(e){
+      tx.textContent = 'Mic not available — check permissions.';
+      btn.disabled = false; btn.style.background = 'rgba(16,185,129,.1)'; btn.style.borderColor = 'rgba(16,185,129,.3)'; btn.textContent = '🎤 Record your try';
+      resetBtn.style.display = 'none';
+      return;
+    }
+    btn.disabled = false;
+    setTimeout(() => {
+      if(rkMicIsRecording()){ btn.style.background = 'rgba(239,68,68,.2)'; btn.style.borderColor = '#ef4444'; btn.textContent = '🔴 Recording — speak now!'; }
+    }, 900);
   } else {
     btn.style.background = 'rgba(16,185,129,.1)'; btn.style.borderColor = 'rgba(16,185,129,.3)';
     btn.textContent = '🎤 Record your try'; btn.disabled = true;
@@ -578,9 +614,9 @@ async function rkSkMicToggle(){
     tx.textContent = 'Transcribing...';
     const text = await rkMicStopAndTranscribe();
     _rkSkTranscript = text || '';
-    tx.textContent = text ? `"${text}"` : '(no speech detected — try again)';
     btn.disabled = false;
-    fbBtn.disabled = !text;
+    if(text){ tx.textContent = `"${text}"`; rkSkGetFeedback(); }
+    else{ tx.textContent = '(no speech detected — try again)'; }
   }
 }
 
@@ -589,20 +625,22 @@ function rkSkMicReset(){
   const btn = document.getElementById('rk-sk-mic-btn');
   const resetBtn = document.getElementById('rk-sk-reset-btn');
   const tx = document.getElementById('rk-sk-transcript');
-  const fbBtn = document.getElementById('rk-sk-feedback-btn');
   btn.style.background = 'rgba(16,185,129,.1)'; btn.style.borderColor = 'rgba(16,185,129,.3)'; btn.textContent = '🎤 Record your try';
   resetBtn.style.display = 'none';
   tx.textContent = '';
-  fbBtn.disabled = true;
   _rkSkTranscript = '';
+  document.getElementById('rk-sk-oliver-area').innerHTML = '';
 }
 
 function rkSkGetFeedback(){
-  if(!_rkSkCurrent || !_rkSkTranscript) return;
+  if(!_rkSkCurrent) return;
   const area = document.getElementById('rk-sk-oliver-area');
-  const oliverHtml = inner => `<div class="rk-sk-oliver"><img src="Avatar/oliver-blackwood.png" alt="Oliver Blackwood">
-    <div><div class="rk-sk-oliver-name">Oliver Blackwood</div><div class="rk-sk-oliver-text">${inner}</div></div></div>`;
-  area.innerHTML = oliverHtml('Reading what you said...');
+  const oliverHtml = (inner, replay) => `<div class="rk-sk-oliver">
+      <img src="Avatar/oliver-blackwood.png" alt="Oliver Blackwood">
+      <div><div class="rk-sk-oliver-name">Oliver Blackwood</div><div class="rk-sk-oliver-text">${inner}</div></div>
+      ${replay ? `<button class="rk-sk-hear-btn" onclick="rkSkReplay()" title="Hear it">▶</button>` : ''}
+    </div>`;
+  area.innerHTML = oliverHtml('Reading what you said...', false);
   const prompt = `You are Oliver Blackwood, a friendly Ravenclaw student from Hogwarts, giving quick spoken-English feedback to a Chilean kid (somewhere between 9 and 12 years old) practicing survival English phrases for a trip to London.
 
 SETTING (stay strictly inside this): present-day London, England. If money/currency comes up for any reason, it is always pounds sterling (£), never dollars.
@@ -624,20 +662,75 @@ You must NEVER:
 
 If it's a genuine, on-topic attempt: give warm, encouraging feedback in 2-3 short sentences, in simple English. Do NOT comment on pronunciation or accent — you only have a text transcript, not audio, so that information doesn't exist. Focus only on whether the message would be understood, vocabulary, and grammar. If they said something very different from the target, gently model the correct phrase without making them feel bad. Keep it casual and fun, like a friendly older kid, not a teacher grading an exam. Reply with plain text only, no JSON, no markdown.`;
   rkCallClaude(prompt, 300)
-    .then(text => { area.innerHTML = oliverHtml(rkEscapeHtml(text.trim())); })
-    .catch(() => { area.innerHTML = oliverHtml("Oops — I couldn't reach the library right now. Try again in a moment!"); });
+    .then(text => {
+      const clean = text.trim();
+      _rkSkLastSpoken = clean;
+      area.innerHTML = oliverHtml(rkEscapeHtml(clean), true) + rkSkActionsHtml();
+      rkTtsSpeak(clean);
+    })
+    .catch(() => {
+      const msg = "Oops — I couldn't reach the library right now. Try again in a moment!";
+      area.innerHTML = oliverHtml(msg, false) + rkSkActionsHtml();
+    });
+}
+
+function rkSkActionsHtml(){
+  const isLast = _rkSkIndex >= _rkSkOrder.length - 1;
+  return `<div class="rk-sk-actions">
+    <button class="rk-sk-secondary-btn" onclick="rkSkRenderMission()">🔄 Try again</button>
+    <button class="rk-sk-primary-btn" onclick="${isLast ? 'rkSkCycleComplete()' : 'rkSkNext()'}">${isLast ? 'Finish 🎉' : 'Continue →'}</button>
+  </div>`;
+}
+
+function rkSkNext(){
+  _rkSkIndex++;
+  rkSkRenderMission();
+}
+
+function rkSkCycleComplete(){
+  if(rkMicIsRecording()) rkMicReset();
+  const msg = "Brilliant! You made it through all 5 missions. Want to play another round, or head back to the map?";
+  _rkSkLastSpoken = msg;
+  const wrap = document.getElementById('rk-sk-wrap');
+  wrap.innerHTML = `
+    <div class="rk-sk-oliver">
+      <img src="Avatar/oliver-blackwood.png" alt="Oliver Blackwood">
+      <div><div class="rk-sk-oliver-name">Oliver Blackwood</div><div class="rk-sk-oliver-text">${msg}</div></div>
+      <button class="rk-sk-hear-btn" onclick="rkSkReplay()" title="Hear it">▶</button>
+    </div>
+    <div class="rk-sk-actions">
+      <button class="rk-sk-secondary-btn" onclick="rkBackToMap()">🗺️ Back to map</button>
+      <button class="rk-sk-primary-btn" onclick="rkSkStartCycle()">🔁 Play another round</button>
+    </div>`;
+  rkTtsSpeak(msg);
 }
 
 // ── Mic/Whisper — mismo patrón que micStart()/micStopAndTranscribe()/micReset() de index.html
 // (línea ~932), re-implementado acá porque este archivo no comparte script con index.html.
 // Mismo endpoint POST /api/transcribe, sin tocarlo.
+//
+// Precalentado (9 de agosto — feedback real de Fer/Angel: "hablo y no se empieza a grabar").
+// Causa real: getUserMedia() es async, así que entre apretar el botón y que el micrófono
+// realmente empiece a capturar pasa una fracción de segundo — si el niño habla apenas ve el
+// botón rojo, esas primeras palabras se pierden. Solución: pedir el permiso y abrir el stream
+// UNA VEZ al entrar a Survival Kit (rkMicPrewarm, llamado desde rkRenderStation), y reutilizar
+// ese mismo stream en cada grabación de la sesión — así rkMicStart() ya no espera a
+// getUserMedia y el MediaRecorder arranca prácticamente al instante. Se libera recién al salir
+// de la estación (rkMicRelease, desde rkBackToMap), no después de cada grabación individual.
 let _rkMicRecorder = null, _rkMicChunks = [], _rkMicStream = null, _rkMicBusy = false;
 function rkMicIsRecording(){ return !!(_rkMicRecorder && _rkMicRecorder.state === 'recording'); }
+async function rkMicPrewarm(){
+  if(_rkMicStream || _rkMicBusy) return;
+  try{ _rkMicStream = await navigator.mediaDevices.getUserMedia({audio:true}); }
+  catch(e){ /* silencioso — si el permiso se deniega acá, rkMicStart() lo vuelve a pedir al grabar */ }
+}
 async function rkMicStart(){
   if(_rkMicBusy || rkMicIsRecording()) return;
   _rkMicBusy = true;
   try{
-    _rkMicStream = await navigator.mediaDevices.getUserMedia({audio:true});
+    if(!_rkMicStream || !_rkMicStream.active){
+      _rkMicStream = await navigator.mediaDevices.getUserMedia({audio:true});
+    }
     _rkMicChunks = [];
     const mimeType = (window.MediaRecorder && MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) ? 'audio/webm;codecs=opus' : 'audio/webm';
     _rkMicRecorder = new MediaRecorder(_rkMicStream, {mimeType});
@@ -652,7 +745,8 @@ function rkMicStopAndTranscribe(){
     if(!rkMicIsRecording()){ resolve(''); return; }
     const mimeType = _rkMicRecorder.mimeType || 'audio/webm';
     _rkMicRecorder.onstop = async () => {
-      if(_rkMicStream){ _rkMicStream.getTracks().forEach(t => t.stop()); _rkMicStream = null; }
+      // OJO: el stream NO se detiene acá a propósito — se reutiliza para la próxima grabación
+      // dentro de la misma visita a Survival Kit. Se libera en rkMicRelease().
       const blob = new Blob(_rkMicChunks, {type:mimeType});
       _rkMicChunks = [];
       if(blob.size < 500){ resolve(''); return; }
@@ -677,15 +771,22 @@ function rkMicStopAndTranscribe(){
     try{ _rkMicRecorder.stop(); }catch(e){ resolve(''); }
   });
 }
+// Cancela una grabación en curso (botón 🔄) SIN soltar el hardware — se puede volver a grabar
+// de inmediato. Para soltar el micrófono del todo, ver rkMicRelease().
 function rkMicReset(){
   if(_rkMicRecorder && _rkMicRecorder.state === 'recording'){
     _rkMicRecorder.onstop = null;
     try{ _rkMicRecorder.stop(); }catch(e){}
   }
-  if(_rkMicStream){ _rkMicStream.getTracks().forEach(t => t.stop()); _rkMicStream = null; }
   _rkMicChunks = [];
   _rkMicRecorder = null;
   return true;
+}
+// Libera el micrófono del todo (detiene el stream real) — se llama al salir de Survival Kit
+// (rkBackToMap), no después de cada grabación individual.
+function rkMicRelease(){
+  rkMicReset();
+  if(_rkMicStream){ _rkMicStream.getTracks().forEach(t => t.stop()); _rkMicStream = null; }
 }
 
 // ── TTS voz Oliver — mismo patrón que ttsSpeak() de index.html (línea ~1524), mismo endpoint
