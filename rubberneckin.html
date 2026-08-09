@@ -582,10 +582,15 @@ function rkRenderStation(st){
 // mismo lenguaje visual de Survival Kit (.rk-sk-wrap/.rk-sk-card/.rk-sk-actions).
 //
 // Canción: "Rubberneckin'" de Elvis Presley — la misma que ya suena como música de bienvenida
-// en las portadas (RK_YOUTUBE_ID más arriba), así que el botón "Listen" reutiliza ese mismo
-// video. El link de karaoke es un video de terceros con letra en pantalla (buscado y confirmado
-// el 9 de agosto) — no se aloja ni se reproduce nada acá, solo se enlaza afuera, igual criterio
-// que el resto del proyecto con música/video con derechos.
+// en las portadas (RK_YOUTUBE_ID más arriba).
+// (9 agosto, noche — v2) El botón dejó de apuntar a YouTube normal + un video de karaoke de
+// terceros aparte. Angel encontró que YouTube Music (celular, nativo; PC, con la extensión
+// "Better Lyrics") ya muestra letra sincronizada CON traducción al español línea por línea —
+// mejor que cualquier video de karaoke que pudiéramos linkear, y sin mantener un link aparte.
+// Un solo botón entonces, a una búsqueda en music.youtube.com (no un video ID directo — la
+// búsqueda es más confiable porque el catálogo de YouTube Music no siempre usa el mismo ID que
+// el video de YouTube normal). "Nos olvidamos del sing along" (Angel) — YouTube Music YA es el
+// sing along.
 // IMPORTANTE (regla de contenido del proyecto): nunca se reproduce la letra de la canción de
 // forma textual — el blurb y el vocabulario están escritos a mano, inspirados en el tono/tema
 // general de la canción, no citados de ella.
@@ -600,8 +605,7 @@ const RK_ABBEY_CONTENT = {
     {w:'a blast', m:'a really fun time — "we had a blast!"'},
     {w:'to sing along', m:'to sing together with a song that is playing'},
   ],
-  listenUrl: 'https://www.youtube.com/watch?v=' + RK_YOUTUBE_ID,
-  karaokeUrl: 'https://www.youtube.com/watch?v=UQPBzot3w5w',
+  ytMusicUrl: 'https://music.youtube.com/search?q=' + encodeURIComponent("Rubberneckin' Elvis Presley"),
 };
 
 // Película: Back to the Future (1985). Sinopsis y datos escritos a mano (parafraseados, no
@@ -635,8 +639,7 @@ function rkRenderInfoStation(id){
       <div class="rk-sk-card"><div class="rk-info-title">${rkEscapeHtml(c.title)}</div><div class="rk-info-blurb">${rkEscapeHtml(c.blurb)}</div></div>
       <div class="rk-vocab-grid">${c.vocab.map(v => `<div class="rk-vocab-item"><div class="rk-vocab-word">${rkEscapeHtml(v.w)}</div><div class="rk-vocab-mean">${rkEscapeHtml(v.m)}</div></div>`).join('')}</div>
       <div class="rk-sk-actions">
-        <a class="rk-sk-primary-btn" href="${c.listenUrl}" target="_blank" rel="noopener">▶ Listen</a>
-        <a class="rk-sk-secondary-btn" href="${c.karaokeUrl}" target="_blank" rel="noopener">🎤 Sing Along</a>
+        <a class="rk-sk-primary-btn" href="${c.ytMusicUrl}" target="_blank" rel="noopener">🎵 Listen &amp; Sing Along on YouTube Music</a>
       </div>`;
   } else if(id === 'electric_cinema'){
     const c = RK_CINEMA_CONTENT;
