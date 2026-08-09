@@ -232,6 +232,18 @@
   .rk-info-layout a.rk-sk-primary-btn,.rk-info-layout a.rk-sk-secondary-btn{
     text-decoration:none;text-align:center;display:flex;align-items:center;justify-content:center;}
 
+  /* ── Electric Cinema — catálogo tipo Netflix (10 agosto) ── */
+  .rk-cinema-cat-title{font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;
+    color:#5a5a75;text-transform:uppercase;margin-top:4px;}
+  .rk-cinema-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;}
+  @media (min-width:560px){ .rk-cinema-grid{grid-template-columns:1fr 1fr 1fr;} }
+  .rk-cinema-card{background:rgba(255,255,255,.92);border:1px solid rgba(40,40,70,.12);border-radius:10px;
+    padding:12px;box-shadow:0 4px 16px rgba(20,20,40,.08);cursor:pointer;text-align:left;
+    font-family:'Rajdhani',sans-serif;transition:border-color .15s,transform .15s;}
+  .rk-cinema-card:hover{border-color:var(--gold);transform:translateY(-1px);}
+  .rk-cinema-card-title{font-weight:700;font-size:13px;color:#2a2a40;line-height:1.3;}
+  .rk-cinema-card-year{font-size:11px;color:#8a5a06;margin-top:3px;}
+
   /* ── Debug/test badge (recordatorio de que es build de prueba) ── */
   .rk-test-badge{position:fixed;bottom:10px;right:12px;z-index:50;font-family:'Rajdhani',sans-serif;
     font-size:11px;letter-spacing:1px;color:rgba(148,163,184,.5);pointer-events:none;}
@@ -608,28 +620,116 @@ const RK_ABBEY_CONTENT = {
   ytMusicUrl: 'https://music.youtube.com/search?q=' + encodeURIComponent("Rubberneckin' Elvis Presley"),
 };
 
-// Película: Back to the Future (1985). Sinopsis y datos escritos a mano (parafraseados, no
-// copiados de ninguna ficha oficial) — mismo criterio de nunca reproducir texto con derechos de
-// autor de forma textual. El trailer enlazado es el trailer teatral del canal oficial de Amblin
-// (productora de la película) en YouTube.
-const RK_CINEMA_CONTENT = {
-  title: '🎬 Back to the Future (1985)',
-  blurb: "Marty McFly is a regular teenager until his eccentric scientist friend, Doc Brown, invents a time machine — built out of a DeLorean car! An accident sends Marty 30 years into the past, to 1955, where he runs into his own parents before they've even met. Now he has to make sure they fall in love — or he might never be born — all while trying to find a way back home to 1985.",
-  vocab: [
-    {w:'time travel', m:'moving between different points in time — the past or the future'},
-    {w:'scientist', m:'someone who studies and invents things, like Doc Brown'},
-    {w:'to invent', m:'to create something completely new'},
-    {w:'accidentally', m:'by mistake, not on purpose'},
-    {w:'the past / the future', m:'time before now / time after now'},
-    {w:'lightning', m:'the bright flash of light in a storm — very important in this movie!'},
-  ],
-  facts: [
-    "The time machine isn't a spaceship — it's a car! A DeLorean, to be exact.",
-    "The story happens in two different years: 1985 (the present) and 1955 (the past).",
-    "It was such a hit that it got two sequels, Part II and Part III.",
-  ],
-  trailerUrl: 'https://www.youtube.com/watch?v=WRrCVyT09ow',
+// ══════════════════════════════════════════════════════════════════════════
+// ELECTRIC CINEMA — catálogo de 20 películas (10 agosto) — lista definitiva
+// de Angel, agrupada en las categorías que armamos con Chatty. Reemplaza la
+// versión anterior (una sola película, Back to the Future). Mismo criterio de
+// siempre: contenido 100% escrito a mano (sinopsis parafraseadas, nunca texto
+// oficial copiado), sin evaluación, sin mic — pura exploración cultural.
+// Trailers: en vez de un video ID directo por película (20 búsquedas manuales
+// para verificar cada uno, poco confiable a esa escala), se linkea a una
+// búsqueda en YouTube ("<título> official trailer") — mismo criterio ya usado
+// en Abbey Road con YouTube Music: más lento de un vistazo, pero no se rompe.
+// "Chef's Recommendation" (categoría pedida por Angel) es donde caen las que
+// no encajan en ningún mensaje temático de las otras categorías — Michael
+// (biopic musical), Who Framed Roger Rabbit (misterio/comedia clásica) y las
+// dos de Five Nights at Freddy's (terror — están en la lista porque a Rorri
+// le encanta el juego, no por mensaje inspirador; Angel confirmó que ambas
+// películas ya las vieron en familia y están OK).
+function rkYtTrailerUrl(title){
+  return 'https://www.youtube.com/results?search_query=' + encodeURIComponent(title + ' official trailer');
+}
+const RK_MOVIES = {
+  paddington:{title:"Paddington",year:2014,
+    blurb:"A polite young bear from “Darkest Peru” arrives alone at Paddington Station in London, wearing a red hat and carrying a suitcase full of marmalade sandwiches. The kind Brown family takes him in — but a sinister museum taxidermist has other plans for him.",
+    vocab:[{w:'marmalade',m:'a sweet, sticky spread made from oranges — Paddington’s favourite food'},{w:'polite',m:'having good manners, saying please and thank you'},{w:'stowaway',m:'someone who hides on a ship or train to travel secretly'},{w:'hospitality',m:'being warm and welcoming to guests or strangers'},{w:'homesick',m:'feeling sad because you miss your home'}],
+    facts:["Paddington Bear was created by author Michael Bond in 1958 — inspired by a lonely toy bear he saw in a shop on Christmas Eve.","The films are set around real London locations, including Paddington Station itself."]},
+  paddington2:{title:"Paddington 2",year:2017,
+    blurb:"Paddington has settled happily into life with the Brown family and dreams of buying a special pop-up book for his Aunt Lucy's 100th birthday. When the book is stolen, Paddington is wrongly blamed — and sets out to clear his name.",
+    vocab:[{w:'pop-up book',m:'a book with pictures that stand up in 3D when you open the page'},{w:'wrongly accused',m:'blamed for something you didn’t actually do'},{w:'thief',m:'a person who steals things'},{w:'loyalty',m:'staying true and faithful to the people you care about'},{w:'to escape',m:'to get away from a place, especially somewhere you’re trapped'}],
+    facts:["For years it held one of the highest-ever scores on Rotten Tomatoes.","Hugh Grant plays the villain — a washed-up, vain actor."]},
+  paddington3:{title:"Paddington in Peru",year:2024,
+    blurb:"Paddington returns to Peru to visit his beloved Aunt Lucy at the Home for Retired Bears — but when she goes missing, Paddington and the Brown family follow a trail deep into the Amazon rainforest to find her.",
+    vocab:[{w:'rainforest',m:'a thick, green forest with very heavy rain — home to Paddington’s family'},{w:'expedition',m:'a journey made to explore or find something'},{w:'missing',m:'not able to be found'},{w:'jungle',m:'a wild, dense forest, usually in a hot country'},{w:'reunion',m:'coming back together with someone after being apart'}],
+    facts:["It's the third Paddington film, and the first to leave London and travel back to Peru.","Angel's family calls it “Paddington 3” — the LATAM title for this one!"]},
+  apollo13:{title:"Apollo 13",year:1995,
+    blurb:"Three astronauts are on their way to the Moon when an explosion cripples their spacecraft. With the whole world watching, the crew and NASA's engineers on the ground must work together to bring them home safely.",
+    vocab:[{w:'astronaut',m:'a person trained to travel and work in space'},{w:'spacecraft',m:'a vehicle built to travel in space'},{w:'explosion',m:'a sudden, violent burst — what damages the ship in this story'},{w:'mission control',m:'the team on the ground guiding a space mission'},{w:'teamwork',m:'people working together to solve a problem'}],
+    facts:["Based on the true story of the real 1970 Apollo 13 mission.","The famous line “Houston, we have a problem” comes from the astronauts' real radio call — in 2026, NASA's new Artemis II mission flew astronauts around the Moon again for the first time since Apollo."]},
+  irongiant:{title:"The Iron Giant",year:1999,
+    blurb:"A young boy named Hogarth discovers a giant robot that fell from outer space, hidden in the woods near his home. As he teaches the Giant about the world, they form an unlikely friendship — but the government thinks the robot is a dangerous weapon.",
+    vocab:[{w:'giant',m:'something extremely large'},{w:'robot',m:'a machine that can move and act on its own'},{w:'friendship',m:'a caring bond between two people (or a boy and a robot!)'},{w:'weapon',m:'something used to cause harm or fight with'},{w:'to sacrifice',m:'to give up something important for someone else’s sake'}],
+    facts:["Loosely based on a novel by poet Ted Hughes.","It wasn't a big hit in cinemas at first, but is now considered an animated classic."]},
+  httyd:{title:"How to Train Your Dragon",year:2010,
+    blurb:"On the Viking island of Berk, dragons and humans have been enemies for generations. But when a young Viking named Hiccup befriends an injured dragon instead of fighting it, he discovers everything his village believed might be wrong.",
+    vocab:[{w:'Viking',m:'a seafaring warrior from Scandinavia, long ago'},{w:'dragon',m:'a large, legendary fire-breathing creature'},{w:'enemy',m:'someone (or something) you fight against'},{w:'to befriend',m:'to become friends with someone'},{w:'injured',m:'hurt or wounded'}],
+    facts:["Based on a book series by Cressida Cowell.","A live-action remake was made years after the original animated film."]},
+  greatestshowman:{title:"The Greatest Showman",year:2017,
+    blurb:"P.T. Barnum builds a dazzling circus filled with unusual and extraordinary performers who the rest of society had cast aside — turning outsiders into a family, and a spectacle into a celebration of being different.",
+    vocab:[{w:'circus',m:'a travelling show with performers and acts'},{w:'performer',m:'someone who acts, sings, or does tricks on stage'},{w:'outsider',m:'someone who feels like they don’t belong'},{w:'to celebrate',m:'to honour or enjoy something special'},{w:'extraordinary',m:'very unusual — far beyond ordinary'}],
+    facts:["It's a movie musical, with original songs written just for the film.","The real P.T. Barnum was a much more complicated, controversial figure than the film shows — this is a very Hollywood version of his life."]},
+  michael:{title:"Michael",year:2026,
+    blurb:"A biographical film following the life and music career of Michael Jackson, one of the most influential entertainers in music history.",
+    vocab:[{w:'biopic',m:'a film based on the life of a real person'},{w:'entertainer',m:'someone whose job is to perform for an audience'},{w:'influential',m:'having a big effect on other people or on culture'},{w:'rehearsal',m:'practising a performance before doing it for real'},{w:'legacy',m:'what someone is remembered for after their time'}],
+    facts:["Released in 2026, starring Jaafar Jackson — Michael Jackson's own nephew — in the lead role.","Rated PG-13."]},
+  karatekid:{title:"The Karate Kid",year:1984,
+    blurb:"A teenager who's just moved to a new town is bullied by kids at his new school — until an elderly martial arts master takes him under his wing and teaches him far more than karate.",
+    vocab:[{w:'bully',m:'someone who hurts or scares people who are weaker than them'},{w:'master',m:'someone with great skill or expert knowledge, here in martial arts'},{w:'discipline',m:'training yourself to follow rules and practise, even when it’s hard'},{w:'patience',m:'staying calm while waiting or working towards something'},{w:'respect',m:'treating someone (or something) as important and valuable'}],
+    facts:["The “wax on, wax off” training method became a famous pop-culture phrase for learning through unusual methods.","There's also a 2010 remake set in China, if you ever want to compare!"]},
+  rocky:{title:"Rocky",year:1976,
+    blurb:"A small-time boxer from Philadelphia gets a once-in-a-lifetime shot at the heavyweight title — not really expecting to win, but determined to go the distance and prove something to himself.",
+    vocab:[{w:'underdog',m:'someone not expected to win, who fights hard anyway'},{w:'boxer',m:'someone who fights using their fists, following boxing rules'},{w:'determination',m:'a strong will to keep going and not give up'},{w:'heavyweight',m:'the top weight class in boxing'},{w:'to go the distance',m:'to keep going all the way to the end, without giving up'}],
+    facts:["Rocky won the Oscar for Best Picture in 1976.","Sylvester Stallone wrote the script himself, hoping to star in it — and he got his wish."]},
+  rocky2:{title:"Rocky II",year:1979,
+    blurb:"Rocky gets a rematch against the champion who barely beat him — but this time, everyone is watching to see if he can go all the way.",
+    vocab:[{w:'rematch',m:'a second fight or contest between the same two people'},{w:'champion',m:'the current best or winner of a competition'},{w:'pressure',m:'the feeling of stress from other people’s expectations'},{w:'comeback',m:'a return to success after a setback'}],
+    facts:["The story picks up right where the first film left off."]},
+  rocky3:{title:"Rocky III",year:1982,
+    blurb:"Rocky faces a fierce new challenger, Clubber Lang, and must rediscover his hunger and drive after losing his edge.",
+    vocab:[{w:'challenger',m:'someone who competes for a title held by someone else'},{w:'hunger',m:'here, a strong desire or drive to succeed — not about food!'},{w:'drive',m:'the inner motivation that pushes you forward'},{w:'rival',m:'someone competing against you for the same goal'}],
+    facts:["Introduced Mr. T as Clubber Lang, and even featured wrestler Hulk Hogan in a small role."]},
+  rocky4:{title:"Rocky IV",year:1985,
+    blurb:"Rocky trains for the fight of his life against a powerful new opponent, in a story about determination that crosses borders and rivalries.",
+    vocab:[{w:'opponent',m:'the person you compete or fight against'},{w:'training montage',m:'a fast sequence of clips showing someone getting ready/training'},{w:'determination',m:'a strong will to keep going and not give up'},{w:'against all odds',m:'succeeding even when everything seems impossible'}],
+    facts:["Famous for one of the most iconic training montages in movie history.","Set during the Cold War era of the 1980s."]},
+  wildrobot:{title:"The Wild Robot",year:2024,
+    blurb:"A robot named Roz washes ashore on a remote island and must learn to survive in the wild — eventually becoming an unlikely mother to an orphaned gosling, and finding a place among the animals.",
+    vocab:[{w:'shipwreck',m:'a ship that has been destroyed, usually by sinking'},{w:'to survive',m:'to stay alive through a difficult situation'},{w:'wilderness',m:'a wild, natural place with no people'},{w:'to adapt',m:'to change your behaviour to fit a new situation'},{w:'orphan',m:'a young one who has lost its parents'}],
+    facts:["Based on a book by Peter Brown.","Praised for animation that looks like a moving painting."]},
+  insideout:{title:"Inside Out",year:2015,
+    blurb:"Inside an 11-year-old girl's mind, five emotions — Joy, Sadness, Anger, Fear, and Disgust — work together to help her through a difficult family move, discovering that every emotion, even sadness, has an important job to do.",
+    vocab:[{w:'emotion',m:'a feeling, like joy, sadness, or fear'},{w:'memory',m:'something your mind keeps from the past'},{w:'core memory',m:'a memory so important it shapes who you are'},{w:'journey',m:'a trip or process of moving from one place/state to another'}],
+    facts:["Pixar worked with real psychologists to design the emotions and how memory works in the film."]},
+  wonder:{title:"Wonder",year:2017,
+    blurb:"Auggie, a boy born with a facial difference, starts attending a mainstream school for the first time — navigating friendship, bullying, and the challenge of being seen for who he really is.",
+    vocab:[{w:'kindness',m:'being friendly, generous, and considerate'},{w:'bullying',m:'repeatedly hurting or scaring someone weaker than you'},{w:'difference',m:'something that makes someone or something not the same as others'},{w:'empathy',m:'understanding and sharing how someone else feels'},{w:'courage',m:'bravery in a difficult or scary situation'}],
+    facts:["Based on the bestselling novel by R.J. Palacio.","The book's message “choose kind” became a popular phrase in schools worldwide."]},
+  rogerrabbit:{title:"Who Framed Roger Rabbit",year:1988,
+    blurb:"In a Los Angeles where cartoon characters live alongside humans, a private detective is hired to investigate a scandal involving the cartoon star Roger Rabbit — and gets pulled into a mystery bigger than he expected.",
+    vocab:[{w:'detective',m:'someone who investigates crimes and solves mysteries'},{w:'cartoon',m:'a drawn, animated character'},{w:'mystery',m:'something puzzling that needs to be figured out'},{w:'to be framed',m:'to be wrongly made to look guilty of something you didn’t do'},{w:'to investigate',m:'to look closely into something to find out the truth'}],
+    facts:["Groundbreaking for mixing hand-drawn animation with live-action.","Famously brought cartoon characters from rival studios — Disney and Warner Bros — into the same film."]},
+  lifeofpi:{title:"Life of Pi",year:2012,
+    blurb:"After a shipwreck, a young man named Pi finds himself stranded on a lifeboat in the middle of the ocean — with an unexpected companion: a Bengal tiger.",
+    vocab:[{w:'shipwreck',m:'a ship that has been destroyed, usually by sinking'},{w:'stranded',m:'stuck somewhere with no way to leave'},{w:'lifeboat',m:'a small boat used to escape a sinking ship'},{w:'survival',m:'staying alive through danger or hardship'},{w:'companion',m:'someone (or something) who is with you, even unexpectedly'}],
+    facts:["Won 4 Academy Awards, including Best Director.","Based on a novel by Yann Martel."]},
+  fnaf1:{title:"Five Nights at Freddy's",year:2023,
+    blurb:"A struggling security guard takes a night-shift job at an abandoned family pizzeria, where the animatronic mascots turn out to have a dark secret and a life of their own after dark.",
+    vocab:[{w:'security guard',m:'someone whose job is to protect a place at night'},{w:'night shift',m:'a work schedule during the night instead of the day'},{w:'animatronic',m:'a robotic figure made to look and move like it’s alive'},{w:'abandoned',m:'left empty, no longer used or cared for'},{w:'secret',m:'something hidden or not told to others'}],
+    facts:["Based on the hit video game series created by Scott Cawthon.","Had one of the biggest opening weekends ever for a horror film."]},
+  fnaf2:{title:"Five Nights at Freddy's 2",year:2025,
+    blurb:"The story continues as new secrets from Freddy Fazbear's Pizza are uncovered, pulling the characters deeper into the mystery behind the haunted animatronics.",
+    vocab:[{w:'sequel',m:'a film that continues the story of an earlier one'},{w:'haunted',m:'a place visited by something scary or supernatural'},{w:'to uncover',m:'to discover something that was hidden'},{w:'mystery',m:'something puzzling that needs to be figured out'}],
+    facts:["The sequel to the 2023 hit, continuing the story from the video game series."]},
 };
+const RK_CINEMA_CATALOG = [
+  {label:'🇬🇧 British Classics', movies:['paddington','paddington2','paddington3']},
+  {label:'🚀 Science & Exploration', movies:['apollo13']},
+  {label:'🌟 Animation with Heart', movies:['irongiant','httyd','wildrobot','insideout']},
+  {label:'❤️ Hope & Kindness', movies:['greatestshowman','wonder']},
+  {label:'🏆 Underdogs & Sports', movies:['karatekid','rocky','rocky2','rocky3','rocky4']},
+  {label:'🌑 When Life Gets Hard', movies:['lifeofpi']},
+  {label:"👨‍🍳 Chef's Recommendation", movies:['michael','rogerrabbit','fnaf1','fnaf2']},
+];
 
 function rkRenderInfoStation(id){
   const wrap = document.getElementById('rk-info-wrap');
@@ -642,15 +742,40 @@ function rkRenderInfoStation(id){
         <a class="rk-sk-primary-btn" href="${c.ytMusicUrl}" target="_blank" rel="noopener">🎵 Listen &amp; Sing Along on YouTube Music</a>
       </div>`;
   } else if(id === 'electric_cinema'){
-    const c = RK_CINEMA_CONTENT;
-    wrap.innerHTML = `
-      <div class="rk-sk-card"><div class="rk-info-title">${rkEscapeHtml(c.title)}</div><div class="rk-info-blurb">${rkEscapeHtml(c.blurb)}</div></div>
-      <div class="rk-vocab-grid">${c.vocab.map(v => `<div class="rk-vocab-item"><div class="rk-vocab-word">${rkEscapeHtml(v.w)}</div><div class="rk-vocab-mean">${rkEscapeHtml(v.m)}</div></div>`).join('')}</div>
-      <div class="rk-sk-card"><div class="rk-info-title" style="font-size:14px">🍿 Did you know?</div><ul class="rk-fact-list">${c.facts.map(f => `<li>${rkEscapeHtml(f)}</li>`).join('')}</ul></div>
-      <div class="rk-sk-actions">
-        <a class="rk-sk-primary-btn" href="${c.trailerUrl}" target="_blank" rel="noopener">▶ Watch the trailer</a>
-      </div>`;
+    rkCinemaShowCatalog();
   }
+}
+
+// Catálogo (menú tipo Netflix) → ficha de película. "← All Movies" en la ficha vuelve al
+// catálogo; "← Map" (control global) sigue disponible en cualquier momento para salir del todo.
+function rkCinemaShowCatalog(){
+  const wrap = document.getElementById('rk-info-wrap');
+  wrap.innerHTML = `
+    <div class="rk-sk-card"><div class="rk-info-title">🎬 Electric Cinema</div><div class="rk-info-blurb">Pick a film to explore — synopsis, vocabulary, and a few fun facts before you watch.</div></div>
+    ${RK_CINEMA_CATALOG.map(cat => `
+      <div class="rk-cinema-cat-title">${rkEscapeHtml(cat.label)}</div>
+      <div class="rk-cinema-grid">
+        ${cat.movies.map(mid => {const m = RK_MOVIES[mid]; return `
+          <button class="rk-cinema-card" onclick="rkCinemaShowMovie('${mid}')">
+            <div class="rk-cinema-card-title">${rkEscapeHtml(m.title)}</div>
+            <div class="rk-cinema-card-year">${m.year}</div>
+          </button>`;}).join('')}
+      </div>`).join('')}
+  `;
+}
+
+function rkCinemaShowMovie(mid){
+  const wrap = document.getElementById('rk-info-wrap');
+  const m = RK_MOVIES[mid];
+  if(!m) return;
+  wrap.innerHTML = `
+    <div class="rk-sk-card"><div class="rk-info-title">🎬 ${rkEscapeHtml(m.title)} (${m.year})</div><div class="rk-info-blurb">${rkEscapeHtml(m.blurb)}</div></div>
+    <div class="rk-vocab-grid">${m.vocab.map(v => `<div class="rk-vocab-item"><div class="rk-vocab-word">${rkEscapeHtml(v.w)}</div><div class="rk-vocab-mean">${rkEscapeHtml(v.m)}</div></div>`).join('')}</div>
+    <div class="rk-sk-card"><div class="rk-info-title" style="font-size:14px">🍿 Did you know?</div><ul class="rk-fact-list">${m.facts.map(f => `<li>${rkEscapeHtml(f)}</li>`).join('')}</ul></div>
+    <div class="rk-sk-actions">
+      <a class="rk-sk-primary-btn" href="${rkYtTrailerUrl(m.title)}" target="_blank" rel="noopener">▶ Watch the trailer</a>
+      <button class="rk-sk-secondary-btn" onclick="rkCinemaShowCatalog()">← All Movies</button>
+    </div>`;
 }
 function rkBackToMap(){
   rkMicRelease(); // libera el micrófono del todo — no tiene sentido dejarlo prendido fuera de Survival Kit
