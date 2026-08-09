@@ -209,6 +209,29 @@
   .rk-sk-card{background:rgba(255,255,255,.92);border:1px solid rgba(40,40,70,.12);
     border-radius:12px;padding:14px 16px;box-shadow:0 4px 16px rgba(20,20,40,.08);}
 
+  /* ── Abbey Road / Electric Cinema — estaciones de contenido fijo (9 agosto, ronda 4) ──
+     Angel pidió migrar Singing y Watching desde "Coming soon" a contenido real, pero simple:
+     nada de mic ni evaluación, todo escrito a mano (mismo perfil de riesgo bajo del Principio
+     13 — cero contenido generado por IA acá). Reutiliza el mismo contenedor visual que Survival
+     Kit (#rk-info-wrap usa la clase .rk-sk-wrap, .rk-sk-card, .rk-sk-actions, .rk-sk-primary-btn/
+     .rk-sk-secondary-btn) — solo se agregan las piezas que faltaban: título/bajada, grilla de
+     vocabulario y lista de datos curiosos (Electric Cinema). Ver rkRenderInfoStation() en el JS. */
+  .rk-info-layout{display:none;flex:1;width:100%;}
+  .rk-info-title{font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:#8a5a06;margin-bottom:8px;}
+  .rk-info-blurb{font-size:14px;font-weight:500;line-height:1.6;color:#2a2a40;}
+  .rk-fact-list{margin:8px 0 0 18px;font-size:14px;font-weight:500;line-height:1.7;color:#2a2a40;}
+  .rk-vocab-grid{display:grid;grid-template-columns:1fr;gap:8px;width:100%;}
+  @media (min-width:560px){ .rk-vocab-grid{grid-template-columns:1fr 1fr;} }
+  .rk-vocab-item{background:rgba(255,255,255,.92);border:1px solid rgba(40,40,70,.12);border-radius:10px;
+    padding:10px 12px;box-shadow:0 4px 16px rgba(20,20,40,.08);}
+  .rk-vocab-word{font-weight:700;color:#8a5a06;font-size:13px;}
+  .rk-vocab-mean{font-size:12px;font-weight:500;color:#3a3a52;margin-top:2px;line-height:1.4;}
+  /* Los botones de acción de Survival Kit son <button> — acá van sobre <a> (links externos a
+     YouTube), por eso el reset de subrayado/alineación; el resto del look (fondo, borde,
+     tipografía) lo heredan igual de .rk-sk-primary-btn/.rk-sk-secondary-btn. */
+  .rk-info-layout a.rk-sk-primary-btn,.rk-info-layout a.rk-sk-secondary-btn{
+    text-decoration:none;text-align:center;display:flex;align-items:center;justify-content:center;}
+
   /* ── Debug/test badge (recordatorio de que es build de prueba) ── */
   .rk-test-badge{position:fixed;bottom:10px;right:12px;z-index:50;font-family:'Rajdhani',sans-serif;
     font-size:11px;letter-spacing:1px;color:rgba(148,163,184,.5);pointer-events:none;}
@@ -277,6 +300,12 @@
   <div class="rk-sk-layout" id="rk-sk-layout">
     <div class="rk-sk-side"><img src="rubberneckin-assets/covers/keep_calm_poster.png" alt="Keep Calm and Carry On"></div>
     <div class="rk-sk-wrap" id="rk-sk-wrap"></div>
+  </div>
+  <!-- Abbey Road (Singing) y Electric Cinema (Watching) — contenido fijo, sin mic, sin
+       evaluación (9 agosto, ronda 4). Un solo contenedor para las dos: rkRenderInfoStation()
+       decide qué HTML mostrar según el id de la estación. -->
+  <div class="rk-info-layout" id="rk-info-layout">
+    <div class="rk-sk-wrap" id="rk-info-wrap"></div>
   </div>
 </div>
 
@@ -531,12 +560,94 @@ function rkRenderStation(st){
   document.getElementById('rk-station-skill').textContent = st.skill;
   document.getElementById('rk-station-desc').textContent = st.desc;
 
-  // Survival Kit es la única de las 8 con mecánica real — el resto sigue mostrando
-  // el bloque genérico "Coming soon" (#rk-station-body) sin ningún cambio.
+  // Survival Kit (mecánica real) y Abbey Road/Electric Cinema (contenido fijo, 9 agosto ronda 4)
+  // tienen su propio layout. Las 5 estaciones restantes siguen mostrando el bloque genérico
+  // "Coming soon" (#rk-station-body) sin ningún cambio.
   const isSurvival = st.id === 'survival_kit';
-  document.getElementById('rk-station-body').style.display = isSurvival ? 'none' : 'flex';
+  const isInfo = st.id === 'abbey_road' || st.id === 'electric_cinema';
+  document.getElementById('rk-station-body').style.display = (isSurvival || isInfo) ? 'none' : 'flex';
   document.getElementById('rk-sk-layout').style.display = isSurvival ? 'flex' : 'none';
+  document.getElementById('rk-info-layout').style.display = isInfo ? 'flex' : 'none';
   if(isSurvival){ rkMicPrewarm(); rkSkShowIntro(); }
+  if(isInfo){ rkRenderInfoStation(st.id); }
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// ABBEY ROAD (Singing) / ELECTRIC CINEMA (Watching) — 9 agosto, ronda 4
+// Angel: "en la de movies no hay que hacer nada prácticamente, y en la de música habría que
+// agregar el link del karaoke... tampoco le daría mucha más vuelta." Alcance elegido con Angel:
+// contenido 100% fijo, escrito a mano (sin llamadas a /api/chat) — mismo perfil de riesgo bajo
+// del Principio 13 que Survival Kit, pero sin siquiera reaccionar a un input: acá no hay input
+// del niño, solo lectura + un par de links de salida a YouTube. Cero motor nuevo: reutiliza el
+// mismo lenguaje visual de Survival Kit (.rk-sk-wrap/.rk-sk-card/.rk-sk-actions).
+//
+// Canción: "Rubberneckin'" de Elvis Presley — la misma que ya suena como música de bienvenida
+// en las portadas (RK_YOUTUBE_ID más arriba), así que el botón "Listen" reutiliza ese mismo
+// video. El link de karaoke es un video de terceros con letra en pantalla (buscado y confirmado
+// el 9 de agosto) — no se aloja ni se reproduce nada acá, solo se enlaza afuera, igual criterio
+// que el resto del proyecto con música/video con derechos.
+// IMPORTANTE (regla de contenido del proyecto): nunca se reproduce la letra de la canción de
+// forma textual — el blurb y el vocabulario están escritos a mano, inspirados en el tono/tema
+// general de la canción, no citados de ella.
+const RK_ABBEY_CONTENT = {
+  title: "🎵 Rubberneckin' — Elvis Presley (1969)",
+  blurb: "This is a fun, upbeat song from Elvis — all about heading out, checking out the scene, and having a good time. It's playful and a little cheeky, perfect for singing along on a road trip through London!",
+  vocab: [
+    {w:'rubbernecking', m:'staring at something out of curiosity — like looking out the car window at everything going by'},
+    {w:'cruising', m:'driving around slowly, just for fun, with nowhere in particular to be'},
+    {w:'groovy', m:'old-fashioned slang for "really cool" or "great"'},
+    {w:'to dig something', m:'60s slang for "to really like something"'},
+    {w:'a blast', m:'a really fun time — "we had a blast!"'},
+    {w:'to sing along', m:'to sing together with a song that is playing'},
+  ],
+  listenUrl: 'https://www.youtube.com/watch?v=' + RK_YOUTUBE_ID,
+  karaokeUrl: 'https://www.youtube.com/watch?v=UQPBzot3w5w',
+};
+
+// Película: Back to the Future (1985). Sinopsis y datos escritos a mano (parafraseados, no
+// copiados de ninguna ficha oficial) — mismo criterio de nunca reproducir texto con derechos de
+// autor de forma textual. El trailer enlazado es el trailer teatral del canal oficial de Amblin
+// (productora de la película) en YouTube.
+const RK_CINEMA_CONTENT = {
+  title: '🎬 Back to the Future (1985)',
+  blurb: "Marty McFly is a regular teenager until his eccentric scientist friend, Doc Brown, invents a time machine — built out of a DeLorean car! An accident sends Marty 30 years into the past, to 1955, where he runs into his own parents before they've even met. Now he has to make sure they fall in love — or he might never be born — all while trying to find a way back home to 1985.",
+  vocab: [
+    {w:'time travel', m:'moving between different points in time — the past or the future'},
+    {w:'scientist', m:'someone who studies and invents things, like Doc Brown'},
+    {w:'to invent', m:'to create something completely new'},
+    {w:'accidentally', m:'by mistake, not on purpose'},
+    {w:'the past / the future', m:'time before now / time after now'},
+    {w:'lightning', m:'the bright flash of light in a storm — very important in this movie!'},
+  ],
+  facts: [
+    "The time machine isn't a spaceship — it's a car! A DeLorean, to be exact.",
+    "The story happens in two different years: 1985 (the present) and 1955 (the past).",
+    "It was such a hit that it got two sequels, Part II and Part III.",
+  ],
+  trailerUrl: 'https://www.youtube.com/watch?v=WRrCVyT09ow',
+};
+
+function rkRenderInfoStation(id){
+  const wrap = document.getElementById('rk-info-wrap');
+  if(id === 'abbey_road'){
+    const c = RK_ABBEY_CONTENT;
+    wrap.innerHTML = `
+      <div class="rk-sk-card"><div class="rk-info-title">${rkEscapeHtml(c.title)}</div><div class="rk-info-blurb">${rkEscapeHtml(c.blurb)}</div></div>
+      <div class="rk-vocab-grid">${c.vocab.map(v => `<div class="rk-vocab-item"><div class="rk-vocab-word">${rkEscapeHtml(v.w)}</div><div class="rk-vocab-mean">${rkEscapeHtml(v.m)}</div></div>`).join('')}</div>
+      <div class="rk-sk-actions">
+        <a class="rk-sk-primary-btn" href="${c.listenUrl}" target="_blank" rel="noopener">▶ Listen</a>
+        <a class="rk-sk-secondary-btn" href="${c.karaokeUrl}" target="_blank" rel="noopener">🎤 Sing Along</a>
+      </div>`;
+  } else if(id === 'electric_cinema'){
+    const c = RK_CINEMA_CONTENT;
+    wrap.innerHTML = `
+      <div class="rk-sk-card"><div class="rk-info-title">${rkEscapeHtml(c.title)}</div><div class="rk-info-blurb">${rkEscapeHtml(c.blurb)}</div></div>
+      <div class="rk-vocab-grid">${c.vocab.map(v => `<div class="rk-vocab-item"><div class="rk-vocab-word">${rkEscapeHtml(v.w)}</div><div class="rk-vocab-mean">${rkEscapeHtml(v.m)}</div></div>`).join('')}</div>
+      <div class="rk-sk-card"><div class="rk-info-title" style="font-size:14px">🍿 Did you know?</div><ul class="rk-fact-list">${c.facts.map(f => `<li>${rkEscapeHtml(f)}</li>`).join('')}</ul></div>
+      <div class="rk-sk-actions">
+        <a class="rk-sk-primary-btn" href="${c.trailerUrl}" target="_blank" rel="noopener">▶ Watch the trailer</a>
+      </div>`;
+  }
 }
 function rkBackToMap(){
   rkMicRelease(); // libera el micrófono del todo — no tiene sentido dejarlo prendido fuera de Survival Kit
