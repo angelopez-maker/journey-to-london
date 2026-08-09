@@ -92,13 +92,16 @@
   #screen-postcard img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
 
   /* ── Station screen ── */
-  /* Fondo del mapa del Tube (9 agosto) detrás de TODA pantalla de estación — cubre Survival
-     Kit y las 7 en "Coming soon" con un solo cambio. El velo oscuro semitransparente encima de
-     la imagen es lo que la deja "perdida"/tenue sin competir con el texto — la imagen en sí no
-     viene pre-desvanecida, el nivel de opacidad se controla acá. */
+  /* Fondo del mapa del Tube (9 agosto, v2) detrás de TODA pantalla de estación — cubre Survival
+     Kit y las 7 en "Coming soon" con un solo cambio. Sin velo oscuro esta vez: Angel pidió el
+     fondo "lo más claro posible" y la imagen ya viene en tonos crema/gris muy suaves — un velo
+     oscuro encima la apagaba demasiado ("queda muy recargado"/"se pierde"), así que ahora se
+     usa tal cual. Como consecuencia, todo el texto/tarjetas que antes vivían sueltos sobre el
+     fondo oscuro de la app necesitaron su propio ajuste de contraste para este fondo claro (ver
+     comentarios puntuales más abajo) — el header de arriba se dejó oscuro a propósito, como
+     marco, así queda una franja oscura arriba y "papel" claro abajo. */
   #screen-station{align-items:stretch;
-    background:linear-gradient(rgba(10,10,26,.55),rgba(10,10,26,.55)),
-      url('rubberneckin-assets/covers/tube_bg.jpg') center/cover no-repeat;}
+    background:url('rubberneckin-assets/covers/tube_bg.jpg') center/cover no-repeat;}
   .rk-station-banner{height:15vh;min-height:96px;width:100%;background-size:cover;
     background-position:center 22%;position:relative;flex-shrink:0;}
   .rk-station-banner::after{content:'';position:absolute;inset:0;
@@ -112,13 +115,19 @@
     border-radius:10px;color:var(--muted);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;
     cursor:pointer;letter-spacing:1px;}
   .rk-back-btn:hover{border-color:var(--gold);color:var(--gold2);}
+  /* Estos dos (header y back-btn) están DENTRO de .rk-station-header, que sigue con su propio
+     fondo oscuro sólido (var(--bg2)) — no les afecta el cambio de fondo claro de abajo. */
   .rk-station-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
     padding:40px 24px;text-align:center;gap:14px;}
-  .rk-skill-pill{display:inline-block;padding:5px 14px;border-radius:999px;background:rgba(245,158,11,.1);
-    border:1px solid rgba(245,158,11,.3);color:var(--gold2);font-family:'Rajdhani',sans-serif;
+  /* Colores oscuros a propósito (9 agosto v2) — antes eran claros, pensados para el fondo oscuro
+     de la app; ahora este bloque vive sobre el mapa claro, así que necesitan contraste inverso. */
+  .rk-skill-pill{display:inline-block;padding:5px 14px;border-radius:999px;background:rgba(245,158,11,.16);
+    border:1px solid rgba(180,120,10,.4);color:#8a5a06;font-family:'Rajdhani',sans-serif;
     font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;}
-  .rk-coming-soon{font-family:'Orbitron',monospace;font-size:22px;font-weight:900;color:var(--text);}
-  .rk-station-desc{max-width:440px;font-size:15px;line-height:1.7;color:var(--muted);}
+  .rk-coming-soon{font-family:'Orbitron',monospace;font-size:22px;font-weight:900;color:#1c1c30;}
+  /* Fuente un poco más grande y con más peso (9 agosto v3) — el fondo quedó casi blanco puro,
+     así que además del color oscuro, el texto necesita más presencia para no perderse. */
+  .rk-station-desc{max-width:440px;font-size:16px;font-weight:500;line-height:1.7;color:#3a3a52;}
 
   /* ── Survival Kit — primera estación con mecánica real ──
      Rediseñado el 9 de agosto (2da ronda de feedback de Angel, ver comentario junto al JS):
@@ -139,31 +148,38 @@
   }
   .rk-sk-wrap{display:flex;flex:1;flex-direction:column;align-items:center;justify-content:flex-start;
     padding:28px 24px;gap:14px;overflow-y:auto;width:100%;max-width:640px;margin:0 auto;text-align:left;}
+  /* Texto suelto directo sobre el fondo claro (sin tarjeta propia) — oscurecido igual que arriba. */
   .rk-sk-progress{font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;
-    color:var(--muted);text-transform:uppercase;}
+    color:#5a5a75;text-transform:uppercase;}
+  /* La burbuja de Oliver usa var(--card), un oscuro SÓLIDO (no transparente) — sigue funcionando
+     igual de bien como tarjeta oscura "flotando" sobre el fondo claro, cero cambios necesarios. */
   .rk-sk-oliver{display:flex;gap:10px;align-items:flex-start;background:var(--card);border:1px solid var(--border);
     border-radius:12px;padding:12px;width:100%;}
   .rk-sk-oliver img{width:38px;height:38px;border-radius:50%;object-fit:cover;flex-shrink:0;}
   .rk-sk-oliver-name{font-weight:700;color:var(--gold2);font-size:13px;margin-bottom:4px;}
-  .rk-sk-oliver-text{font-size:13px;line-height:1.6;color:var(--text);}
+  .rk-sk-oliver-text{font-size:14px;font-weight:500;line-height:1.6;color:var(--text);}
   .rk-sk-hear-btn{background:var(--green);color:#fff;border:none;border-radius:8px;padding:6px 12px;
     cursor:pointer;font-size:14px;flex-shrink:0;align-self:center;}
   .rk-sk-mic-row{display:flex;gap:8px;width:100%;}
-  .rk-sk-mic-btn{flex:1;padding:13px;background:rgba(16,185,129,.1);border:2px solid rgba(16,185,129,.3);
-    border-radius:10px;color:var(--green);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;
+  /* Antes era un lavado verde 10% transparente pensado para verse bien sobre fondo oscuro; sobre
+     el mapa claro esa misma transparencia se veía lavada y sin fuerza — ahora más sólido. */
+  .rk-sk-mic-btn{flex:1;padding:13px;background:rgba(16,185,129,.18);border:2px solid rgba(13,122,95,.5);
+    border-radius:10px;color:#0d7a5f;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;
     cursor:pointer;}
   .rk-sk-mic-btn:disabled{opacity:.6;cursor:default;}
   .rk-sk-reset-btn{display:none;padding:13px 14px;background:var(--card2);border:2px solid var(--border);
     border-radius:10px;color:var(--muted);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;
     cursor:pointer;}
-  .rk-sk-transcript{font-size:13px;color:var(--muted);font-style:italic;min-height:18px;}
+  .rk-sk-transcript{font-size:14px;font-weight:500;color:#3a3a52;font-style:italic;min-height:18px;}
   .rk-sk-actions{display:flex;gap:8px;width:100%;}
   .rk-sk-primary-btn{flex:1;padding:13px;background:var(--gold);border:none;border-radius:10px;
     color:#1a1a0a;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer;}
-  .rk-sk-secondary-btn{padding:13px 16px;background:transparent;border:1px solid var(--border);
-    border-radius:10px;color:var(--muted);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;
+  /* Antes transparente (se apoyaba en el fondo oscuro de la app para leerse) — ahora con fondo
+     sólido claro propio, para que siga siendo un botón reconocible sobre el mapa claro. */
+  .rk-sk-secondary-btn{padding:13px 16px;background:rgba(255,255,255,.75);border:1px solid rgba(40,40,70,.25);
+    border-radius:10px;color:#3a3a55;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;
     cursor:pointer;}
-  .rk-sk-secondary-btn:hover{border-color:var(--gold);color:var(--gold2);}
+  .rk-sk-secondary-btn:hover{border-color:var(--gold);color:#8a5a06;}
 
   /* ── Debug/test badge (recordatorio de que es build de prueba) ── */
   .rk-test-badge{position:fixed;bottom:10px;right:12px;z-index:50;font-family:'Rajdhani',sans-serif;
