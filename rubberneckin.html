@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>Rubberneckin' — Journey to London</title>
+<style>
+  /*
+    RUBBERNECKIN' — Summer Mode (módulo de prueba, invisible)
+    ───────────────────────────────────────────────────────────
+    Archivo completamente aparte de index.html. No hay ningún link ni botón
+    hacia este archivo desde ninguna otra pantalla de la app — solo se llega
+    por URL directa. Cero cambios en index.html ni en server.js.
+
+    Alcance de esta primera versión (confirmado con Angel): SOLO navegación +
+    arte. Secuencia de portadas → mapa del Tube clickeable → postal de cada
+    estación → banner + "Coming soon". Ninguna de las 8 estaciones tiene
+    mecánica real todavía — eso queda para una siguiente pasada, una vez que
+    Angel valide que la navegación y el arte se sienten bien.
+
+    Paleta, tipografías y patrón de pantallas (.screen/.screen.active)
+    tomados directo de index.html para que se sienta parte de la misma app.
+    Cuando se construya el contenido real de cada estación, reutilizar los
+    motores ya existentes en index.html (no reinventar — Principio 12):
+      - Mic/Whisper:      micStart() / micStopAndTranscribe() / micReset()  (línea ~932)
+      - TTS voz Oliver:   ttsSpeak() / speak()                              (línea ~1524)
+      - Comodines PET:    _petComodinReset() / petComodin()                 (línea ~6328)
+      - Toast:            showToast()                                      (línea ~4034)
+      - Chat/IA:          callClaude() → POST /api/chat                    (línea ~1160)
+      Todos disponibles vía los mismos endpoints del server (/api/chat,
+      /api/transcribe, /api/tts) sin tocarlos.
+  */
+  @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&family=Inter:wght@400;500;600&display=swap');
+  :root {
+    --bg:#0a0a1a;--bg2:#0f0f2a;--card:#12122a;--card2:#1a1a3a;--border:#2a2a5a;
+    --blue:#3b82f6;--blue2:#60a5fa;--gold:#f59e0b;--gold2:#fcd34d;
+    --green:#10b981;--purple:#8b5cf6;--red:#ef4444;--cyan:#06b6d4;
+    --text:#e2e8f0;--muted:#94a3b8;
+    --glow-gold:0 0 20px rgba(245,158,11,0.4);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;overflow-x:hidden;}
+
+  .screen{position:relative;z-index:1;display:none;min-height:100vh;min-height:100dvh;}
+  .screen.active{display:flex;flex-direction:column;}
+
+  /* ── Cover screens (Portada 1 / 2 / 3) ── */
+  .rk-cover{align-items:center;justify-content:center;cursor:pointer;position:relative;
+    background:#000 center/cover no-repeat;}
+  .rk-cover img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+  .rk-cover-hint{position:absolute;bottom:26px;left:0;right:0;text-align:center;z-index:2;
+    font-family:'Rajdhani',sans-serif;font-size:13px;letter-spacing:3px;text-transform:uppercase;
+    color:rgba(255,255,255,.85);text-shadow:0 2px 8px rgba(0,0,0,.8);animation:rkPulse 1.8s ease-in-out infinite;}
+  @keyframes rkPulse{0%,100%{opacity:.55}50%{opacity:1}}
+
+  /* ── Menu screen (Tube map) ── */
+  #screen-menu{align-items:center;justify-content:center;padding:24px;}
+  .rk-map-wrap{position:relative;width:100%;max-width:1408px;aspect-ratio:1408/768;margin:0 auto;}
+  .rk-map-wrap img{width:100%;height:100%;display:block;border-radius:14px;}
+  .rk-hotspot{position:absolute;transform:translate(-50%,-50%);border-radius:50%;
+    background:transparent;border:1px dashed rgba(255,255,255,.28);cursor:pointer;padding:0;
+    transition:background .2s,box-shadow .2s;}
+  .rk-hotspot:hover,.rk-hotspot:focus-visible{background:rgba(252,211,77,.16);
+    box-shadow:0 0 0 4px rgba(252,211,77,.18);outline:none;}
+
+  /* ── Postcard splash (primera vez que se entra a una estación) ── */
+  #screen-postcard{align-items:center;justify-content:center;cursor:pointer;background:#000;position:relative;}
+  #screen-postcard img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+
+  /* ── Station screen ── */
+  #screen-station{align-items:stretch;}
+  .rk-station-banner{height:15vh;min-height:96px;width:100%;background-size:cover;
+    background-position:center 22%;position:relative;flex-shrink:0;}
+  .rk-station-banner::after{content:'';position:absolute;inset:0;
+    background:linear-gradient(180deg,rgba(10,10,26,.15),rgba(10,10,26,.85));}
+  .rk-station-header{display:flex;align-items:center;gap:14px;padding:14px 20px;
+    border-bottom:1px solid var(--border);background:var(--bg2);flex-wrap:wrap;}
+  .rk-station-icon{font-size:30px;}
+  .rk-station-title{font-family:'Orbitron',monospace;font-size:18px;font-weight:700;color:var(--gold2);}
+  .rk-station-sub{font-family:'Rajdhani',sans-serif;font-size:13px;color:var(--muted);letter-spacing:1px;}
+  .rk-back-btn{margin-left:auto;padding:9px 18px;background:transparent;border:1px solid var(--border);
+    border-radius:10px;color:var(--muted);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;
+    cursor:pointer;letter-spacing:1px;}
+  .rk-back-btn:hover{border-color:var(--gold);color:var(--gold2);}
+  .rk-station-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:40px 24px;text-align:center;gap:14px;}
+  .rk-skill-pill{display:inline-block;padding:5px 14px;border-radius:999px;background:rgba(245,158,11,.1);
+    border:1px solid rgba(245,158,11,.3);color:var(--gold2);font-family:'Rajdhani',sans-serif;
+    font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;}
+  .rk-coming-soon{font-family:'Orbitron',monospace;font-size:22px;font-weight:900;color:var(--text);}
+  .rk-station-desc{max-width:440px;font-size:15px;line-height:1.7;color:var(--muted);}
+
+  /* ── Debug/test badge (recordatorio de que es build de prueba) ── */
+  .rk-test-badge{position:fixed;bottom:10px;right:12px;z-index:50;font-family:'Rajdhani',sans-serif;
+    font-size:11px;letter-spacing:1px;color:rgba(148,163,184,.5);pointer-events:none;}
+</style>
+</head>
+<body>
+
+<!-- Portada 1 — pared con título, tap para empezar (dispara el audio de bienvenida) -->
+<div id="screen-cover1" class="screen rk-cover" onclick="rkAdvanceToCover2()">
+  <img src="rubberneckin-assets/covers/portada1.jpg" alt="Journey to London presents Rubberneckin'">
+  <div class="rk-cover-hint">Tap to begin</div>
+</div>
+
+<!-- Portada 2 — pared de posters, auto-avanza o tap para saltar -->
+<div id="screen-cover2" class="screen rk-cover" onclick="rkAdvanceToCover3()">
+  <img src="rubberneckin-assets/covers/portada2.jpg" alt="London poster wall">
+</div>
+
+<!-- Portada 3 — mapa del Tube gris, atmósfera de llegada, auto-avanza o tap -->
+<div id="screen-cover3" class="screen rk-cover" onclick="rkEnterMenu()">
+  <img src="rubberneckin-assets/covers/portada3.png" alt="Tube map arrival">
+</div>
+
+<!-- Menú funcional — mapa del Tube claro, 8 estaciones clickeables -->
+<div id="screen-menu" class="screen">
+  <div class="rk-map-wrap">
+    <img src="rubberneckin-assets/covers/menu.png" alt="Rubberneckin' — tap a station to start an activity">
+    <div id="rk-hotspots"></div>
+  </div>
+</div>
+
+<!-- Postal de estación — pantalla completa y limpia, primera vez por sesión, tap para saltar -->
+<div id="screen-postcard" class="screen" onclick="rkSkipPostcard()">
+  <img id="rk-postcard-img" src="" alt="">
+</div>
+
+<!-- Pantalla de estación — banner + Coming soon -->
+<div id="screen-station" class="screen">
+  <div class="rk-station-banner" id="rk-station-banner"></div>
+  <div class="rk-station-header">
+    <span class="rk-station-icon" id="rk-station-icon"></span>
+    <div>
+      <div class="rk-station-title" id="rk-station-title"></div>
+      <div class="rk-station-sub" id="rk-station-sub"></div>
+    </div>
+    <button class="rk-back-btn" onclick="rkBackToMap()">← Map</button>
+  </div>
+  <div class="rk-station-body">
+    <span class="rk-skill-pill" id="rk-station-skill"></span>
+    <div class="rk-coming-soon">🚧 Coming soon</div>
+    <div class="rk-station-desc" id="rk-station-desc"></div>
+  </div>
+</div>
+
+<div class="rk-test-badge">Rubberneckin' — test build, not linked from the app</div>
+
+<script>
+// ══ Datos de las 8 estaciones ══
+// Coordenadas de los hotspots son % del contenedor del mapa (aspect-ratio fijo 1408:768,
+// mismo tamaño que el PNG original) — estimadas a ojo sobre los roundels ya dibujados en
+// la imagen del menú. Si alguno queda desalineado al probar, avisar para ajustar el % exacto.
+const RK_STATIONS = [
+  {id:'abbey_road', icon:'🎵', name:"Abbey Road", sub:'Singing', skill:'Reading · Listening',
+    img:'rubberneckin-assets/stations/abbey_road.jpg',
+    desc:'Lyrics, vocabulary, and the song playing — with a link to sing along.',
+    left:50.4, top:48.6, w:11.0, h:20.0},
+  {id:'electric_cinema', icon:'🎬', name:'Electric Cinema', sub:'Watching', skill:'Reading',
+    img:'rubberneckin-assets/stations/electric_cinema.jpg',
+    desc:'A look at the movie — stories, posters, and culture. No mic.',
+    left:34.8, top:32.6, w:7.8, h:14.3},
+  {id:'survival_kit', icon:'🗣️', name:'Survival Kit', sub:'Surviving London', skill:'Speaking',
+    img:'rubberneckin-assets/stations/survival_kit.jpg',
+    desc:'Real survival phrases for London — practice speaking with Oliver.',
+    left:13.1, top:46.6, w:7.8, h:14.3},
+  {id:'scavenger_hunt', icon:'🕵️', name:'Scavenger Hunt', sub:'Living English Adventures', skill:'Reading',
+    img:'rubberneckin-assets/stations/scavenger_hunt.jpg',
+    desc:'A cooperative mystery for two explorers — piece the clues together.',
+    left:66.8, top:32.6, w:7.8, h:14.3},
+  {id:'match_day', icon:'⚽', name:'Match Day', sub:'Match Day', skill:'Reading',
+    img:'rubberneckin-assets/stations/match_day.jpg',
+    desc:'Premier League and England trivia, from decades of football history.',
+    left:79.7, top:37.1, w:7.8, h:14.3},
+  {id:'mind_the_gap', icon:'📮', name:'Mind the Gap', sub:'Postcard', skill:'Reading · Writing',
+    img:'rubberneckin-assets/stations/mind_the_gap.jpg',
+    desc:'A postcard from a real place in Britain — write, guess, and match.',
+    left:29.8, top:68.8, w:7.8, h:14.3},
+  {id:'mystery_picture', icon:'🧩', name:'Mystery Picture', sub:'Characters & Places', skill:'Reading',
+    img:'rubberneckin-assets/stations/mystery_picture.jpg',
+    desc:'Answer trivia about British characters and places to reveal the picture.',
+    left:66.8, top:66.2, w:7.8, h:14.3},
+  {id:'stop_look_and_listen', icon:'🎧', name:'Stop, Look & Listen', sub:'Listening', skill:'Listening',
+    img:'rubberneckin-assets/stations/stop_look_and_listen.jpg',
+    desc:'Listen closely to a short clip... what is it, and where is it from?',
+    left:84.9, top:71.0, w:7.8, h:14.3},
+];
+
+// ══ Audio de bienvenida (Sección 2.1 del concepto) ══
+// Nunca se aloja el audio — se referencia un video de YouTube (el audio lo sirve YouTube,
+// no la app), invisible, sin controles. Angel: pega acá el ID del video de "Rubberneckin'"
+// (Elvis Presley) que quieras usar — con esto vacío, el módulo funciona igual, solo sin música.
+const RK_YOUTUBE_ID = 'ub7uWTgjA1s';
+let _rkAudioFrame = null;
+
+function rkPlayWelcomeAudio(){
+  if(!RK_YOUTUBE_ID || _rkAudioFrame) return;
+  _rkAudioFrame = document.createElement('iframe');
+  _rkAudioFrame.style.cssText = 'position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;border:0;';
+  _rkAudioFrame.allow = 'autoplay';
+  _rkAudioFrame.src = `https://www.youtube.com/embed/${RK_YOUTUBE_ID}?autoplay=1&controls=0&modestbranding=1`;
+  document.body.appendChild(_rkAudioFrame);
+}
+function rkStopWelcomeAudio(){
+  if(_rkAudioFrame){_rkAudioFrame.remove();_rkAudioFrame=null;}
+}
+
+// ══ Pantalla completa ══
+// Igual que el audio, el navegador solo deja pedir fullscreen como resultado directo de
+// un click real del usuario — por eso se dispara en el mismo tap de Portada 1. Si falla o
+// no está disponible (ej. Safari de iPhone/iPad no soporta este API), falla en silencio y
+// el módulo sigue funcionando normal, solo sin ocultar los bordes del navegador.
+function rkEnterFullscreen(){
+  const el = document.documentElement;
+  const req = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+  if(!req) return;
+  try{
+    const p = req.call(el);
+    if(p && p.catch) p.catch(()=>{});
+  }catch(e){}
+}
+
+// ══ Navegación entre pantallas ══
+function rkGoto(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+let _rkTimer = null;
+function rkClearTimer(){ if(_rkTimer){clearTimeout(_rkTimer);_rkTimer=null;} }
+
+// Portada 1 requiere tap explícito (no auto-avanza) — el audio necesita un gesto de click
+// real del usuario para poder sonar en el navegador, así que se dispara justo acá.
+function rkAdvanceToCover2(){
+  rkClearTimer();
+  rkEnterFullscreen();
+  rkPlayWelcomeAudio();
+  rkGoto('screen-cover2');
+  _rkTimer = setTimeout(rkAdvanceToCover3, 2600);
+}
+function rkAdvanceToCover3(){
+  rkClearTimer();
+  rkGoto('screen-cover3');
+  _rkTimer = setTimeout(rkEnterMenu, 2600);
+}
+function rkEnterMenu(){
+  rkClearTimer();
+  rkStopWelcomeAudio();
+  sessionStorage.setItem('rk_intro_seen','1');
+  rkGoto('screen-menu');
+}
+
+let rkCurrentStation = null;
+
+function rkEnterStation(id){
+  const st = RK_STATIONS.find(s=>s.id===id);
+  if(!st) return;
+  rkCurrentStation = st;
+  const seenKey = 'rk_station_seen_' + id;
+  if(sessionStorage.getItem(seenKey) === '1'){
+    rkRenderStation(st);
+    rkGoto('screen-station');
+  } else {
+    document.getElementById('rk-postcard-img').src = st.img;
+    rkGoto('screen-postcard');
+    rkClearTimer();
+    _rkTimer = setTimeout(rkSkipPostcard, 2800);
+  }
+}
+function rkSkipPostcard(){
+  rkClearTimer();
+  if(rkCurrentStation) sessionStorage.setItem('rk_station_seen_' + rkCurrentStation.id, '1');
+  rkRenderStation(rkCurrentStation);
+  rkGoto('screen-station');
+}
+function rkRenderStation(st){
+  if(!st) return;
+  document.getElementById('rk-station-banner').style.backgroundImage = `url('${st.img}')`;
+  document.getElementById('rk-station-icon').textContent = st.icon;
+  document.getElementById('rk-station-title').textContent = st.name;
+  document.getElementById('rk-station-sub').textContent = st.sub;
+  document.getElementById('rk-station-skill').textContent = st.skill;
+  document.getElementById('rk-station-desc').textContent = st.desc;
+}
+function rkBackToMap(){
+  rkGoto('screen-menu');
+}
+
+// ══ Construye los hotspots clickeables sobre el mapa ══
+function rkRenderHotspots(){
+  const wrap = document.getElementById('rk-hotspots');
+  wrap.innerHTML = RK_STATIONS.map(st => `
+    <button class="rk-hotspot" title="${st.name}" aria-label="${st.name}"
+      style="left:${st.left}%;top:${st.top}%;width:${st.w}%;height:${st.h}%"
+      onclick="rkEnterStation('${st.id}')"></button>
+  `).join('');
+}
+
+// ══ Arranque ══
+document.addEventListener('DOMContentLoaded', () => {
+  rkRenderHotspots();
+  if(sessionStorage.getItem('rk_intro_seen') === '1'){
+    rkGoto('screen-menu'); // ya vio la secuencia de portadas esta sesión — directo al mapa
+  } else {
+    rkGoto('screen-cover1');
+  }
+});
+</script>
+</body>
+</html>
