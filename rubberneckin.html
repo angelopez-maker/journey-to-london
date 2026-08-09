@@ -13,23 +13,32 @@
     hacia este archivo desde ninguna otra pantalla de la app — solo se llega
     por URL directa. Cero cambios en index.html ni en server.js.
 
-    Alcance de esta primera versión (confirmado con Angel): SOLO navegación +
-    arte. Secuencia de portadas → mapa del Tube clickeable → postal de cada
-    estación → banner + "Coming soon". Ninguna de las 8 estaciones tiene
-    mecánica real todavía — eso queda para una siguiente pasada, una vez que
-    Angel valide que la navegación y el arte se sienten bien.
+    Alcance de esta primera versión (confirmado con Angel): navegación + arte
+    completos, más la PRIMERA estación con mecánica real — Survival Kit
+    (8 agosto, noche). Las otras 7 estaciones siguen en "Coming soon", a la
+    espera de su propia pasada.
 
     Paleta, tipografías y patrón de pantallas (.screen/.screen.active)
     tomados directo de index.html para que se sienta parte de la misma app.
-    Cuando se construya el contenido real de cada estación, reutilizar los
-    motores ya existentes en index.html (no reinventar — Principio 12):
-      - Mic/Whisper:      micStart() / micStopAndTranscribe() / micReset()  (línea ~932)
-      - TTS voz Oliver:   ttsSpeak() / speak()                              (línea ~1524)
-      - Comodines PET:    _petComodinReset() / petComodin()                 (línea ~6328)
-      - Toast:            showToast()                                      (línea ~4034)
-      - Chat/IA:          callClaude() → POST /api/chat                    (línea ~1160)
-      Todos disponibles vía los mismos endpoints del server (/api/chat,
-      /api/transcribe, /api/tts) sin tocarlos.
+
+    Survival Kit reutiliza el mismo PATRÓN y los mismos ENDPOINTS que ya usan
+    Fernando y Rodrigo en PET Training (Principio 12 — no reinventar), pero
+    re-implementados acá con prefijo rk*/rkSk* porque este archivo no importa
+    el <script> de index.html (son documentos HTML independientes, sin nada
+    compartido en tiempo de ejecución):
+      - Mic/Whisper:      rkMicStart()/rkMicStopAndTranscribe()/rkMicReset()
+                           — mismo patrón que micStart() (índex ~línea 932),
+                           mismo endpoint POST /api/transcribe.
+      - TTS voz Oliver:   rkTtsSpeak() — mismo patrón que ttsSpeak() (índex
+                           ~línea 1524), mismo endpoint POST /api/tts, con
+                           fallback a speechSynthesis si falla.
+      - Feedback Oliver:  rkCallClaude() — mismo patrón que callClaude()
+                           (índex ~línea 1160), mismo endpoint POST /api/chat,
+                           mismo modelo, y reutiliza la identidad de Oliver
+                           Blackwood (avatar Avatar/oliver-blackwood.png) para
+                           que se sienta el mismo personaje que ya conocen.
+      Nada de esto tocó index.html ni server.js — los endpoints se llaman
+      exactamente igual, solo cambia el archivo que los invoca.
   */
   @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&family=Inter:wght@400;500;600&display=swap');
   :root {
@@ -101,6 +110,46 @@
   .rk-coming-soon{font-family:'Orbitron',monospace;font-size:22px;font-weight:900;color:var(--text);}
   .rk-station-desc{max-width:440px;font-size:15px;line-height:1.7;color:var(--muted);}
 
+  /* ── Survival Kit — primera estación con mecánica real ── */
+  .rk-sk-wrap{display:none;flex:1;flex-direction:column;align-items:center;justify-content:flex-start;
+    padding:28px 24px;gap:14px;overflow-y:auto;width:100%;max-width:600px;margin:0 auto;text-align:left;}
+  .rk-sk-missions{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;width:100%;}
+  .rk-sk-mission-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;
+    cursor:pointer;display:flex;align-items:center;gap:12px;transition:border-color .2s,background .2s;
+    text-align:left;font-family:inherit;}
+  .rk-sk-mission-card:hover{border-color:var(--gold);background:var(--card2);}
+  .rk-sk-mission-icon{font-size:28px;flex-shrink:0;}
+  .rk-sk-mission-title{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;color:var(--text);}
+  .rk-sk-mission-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+  .rk-sk-missions-title{font-family:'Orbitron',monospace;font-size:15px;color:var(--gold2);margin-bottom:2px;}
+  .rk-sk-back{align-self:flex-start;padding:7px 14px;background:transparent;border:1px solid var(--border);
+    border-radius:8px;color:var(--muted);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:12px;
+    cursor:pointer;}
+  .rk-sk-back:hover{border-color:var(--gold);color:var(--gold2);}
+  .rk-sk-context{font-size:14px;line-height:1.6;color:var(--muted);}
+  .rk-sk-target{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;
+    display:flex;align-items:flex-start;gap:10px;width:100%;}
+  .rk-sk-target-text{flex:1;font-size:16px;line-height:1.5;color:var(--text);}
+  .rk-sk-hear-btn{background:var(--green);color:#fff;border:none;border-radius:8px;padding:6px 12px;
+    cursor:pointer;font-size:14px;flex-shrink:0;}
+  .rk-sk-mic-row{display:flex;gap:8px;width:100%;}
+  .rk-sk-mic-btn{flex:1;padding:11px;background:rgba(16,185,129,.1);border:2px solid rgba(16,185,129,.3);
+    border-radius:10px;color:var(--green);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;
+    cursor:pointer;}
+  .rk-sk-mic-btn:disabled{opacity:.6;cursor:default;}
+  .rk-sk-reset-btn{display:none;padding:11px 14px;background:var(--card2);border:2px solid var(--border);
+    border-radius:10px;color:var(--muted);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;
+    cursor:pointer;}
+  .rk-sk-transcript{font-size:13px;color:var(--muted);font-style:italic;min-height:18px;}
+  .rk-sk-feedback-btn{width:100%;padding:11px;background:var(--gold);border:none;border-radius:10px;
+    color:#1a1a0a;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer;}
+  .rk-sk-feedback-btn:disabled{opacity:.5;cursor:default;}
+  .rk-sk-oliver{display:flex;gap:10px;align-items:flex-start;background:var(--card);border:1px solid var(--border);
+    border-radius:12px;padding:12px;width:100%;}
+  .rk-sk-oliver img{width:38px;height:38px;border-radius:50%;object-fit:cover;flex-shrink:0;}
+  .rk-sk-oliver-name{font-weight:700;color:var(--gold2);font-size:13px;margin-bottom:4px;}
+  .rk-sk-oliver-text{font-size:13px;line-height:1.6;color:var(--text);}
+
   /* ── Debug/test badge (recordatorio de que es build de prueba) ── */
   .rk-test-badge{position:fixed;bottom:10px;right:12px;z-index:50;font-family:'Rajdhani',sans-serif;
     font-size:11px;letter-spacing:1px;color:rgba(148,163,184,.5);pointer-events:none;}
@@ -159,11 +208,14 @@
     </div>
     <button class="rk-back-btn" onclick="rkBackToMap()">← Map</button>
   </div>
-  <div class="rk-station-body">
+  <div class="rk-station-body" id="rk-station-body">
     <span class="rk-skill-pill" id="rk-station-skill"></span>
     <div class="rk-coming-soon">🚧 Coming soon</div>
     <div class="rk-station-desc" id="rk-station-desc"></div>
   </div>
+  <!-- Survival Kit — primera estación con mecánica real (8 agosto). Oculto para las otras
+       7 estaciones, que siguen mostrando #rk-station-body de arriba ("Coming soon"). -->
+  <div class="rk-sk-wrap" id="rk-sk-wrap"></div>
 </div>
 
 <div class="rk-test-badge">Rubberneckin' — test build, not linked from the app</div>
@@ -398,9 +450,269 @@ function rkRenderStation(st){
   document.getElementById('rk-station-sub').textContent = st.sub;
   document.getElementById('rk-station-skill').textContent = st.skill;
   document.getElementById('rk-station-desc').textContent = st.desc;
+
+  // Survival Kit es la única de las 8 con mecánica real — el resto sigue mostrando
+  // el bloque genérico "Coming soon" (#rk-station-body) sin ningún cambio.
+  const isSurvival = st.id === 'survival_kit';
+  document.getElementById('rk-station-body').style.display = isSurvival ? 'none' : 'flex';
+  document.getElementById('rk-sk-wrap').style.display = isSurvival ? 'flex' : 'none';
+  if(isSurvival) rkSkShowMissions();
 }
 function rkBackToMap(){
+  if(rkMicIsRecording()) rkMicReset(); // no dejar una grabación colgando si se sale a mitad de camino
   rkGoto('screen-menu');
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// SURVIVAL KIT — primera estación con mecánica real (8 de agosto, noche)
+// Única de las 8 con Speaking. v1 acordada con Angel: 4-5 escenarios reales de
+// supervivencia en Londres, sin evaluar pronunciación (igual criterio que
+// Show & Tell oral) — el feedback de Oliver se enfoca en vocabulario/gramática/
+// si el mensaje se entendería, nunca en cómo sonó, porque un transcript de
+// Whisper no lleva esa información (mismo argumento que evaluatePETSpeaking()
+// en index.html, línea ~7407).
+// ══════════════════════════════════════════════════════════════════════════
+const RK_SK_SCENARIOS = [
+  {id:'hello', icon:'👋', title:'Say hello', sub:'Meeting someone',
+    context:'You just landed at Heathrow Airport. A friendly local smiles and says hello.',
+    target:'Hello! My name is ___. Nice to meet you!'},
+  {id:'time', icon:'🕐', title:'Ask the time', sub:'Near Big Ben',
+    context:"You're standing next to Big Ben, but you forgot your watch.",
+    target:'Excuse me, what time is it, please?'},
+  {id:'directions', icon:'🧭', title:'Ask for directions', sub:'A bit lost',
+    context:"You're trying to find Abbey Road, but the streets are confusing.",
+    target:'Excuse me, how do I get to Abbey Road, please?'},
+  {id:'food', icon:'🍟', title:'Order food', sub:'At a café',
+    context:"You're hungry! You're at a small café near Camden Market.",
+    target:'Hello! Can I have a chicken sandwich and a lemonade, please?'},
+  {id:'airport', icon:'🛂', title:'At the airport', sub:'Passport control',
+    context:'An officer at passport control asks why you are visiting the UK.',
+    target:"I'm here on holiday, for two weeks, with my family."},
+];
+let _rkSkCurrent = null;
+let _rkSkTranscript = '';
+
+function rkSkShowMissions(){
+  if(rkMicIsRecording()) rkMicReset();
+  _rkSkCurrent = null;
+  _rkSkTranscript = '';
+  const wrap = document.getElementById('rk-sk-wrap');
+  wrap.innerHTML = `
+    <div class="rk-sk-missions-title">🗣️ Pick a mission</div>
+    <div class="rk-sk-missions">
+      ${RK_SK_SCENARIOS.map(sc => `
+        <button class="rk-sk-mission-card" onclick="rkSkOpen('${sc.id}')">
+          <span class="rk-sk-mission-icon">${sc.icon}</span>
+          <span>
+            <div class="rk-sk-mission-title">${sc.title}</div>
+            <div class="rk-sk-mission-sub">${sc.sub}</div>
+          </span>
+        </button>
+      `).join('')}
+    </div>`;
+}
+
+function rkSkOpen(id){
+  const sc = RK_SK_SCENARIOS.find(s => s.id === id);
+  if(!sc) return;
+  if(rkMicIsRecording()) rkMicReset();
+  _rkSkCurrent = sc;
+  _rkSkTranscript = '';
+  const wrap = document.getElementById('rk-sk-wrap');
+  wrap.innerHTML = `
+    <button class="rk-sk-back" onclick="rkSkShowMissions()">← Missions</button>
+    <div class="rk-sk-context">${rkEscapeHtml(sc.context)}</div>
+    <div class="rk-sk-target">
+      <span class="rk-sk-target-text">${rkEscapeHtml(sc.target)}</span>
+      <button class="rk-sk-hear-btn" onclick="rkSkHear()" title="Hear it">▶</button>
+    </div>
+    <div class="rk-sk-mic-row">
+      <button class="rk-sk-mic-btn" id="rk-sk-mic-btn" onclick="rkSkMicToggle()">🎤 Record your try</button>
+      <button class="rk-sk-reset-btn" id="rk-sk-reset-btn" onclick="rkSkMicReset()">🔄</button>
+    </div>
+    <div class="rk-sk-transcript" id="rk-sk-transcript"></div>
+    <button class="rk-sk-feedback-btn" id="rk-sk-feedback-btn" onclick="rkSkGetFeedback()" disabled>🗣️ Get feedback from Oliver</button>
+    <div id="rk-sk-oliver-area"></div>`;
+}
+
+function rkSkHear(){
+  if(_rkSkCurrent) rkTtsSpeak(_rkSkCurrent.target);
+}
+
+async function rkSkMicToggle(){
+  const btn = document.getElementById('rk-sk-mic-btn');
+  const resetBtn = document.getElementById('rk-sk-reset-btn');
+  const tx = document.getElementById('rk-sk-transcript');
+  const fbBtn = document.getElementById('rk-sk-feedback-btn');
+  if(!rkMicIsRecording()){
+    btn.style.background = 'rgba(239,68,68,.2)'; btn.style.borderColor = '#ef4444'; btn.textContent = '🔴 Stop recording';
+    resetBtn.style.display = 'block';
+    tx.textContent = 'Listening... click "Stop recording" when done.';
+    fbBtn.disabled = true;
+    rkMicStart().catch(() => { tx.textContent = 'Mic not available — check permissions.'; });
+  } else {
+    btn.style.background = 'rgba(16,185,129,.1)'; btn.style.borderColor = 'rgba(16,185,129,.3)';
+    btn.textContent = '🎤 Record your try'; btn.disabled = true;
+    resetBtn.style.display = 'none';
+    tx.textContent = 'Transcribing...';
+    const text = await rkMicStopAndTranscribe();
+    _rkSkTranscript = text || '';
+    tx.textContent = text ? `"${text}"` : '(no speech detected — try again)';
+    btn.disabled = false;
+    fbBtn.disabled = !text;
+  }
+}
+
+function rkSkMicReset(){
+  if(!rkMicReset()) return;
+  const btn = document.getElementById('rk-sk-mic-btn');
+  const resetBtn = document.getElementById('rk-sk-reset-btn');
+  const tx = document.getElementById('rk-sk-transcript');
+  const fbBtn = document.getElementById('rk-sk-feedback-btn');
+  btn.style.background = 'rgba(16,185,129,.1)'; btn.style.borderColor = 'rgba(16,185,129,.3)'; btn.textContent = '🎤 Record your try';
+  resetBtn.style.display = 'none';
+  tx.textContent = '';
+  fbBtn.disabled = true;
+  _rkSkTranscript = '';
+}
+
+function rkSkGetFeedback(){
+  if(!_rkSkCurrent || !_rkSkTranscript) return;
+  const area = document.getElementById('rk-sk-oliver-area');
+  const oliverHtml = inner => `<div class="rk-sk-oliver"><img src="Avatar/oliver-blackwood.png" alt="Oliver Blackwood">
+    <div><div class="rk-sk-oliver-name">Oliver Blackwood</div><div class="rk-sk-oliver-text">${inner}</div></div></div>`;
+  area.innerHTML = oliverHtml('Reading what you said...');
+  const prompt = `You are Oliver Blackwood, a friendly Ravenclaw student from Hogwarts, giving quick spoken-English feedback to a Chilean kid (somewhere between 9 and 12 years old) practicing survival English phrases for a trip to London.
+
+SETTING (stay strictly inside this): present-day London, England. If money/currency comes up for any reason, it is always pounds sterling (£), never dollars.
+
+Scenario: ${_rkSkCurrent.context}
+Target phrase they were trying to say: "${_rkSkCurrent.target}"
+What they actually said (transcribed with Whisper from their spoken audio): "${_rkSkTranscript}"
+
+IMPORTANT — the transcript above is a raw, unmoderated transcription of whatever a child said out loud. Kids get silly, go off-script, or Whisper mis-hears them sometimes.
+
+You must NEVER:
+- Invent places, facts, or trivia beyond this specific scenario — you are reacting to their attempt, not teaching new facts.
+- Introduce any currency other than pounds sterling (£).
+- Change, reinterpret, or add to the mission/target phrase.
+- Repeat, quote, or otherwise engage with content that is off-topic, nonsensical, or inappropriate — if the transcript is any of those, just give a light, friendly nudge back to the target phrase (e.g. "Let's give it another try with...").
+- Scold, lecture, moralize, or explain why something was wrong to say.
+- Use bad language yourself, no matter what the transcript contains.
+- Break character as Oliver Blackwood, or mention that you are an AI.
+
+If it's a genuine, on-topic attempt: give warm, encouraging feedback in 2-3 short sentences, in simple English. Do NOT comment on pronunciation or accent — you only have a text transcript, not audio, so that information doesn't exist. Focus only on whether the message would be understood, vocabulary, and grammar. If they said something very different from the target, gently model the correct phrase without making them feel bad. Keep it casual and fun, like a friendly older kid, not a teacher grading an exam. Reply with plain text only, no JSON, no markdown.`;
+  rkCallClaude(prompt, 300)
+    .then(text => { area.innerHTML = oliverHtml(rkEscapeHtml(text.trim())); })
+    .catch(() => { area.innerHTML = oliverHtml("Oops — I couldn't reach the library right now. Try again in a moment!"); });
+}
+
+// ── Mic/Whisper — mismo patrón que micStart()/micStopAndTranscribe()/micReset() de index.html
+// (línea ~932), re-implementado acá porque este archivo no comparte script con index.html.
+// Mismo endpoint POST /api/transcribe, sin tocarlo.
+let _rkMicRecorder = null, _rkMicChunks = [], _rkMicStream = null, _rkMicBusy = false;
+function rkMicIsRecording(){ return !!(_rkMicRecorder && _rkMicRecorder.state === 'recording'); }
+async function rkMicStart(){
+  if(_rkMicBusy || rkMicIsRecording()) return;
+  _rkMicBusy = true;
+  try{
+    _rkMicStream = await navigator.mediaDevices.getUserMedia({audio:true});
+    _rkMicChunks = [];
+    const mimeType = (window.MediaRecorder && MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) ? 'audio/webm;codecs=opus' : 'audio/webm';
+    _rkMicRecorder = new MediaRecorder(_rkMicStream, {mimeType});
+    _rkMicRecorder.ondataavailable = e => { if(e.data && e.data.size > 0) _rkMicChunks.push(e.data); };
+    _rkMicRecorder.start();
+  } finally {
+    _rkMicBusy = false;
+  }
+}
+function rkMicStopAndTranscribe(){
+  return new Promise(resolve => {
+    if(!rkMicIsRecording()){ resolve(''); return; }
+    const mimeType = _rkMicRecorder.mimeType || 'audio/webm';
+    _rkMicRecorder.onstop = async () => {
+      if(_rkMicStream){ _rkMicStream.getTracks().forEach(t => t.stop()); _rkMicStream = null; }
+      const blob = new Blob(_rkMicChunks, {type:mimeType});
+      _rkMicChunks = [];
+      if(blob.size < 500){ resolve(''); return; }
+      try{
+        const b64 = await new Promise((res, rej) => {
+          const reader = new FileReader();
+          reader.onloadend = () => res(String(reader.result).split(',')[1]);
+          reader.onerror = rej;
+          reader.readAsDataURL(blob);
+        });
+        const r = await fetch('/api/transcribe', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({audio:b64, mimeType})
+        });
+        const data = await r.json();
+        resolve((data.text || '').trim());
+      }catch(e){
+        rkDebugLog('transcripción falló — ' + e);
+        resolve('');
+      }
+    };
+    try{ _rkMicRecorder.stop(); }catch(e){ resolve(''); }
+  });
+}
+function rkMicReset(){
+  if(_rkMicRecorder && _rkMicRecorder.state === 'recording'){
+    _rkMicRecorder.onstop = null;
+    try{ _rkMicRecorder.stop(); }catch(e){}
+  }
+  if(_rkMicStream){ _rkMicStream.getTracks().forEach(t => t.stop()); _rkMicStream = null; }
+  _rkMicChunks = [];
+  _rkMicRecorder = null;
+  return true;
+}
+
+// ── TTS voz Oliver — mismo patrón que ttsSpeak() de index.html (línea ~1524), mismo endpoint
+// POST /api/tts, con el mismo fallback a speechSynthesis si la llamada falla.
+const RK_OLIVER_TTS_INSTRUCTIONS = 'Speak as an upbeat, enthusiastic British teenager, around 16-18 years old — energetic and playful, like a fun older brother. Clear pronunciation for a young English learner, natural conversational pace.';
+let _rkTtsAudio = null;
+async function rkTtsSpeak(text){
+  if(_rkTtsAudio){ try{ _rkTtsAudio.pause(); }catch(e){} _rkTtsAudio = null; }
+  if(window.speechSynthesis) window.speechSynthesis.cancel();
+  if(!text || !text.trim()) return;
+  try{
+    const r = await fetch('/api/tts', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({text, instructions: RK_OLIVER_TTS_INSTRUCTIONS})
+    });
+    if(!r.ok) throw new Error('tts http ' + r.status);
+    const data = await r.json();
+    if(!data.audio) throw new Error('no audio');
+    const audio = new Audio(`data:${data.mimeType || 'audio/mpeg'};base64,${data.audio}`);
+    _rkTtsAudio = audio;
+    audio.onended = () => { if(_rkTtsAudio === audio) _rkTtsAudio = null; };
+    await audio.play();
+  }catch(e){
+    try{
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'en-GB'; u.rate = 0.9;
+      window.speechSynthesis.speak(u);
+    }catch(e2){ rkDebugLog('TTS falló y el fallback nativo también — ' + e2); }
+  }
+}
+
+// ── Chat/IA — mismo patrón que callClaude() de index.html (línea ~1160), mismo endpoint
+// POST /api/chat y mismo modelo, sin tocar el server.
+const RK_MODEL = 'claude-haiku-4-5-20251001';
+async function rkCallClaude(prompt, maxTokens = 500){
+  const res = await fetch('/api/chat', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({model:RK_MODEL, max_tokens:maxTokens, messages:[{role:'user', content:prompt}]})
+  });
+  if(!res.ok) throw new Error('API error ' + res.status);
+  const data = await res.json();
+  return data.content[0].text;
+}
+
+function rkEscapeHtml(text){
+  const d = document.createElement('div');
+  d.textContent = text == null ? '' : String(text);
+  return d.innerHTML;
 }
 
 // ══ Construye los hotspots clickeables sobre el mapa ══
