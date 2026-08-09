@@ -127,7 +127,11 @@
   .rk-coming-soon{font-family:'Orbitron',monospace;font-size:22px;font-weight:900;color:#1c1c30;}
   /* Fuente un poco más grande y con más peso (9 agosto v3) — el fondo quedó casi blanco puro,
      así que además del color oscuro, el texto necesita más presencia para no perderse. */
-  .rk-station-desc{max-width:440px;font-size:16px;font-weight:500;line-height:1.7;color:#3a3a52;}
+  /* Marco con fondo blanco (9 agosto v4) — a pedido de Angel: en vez de agrandar más la letra,
+     un recuadro claro separa el texto del mapa de fondo detrás. */
+  .rk-station-desc{max-width:440px;font-size:16px;font-weight:500;line-height:1.7;color:#3a3a52;
+    background:rgba(255,255,255,.92);border:1px solid rgba(40,40,70,.12);border-radius:12px;
+    padding:16px 20px;box-shadow:0 4px 16px rgba(20,20,40,.08);}
 
   /* ── Survival Kit — primera estación con mecánica real ──
      Rediseñado el 9 de agosto (2da ronda de feedback de Angel, ver comentario junto al JS):
@@ -171,6 +175,8 @@
     border-radius:10px;color:var(--muted);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;
     cursor:pointer;}
   .rk-sk-transcript{font-size:14px;font-weight:500;color:#3a3a52;font-style:italic;min-height:18px;}
+  .rk-sk-transcript:not(:empty){background:rgba(255,255,255,.92);border:1px solid rgba(40,40,70,.12);
+    border-radius:10px;padding:10px 14px;box-shadow:0 4px 16px rgba(20,20,40,.08);}
   .rk-sk-actions{display:flex;gap:8px;width:100%;}
   .rk-sk-primary-btn{flex:1;padding:13px;background:var(--gold);border:none;border-radius:10px;
     color:#1a1a0a;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer;}
@@ -180,6 +186,16 @@
     border-radius:10px;color:#3a3a55;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;
     cursor:pointer;}
   .rk-sk-secondary-btn:hover{border-color:var(--gold);color:#8a5a06;}
+  /* Botón de arranque — más grande y destacado que un botón de acción normal (9 agosto, a pedido
+     de Angel: "muy pequeño... lo haría más grande y destacado"), con brillo sutil para que se
+     sienta como EL botón de la pantalla, no uno más. */
+  .rk-sk-start-btn{width:100%;padding:22px;font-size:19px;
+    box-shadow:0 8px 26px rgba(245,158,11,.45);letter-spacing:.5px;}
+  /* Tarjeta blanca para texto suelto sobre el mapa (9 agosto) — a pedido de Angel: en vez de
+     agrandar más la letra, un marco con fondo sólido claro separa el texto del mapa de fondo y
+     se lee mejor sin competir con las líneas del mapa detrás. */
+  .rk-sk-card{background:rgba(255,255,255,.92);border:1px solid rgba(40,40,70,.12);
+    border-radius:12px;padding:14px 16px;box-shadow:0 4px 16px rgba(20,20,40,.08);}
 
   /* ── Debug/test badge (recordatorio de que es build de prueba) ── */
   .rk-test-badge{position:fixed;bottom:10px;right:12px;z-index:50;font-family:'Rajdhani',sans-serif;
@@ -586,7 +602,7 @@ function rkSkShowIntro(){
       <img src="Avatar/oliver-blackwood.png" alt="Oliver Blackwood">
       <div><div class="rk-sk-oliver-name">Oliver Blackwood</div><div class="rk-sk-oliver-text">Ready for 5 quick missions around London? Let's see what you've got!</div></div>
     </div>
-    <button class="rk-sk-primary-btn" style="width:100%" onclick="rkSkStartCycle()">🎒 Start Survival Kit</button>`;
+    <button class="rk-sk-primary-btn rk-sk-start-btn" onclick="rkSkStartCycle()">🎒 Start Survival Kit</button>`;
 }
 
 function rkSkStartCycle(){
@@ -681,26 +697,26 @@ function rkSkGetFeedback(){
       ${replay ? `<button class="rk-sk-hear-btn" onclick="rkSkReplay()" title="Hear it">▶</button>` : ''}
     </div>`;
   area.innerHTML = oliverHtml('Reading what you said...', false);
-  const prompt = `You are Oliver Blackwood, a friendly Ravenclaw student from Hogwarts, giving quick spoken-English feedback to a Chilean kid (somewhere between 9 and 12 years old) practicing survival English phrases for a trip to London.
+  const prompt = `You are Oliver Blackwood, a friendly Ravenclaw student from Hogwarts, giving quick spoken-English feedback to a Chilean kid (somewhere between 9 and 12 years old) practicing survival English phrases for a trip to London. You're relaxed and easygoing about it — this is meant to feel like a fun chat, never like a test.
 
 SETTING (stay strictly inside this): present-day London, England. If money/currency comes up for any reason, it is always pounds sterling (£), never dollars.
 
 Scenario: ${_rkSkCurrent.context}
-Target phrase they were trying to say: "${_rkSkCurrent.target}"
+One EXAMPLE of a natural way to respond (this is just ONE possible answer, NOT the only correct one — it's here only so you know roughly what kind of response fits the situation): "${_rkSkCurrent.target}"
 What they actually said (transcribed with Whisper from their spoken audio): "${_rkSkTranscript}"
 
-IMPORTANT — the transcript above is a raw, unmoderated transcription of whatever a child said out loud. Kids get silly, go off-script, or Whisper mis-hears them sometimes.
+GRADING PHILOSOPHY — read this carefully, it matters: you must distinguish between COMMUNICATION SUCCESS and LANGUAGE PERFECTION. Your job is to judge the former, never the latter. This is an open-ended real-life situation, not a fill-in-the-blank quiz. Many different responses are equally correct — ordering a different food or drink than the example, giving a different (but real and coherent) reason for visiting London, asking a question with different wording. Judge ONLY whether what they said is clear, grammatically reasonable, and makes sense as a response to the scenario above — NEVER mark something as wrong or "not quite it" just because it differs from the example phrase's specific content. Do not steer them toward the example's exact words or details (the exact food, the exact reason, the exact wording) — any sensible content is a correct answer. If what they said is already clear, grammatical, and appropriate, just celebrate it — do not suggest a "simpler" or "more natural" alternative purely because it's shorter or closer to the example; that's discouraging for something that was already right, and it's the single biggest thing to avoid.
 
 You must NEVER:
 - Invent places, facts, or trivia beyond this specific scenario — you are reacting to their attempt, not teaching new facts.
 - Introduce any currency other than pounds sterling (£).
-- Change, reinterpret, or add to the mission/target phrase.
-- Repeat, quote, or otherwise engage with content that is off-topic, nonsensical, or inappropriate — if the transcript is any of those, just give a light, friendly nudge back to the target phrase (e.g. "Let's give it another try with...").
+- Treat the example phrase as "the correct answer" — it's one option among many, see grading philosophy above.
+- Repeat, quote, or otherwise engage with content that is off-topic, nonsensical, or inappropriate — if the transcript is any of those, just give a light, friendly nudge back to the task (e.g. "Let's give it another try, what would you say if...").
 - Scold, lecture, moralize, or explain why something was wrong to say.
 - Use bad language yourself, no matter what the transcript contains.
 - Break character as Oliver Blackwood, or mention that you are an AI.
 
-If it's a genuine, on-topic attempt: give warm, encouraging feedback in 2-3 short sentences, in simple English. Do NOT comment on pronunciation or accent — you only have a text transcript, not audio, so that information doesn't exist. Focus only on whether the message would be understood, vocabulary, and grammar. If they said something very different from the target, gently model the correct phrase without making them feel bad. Keep it casual and fun, like a friendly older kid, not a teacher grading an exam. Reply with plain text only, no JSON, no markdown.`;
+Give warm, encouraging feedback in 2-3 short sentences, in simple English. Do NOT comment on pronunciation or accent — you only have a text transcript, not audio, so that information doesn't exist. Only offer a corrected version if there's a genuine grammar or clarity problem with what THEY said (correcting their own idea, never swapping it for the example's content) — and even then, keep it light and quick, not a lecture. Keep it casual and relaxed, like a friendly older kid, never like a teacher grading an exam. Reply with plain text only, no JSON, no markdown.`;
   rkCallClaude(prompt, 300)
     .then(text => {
       const clean = text.trim();
@@ -831,7 +847,10 @@ function rkMicRelease(){
 
 // ── TTS voz Oliver — mismo patrón que ttsSpeak() de index.html (línea ~1524), mismo endpoint
 // POST /api/tts, con el mismo fallback a speechSynthesis si la llamada falla.
-const RK_OLIVER_TTS_INSTRUCTIONS = 'Speak as an upbeat, enthusiastic British teenager, around 16-18 years old — energetic and playful, like a fun older brother. Clear pronunciation for a young English learner, natural conversational pace.';
+// Reforzado el 9 de agosto — Angel notó que sonaba más americano (tipo Boston) que británico.
+// El preset de voz ('echo') no controla el acento en sí — la única palanca real es este texto
+// de "instructions", así que se hace explícito y repetido (no alcanza con decirlo una vez).
+const RK_OLIVER_TTS_INSTRUCTIONS = 'Speak with a natural British English accent (like a friendly London teenager) — this is essential: NOT American, avoid any American vowel sounds, rhotic R\'s, or American intonation patterns. Upbeat and playful but relaxed and easygoing, never rushed, around 16-18 years old, like a fun older brother. Clear pronunciation for a young English learner, natural conversational pace.';
 let _rkTtsAudio = null;
 async function rkTtsSpeak(text){
   if(_rkTtsAudio){ try{ _rkTtsAudio.pause(); }catch(e){} _rkTtsAudio = null; }
