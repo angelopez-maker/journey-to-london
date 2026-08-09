@@ -105,6 +105,11 @@
   .rk-test-badge{position:fixed;bottom:10px;right:12px;z-index:50;font-family:'Rajdhani',sans-serif;
     font-size:11px;letter-spacing:1px;color:rgba(148,163,184,.5);pointer-events:none;}
 </style>
+<!-- Precarga la librería de YouTube desde que se abre el link (esto sí está permitido sin
+     clic — solo baja un script, no reproduce nada) para que cuando Angel toque "Tap to
+     begin" el audio arranque casi al instante en vez de con el desfase de tener que
+     cargar la librería recién en ese momento. -->
+<script src="https://www.youtube.com/iframe_api" async></script>
 </head>
 <body>
 
@@ -128,7 +133,7 @@
 <div id="screen-menu" class="screen">
   <div class="rk-menu-controls">
     <button class="rk-icon-btn" onclick="rkEnterFullscreen()" title="Fullscreen">⛶</button>
-    <button class="rk-icon-btn" onclick="rkToggleAudioManual()" title="Music">🔊</button>
+    <button class="rk-icon-btn" id="rk-audio-btn" onclick="rkToggleAudioManual()" title="Mute/unmute music">🔊</button>
   </div>
   <div class="rk-map-wrap">
     <img src="rubberneckin-assets/covers/menu.png" alt="Rubberneckin' — tap a station to start an activity">
@@ -254,6 +259,7 @@ function rkPlayWelcomeAudio(){
           onReady: e => {
             try{ e.target.unMute(); e.target.setVolume(70); e.target.playVideo(); }
             catch(err){ rkDebugLog('audio onReady falló — ' + err); }
+            rkUpdateAudioButtonIcon();
           },
           onError: e => rkDebugLog('YouTube player error, código ' + e.data)
         }
@@ -269,11 +275,22 @@ function rkUnmuteWelcomeAudio(){
 function rkStopWelcomeAudio(){
   if(_rkPlayer){ try{ _rkPlayer.stopVideo(); }catch(e){} }
 }
-// Botón 🔊 del menú — respaldo manual garantizado: si el audio nunca arrancó, lo arranca;
-// si ya está sonando pero mudo, lo desmutea. Al ser un click directo del usuario sobre
-// esta misma página (no dentro del iframe de YouTube), siempre debería funcionar.
+// Ícono del botón 🔊/🔇 del menú, reflejando el estado real del reproductor.
+function rkUpdateAudioButtonIcon(){
+  const btn = document.getElementById('rk-audio-btn');
+  if(!btn || !_rkPlayer) return;
+  try{ btn.textContent = _rkPlayer.isMuted() ? '🔇' : '🔊'; }catch(e){}
+}
+// Botón del menú — antes de que arranque, lo arranca (respaldo si el autoplay falló);
+// una vez sonando, funciona como mute/unmute real, útil para cortar la música al entrar
+// a una estación con Speaking o Listening donde de verdad molesta.
 function rkToggleAudioManual(){
-  rkUnmuteWelcomeAudio();
+  if(!_rkPlayer){ rkPlayWelcomeAudio(); return; }
+  try{
+    if(_rkPlayer.isMuted()){ _rkPlayer.unMute(); _rkPlayer.setVolume(70); _rkPlayer.playVideo(); }
+    else{ _rkPlayer.mute(); }
+  }catch(err){ rkDebugLog('toggle de audio falló — ' + err); }
+  rkUpdateAudioButtonIcon();
 }
 
 // ══ Pantalla completa ══
@@ -308,23 +325,28 @@ function rkGoto(id){
 let _rkTimer = null;
 function rkClearTimer(){ if(_rkTimer){clearTimeout(_rkTimer);_rkTimer=null;} }
 
-// Portada 1 requiere tap explícito (no auto-avanza) — el audio necesita un gesto de click
-// real del usuario para poder sonar en el navegador, así que se dispara justo acá.
+// Portada 1 requiere tap explícito (no auto-avanza) — fullscreen y audio necesitan un
+// gesto de click real del usuario para funcionar en el navegador, así que ambos se
+// disparan justo acá. Fullscreen va primero y solo (sin nada más en el mismo instante) —
+// crear el reproductor de YouTube justo al lado, en el mismo tick, parece ser lo que
+// hacía que el navegador ignorara el pedido de fullscreen en algunos casos; ahora el
+// audio se dispara con un pequeño delay (sigue contando como parte del mismo gesto).
 function rkAdvanceToCover2(){
   rkClearTimer();
   rkEnterFullscreen();
-  rkPlayWelcomeAudio();
+  setTimeout(rkPlayWelcomeAudio, 50);
   rkGoto('screen-cover2');
-  _rkTimer = setTimeout(rkAdvanceToCover3, 2200);
+  _rkTimer = setTimeout(rkAdvanceToCover3, 2700);
 }
 function rkAdvanceToCover3(){
   rkClearTimer();
   rkGoto('screen-cover3');
-  _rkTimer = setTimeout(rkEnterMenu, 2200);
+  _rkTimer = setTimeout(rkEnterMenu, 2700);
 }
 function rkEnterMenu(){
   rkClearTimer();
-  rkStopWelcomeAudio();
+  // A pedido de Angel (tras probar): la música sigue sonando de fondo, independiente
+  // de la pantalla en la que se esté — ya no se corta al llegar al menú.
   sessionStorage.setItem('rk_intro_seen','1');
   rkGoto('screen-menu');
 }
@@ -343,7 +365,7 @@ function rkEnterStation(id){
     document.getElementById('rk-postcard-img').src = st.img;
     rkGoto('screen-postcard');
     rkClearTimer();
-    _rkTimer = setTimeout(rkSkipPostcard, 2800);
+    _rkTimer = setTimeout(rkSkipPostcard, 3000);
   }
 }
 function rkSkipPostcard(){
