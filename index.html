@@ -736,7 +736,7 @@
           <div class="rqn-sub">World Cup · Games · Trivia</div>
           <div class="rqn-badge" style="background:rgba(139,92,246,.15);color:#a78bfa;border-color:rgba(139,92,246,.3)">Speak in English ⚡</div>
         </button>
-        <button class="rqn-btn" onclick="showToast('🏆 Earn your first trophy to unlock Talking!')" style="border-color:rgba(255,255,255,.1);opacity:.45;cursor:not-allowed;filter:grayscale(.6)">
+        <button class="rqn-btn" id="talking-nav-btn" onclick="showToast('🏆 Earn your first trophy to unlock Talking!')" style="border-color:rgba(255,255,255,.1);opacity:.45;cursor:not-allowed;filter:grayscale(.6)">
           <div class="rqn-icon">🎤</div>
           <div class="rqn-cat" style="color:rgba(255,255,255,.3)">TALKING</div>
           <div class="rqn-title" style="color:rgba(255,255,255,.4)">English Tutor</div>
@@ -1753,7 +1753,7 @@ function updateTopbar(){
   if(fqn)fqn.style.display=p==='fernando'?'block':'none';
   if(dls)dls.style.display=(p==='rodrigo'||p==='fernando')?'none':'block';
   if(p==='rodrigo')updateRodrigoQuickNav();
-  if(p==='fernando')updateFerWeekCard();
+  if(p==='fernando'){updateFerWeekCard();updateTalkingUnlock();}
   // Both hubs hide modules grid, test button, and Fernando-specific elements
   ['modules-label-el','modules-grid-el','test-btn-el','pet-btn-hero','btn-bookclub','btn-vocabeng'].forEach(id=>{
     const el=document.getElementById(id);
@@ -2318,6 +2318,27 @@ const QA_SINGLE_ANSWER_RULE = `Every question must have exactly one clear, factu
 // Dato verificado por búsqueda web el 10 de agosto: España campeón, venció 1-0 a Argentina en la
 // final (gol de Ferrán Torres en la prórroga) — su segundo título, tras 2010.
 const QA_WORLDCUP_2026_FACT = `Confirmed fact you must use if you reference the 2026 World Cup: Spain won the 2026 FIFA World Cup, beating Argentina 1-0 in the final (Ferrán Torres scored the winning goal in extra time) — Spain's second World Cup title, after 2010. Do not use any other outcome for 2026.`;
+
+// 13 agosto: hallazgo de Angel — el Q&A de World Cup siempre abría con la pregunta del Mundial
+// 1966 (el dato más famoso/típico en inglés), volviendo a Oliver predecible/robótico. No era
+// caché (cada sesión genera preguntas nuevas vía IA) — era sesgo del modelo: a diferencia de
+// videogames/generalTrivia, que ENUMERAN sus categorías exactas en el prompt, World Cup solo
+// daba un rango abierto ("1966-2026") y dejaba la elección a criterio del modelo, que por
+// defecto regresa al dato más típico. Mismo patrón de "no confiar en aleatoriedad del modelo"
+// que Rubberneckin' (Principio 9) — la solución es elegir por código, no pedirle al modelo que
+// varíe solo.
+const QA_WORLDCUP_YEARS=[1966,1970,1974,1978,1982,1986,1990,1994,1998,2002,2006,2010,2014,2018,2022,2026];
+function qaShuffle(arr){
+  const a=arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+function qaPickWorldCupYears(n=5){
+  return qaShuffle(QA_WORLDCUP_YEARS).slice(0,n).sort((a,b)=>a-b);
+}
 const QA_TOPICS={
   worldcup:{id:'worldcup',icon:'⚽',label:'World Cup',color:'#22c55e',colorBg:'rgba(34,197,94,.08)',colorBorder:'rgba(34,197,94,.3)',desc:'Football history · Past tenses · Numbers',grammar:'Past Simple & Present Perfect',
     prompt:`You are Oliver Blackwood, a 5th year Ravenclaw student at Hogwarts. Generate exactly 7 World Cup football trivia questions for a ${getAge()}-year-old English learner (B1 PET level). Mix easy and medium difficulty. Cover different World Cups (1966-2026).
@@ -2391,10 +2412,15 @@ async function startQASession(topicId){
   const area=document.getElementById('module-content-area');
   area.innerHTML=`<div style="max-width:600px;margin:0 auto;background:#111214;border-radius:14px;padding:16px"><div style="background:#2b2d31;border-radius:12px;padding:16px;border:1px solid #1e1f22"><div style="display:flex;align-items:center;gap:12px"><img src="Avatar/oliver-blackwood.png" style="width:44px;height:44px;border-radius:50%;object-fit:cover;flex-shrink:0" alt="Oliver"><div><div style="font-weight:700;color:#c9d1d9;font-size:14px">Oliver Blackwood</div><div style="color:#8b949e;font-size:13px">Consulting the Hogwarts library... ⚡</div></div></div></div></div>`;
   try{
-    const raw=await callClaude(topic.prompt);
+    let promptText=topic.prompt;
+    if(topicId==='worldcup'){
+      const years=qaPickWorldCupYears(5);
+      promptText+=`\nBase your 7 questions specifically on these World Cups, spreading questions across them (not just one): ${years.join(', ')}. Do not default to only the most famous one — mix in the others too.`;
+    }
+    const raw=await callClaude(promptText);
     const questions=parseJSON(raw);
     if(!Array.isArray(questions)||questions.length===0)throw new Error('bad');
-    window._qaSession={questions:await verifyQATrivia(questions,topic.label),topicId,topic,results:[]};
+    window._qaSession={questions:await verifyQATrivia(questions,topic.label),topicId,topic,results:[],answered:{}};
     renderQAQuestion(0);
   }catch(e){area.innerHTML=`<div class="error-box">⚠️ Oliver couldn't reach the library. Try again!<br><br><button class="submit-btn" onclick="openQATrivia()">← Back</button></div>`;}
 }
@@ -2509,16 +2535,27 @@ function qaMicReset(){
   if(el)el.textContent='Your answer will appear here...';
 }
 
+// 13 agosto: hallazgo de Fer — el botón Send no tenía candado, así que copiando la respuesta
+// ideal que Oliver muestra y reenviando (incluso con un clicker automático) se podía sumar km
+// sin límite en la misma pregunta. El problema real no era escribir vs. hablar — era que
+// qaSubmitAnswer se podía llamar cualquier cantidad de veces para el mismo idx. Fix: un solo
+// envío válido por pregunta, con candado en el estado de la sesión (s.answered), no solo
+// visual — así ni un clicker que llame a la función directo lo puede saltar.
 async function qaSubmitAnswer(idx){
   const s=window._qaSession;if(!s)return;
+  if(!s.answered)s.answered={};
+  if(s.answered[idx])return;
   const transcript=(document.getElementById('qa-transcript')?.textContent||'').trim();
   const typed=(document.getElementById('qa-text-input')?.value||'').trim();
   const answer=(transcript&&transcript!=='Your answer will appear here...')?transcript:typed;
   if(!answer){showToast('Speak or type your answer first!');return;}
+  s.answered[idx]=true;
   const q=s.questions[idx];
   const fb=document.getElementById('qa-feedback');
   if(fb)fb.innerHTML=`<div style="color:#555;font-size:13px;padding:8px 0">⚡ Oliver is thinking...</div>`;
   const micBtn=document.getElementById('qa-mic-btn');if(micBtn)micBtn.disabled=true;
+  const sendBtn0=document.getElementById('qa-send-btn');if(sendBtn0)sendBtn0.disabled=true;
+  const inputEl0=document.getElementById('qa-text-input');if(inputEl0)inputEl0.disabled=true;
   try{
     const evalPrompt=`You are Oliver Blackwood, a Ravenclaw student at Hogwarts, giving feedback to a ${getAge()}-year-old English learner.
 Question: "${q.question}"
@@ -2552,7 +2589,13 @@ No markdown. Only the JSON object.`;
       </button>
     </div>`;
     oliverSpeak(ev.feedback);
-  }catch(e){if(fb)fb.innerHTML=`<div class="error-box">Error — <button onclick="qaSubmitAnswer(${idx})">Try again</button></div>`;}
+  }catch(e){
+    s.answered[idx]=false; // libera el candado para permitir "Try again" tras un error real
+    if(micBtn)micBtn.disabled=false;
+    if(sendBtn0)sendBtn0.disabled=false;
+    if(inputEl0)inputEl0.disabled=false;
+    if(fb)fb.innerHTML=`<div class="error-box">Error — <button onclick="qaSubmitAnswer(${idx})">Try again</button></div>`;
+  }
 }
 
 function endQASession(){
@@ -4022,6 +4065,26 @@ function getAge(){
 }
 function getLevelDesc(){return {normal:'beginner A1-A2, keep it very simple and encouraging',pro:'intermediate B1, moderately challenging',goat:'advanced B2-C1, challenging like a native speaker'}[state.level];}
 
+// 13 agosto: hallazgo de Angel — el botón de Talking en el hub de Fernando estaba SIEMPRE
+// bloqueado ("Earn your first trophy to unlock Talking!"), sin revisar el trofeo real de nadie.
+// Fix: engancharlo a state.prestige.trophies/bens (el contador real, ver addKm). Se llama al
+// cambiar de perfil y también apenas se gana un trofeo, para que se desbloquee sin recargar.
+function updateTalkingUnlock(){
+  const btn=document.getElementById('talking-nav-btn');
+  if(!btn)return;
+  const pr=state.prestige[state.profile]||{trophies:0,bens:0};
+  const unlocked=(pr.trophies>=1)||(pr.bens>=1);
+  if(unlocked){
+    btn.outerHTML=`<button class="rqn-btn" id="talking-nav-btn" onclick="openModule('talking')" style="border-color:var(--red)">
+          <div class="rqn-icon">🎤</div>
+          <div class="rqn-cat" style="color:var(--red)">TALKING</div>
+          <div class="rqn-title">English Tutor</div>
+          <div class="rqn-sub">Conversación en vivo</div>
+          <div class="rqn-badge" style="background:rgba(239,68,68,.15);color:var(--red);border-color:rgba(239,68,68,.3)">Speak in English 🎤</div>
+        </button>`;
+  }
+}
+
 // ══ KM + PRESTIGE ══
 function addKm(amount,_skipStreakBonus=false){
   if(!amount||amount<=0){updateTopbar();return;}
@@ -4041,6 +4104,7 @@ function addKm(amount,_skipStreakBonus=false){
       else showJourneyComplete('trophy');
     } else showJourneyComplete('star');
     localStorage.setItem('jtl_prestige',JSON.stringify(state.prestige));
+    if(p==='fernando')updateTalkingUnlock();
   } else {
     state.progress[p]=newKm;
     const crossed=MILESTONES.filter(m=>prev<m&&state.progress[p]>=m);
@@ -5002,7 +5066,12 @@ async function showSongScreen(idx){
   const [t,a]=all[idx];
   const done=_getDone(lvl);
   const isDone=done.includes(idx);
-  const ytQ=encodeURIComponent(`${t} ${a} official audio`);
+  // 13 agosto: link a music.youtube.com en vez de youtube.com — con la extensión Better Lyrics
+  // (ya instalada en los equipos de los niños) muestra letra sincronizada + traducción al
+  // español en línea. Mismo patrón validado primero en Abbey Road/Rubberneckin'. Se saca
+  // "official audio" de la query porque no influye en si Better Lyrics encuentra la letra (eso
+  // depende del proveedor de lyrics, no del tipo de video) — mejor dejar la búsqueda simple.
+  const ytQ=encodeURIComponent(`${t} ${a}`);
   document.getElementById('module-content-area').innerHTML=`
     <div class="sw-back-bar">
       <button class="sw-back-btn" onclick="showSongList(${lvl})">← Nivel ${lvl}</button>
@@ -5013,7 +5082,7 @@ async function showSongScreen(idx){
         <div style="font-size:26px">🎵</div>
         <div style="font-weight:700;font-size:13px;text-align:center;color:var(--text)">${t}</div>
         <div style="font-size:11px;color:var(--muted);text-align:center">${a}</div>
-        <a class="song-yt-btn" href="https://www.youtube.com/results?search_query=${ytQ}" target="_blank">▶ Escuchar en YouTube</a>
+        <a class="song-yt-btn" href="https://music.youtube.com/search?q=${ytQ}" target="_blank">🎵 Escuchar en YouTube Music</a>
         ${isDone
           ? `<div style="text-align:center;color:var(--green);font-size:12px;margin-top:6px">✓ Ya escuchada</div>`
           : `<button onclick="markSongDone(${idx})" style="margin-top:8px;width:100%;padding:8px;background:var(--green);color:#000;border:none;border-radius:10px;font-weight:700;font-size:12px;cursor:pointer">✓ Give me another!</button>`
