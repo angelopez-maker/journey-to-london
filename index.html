@@ -3065,7 +3065,12 @@ function _ketSubmitListenPart(){
     let score=0,max=0;
     parts.forEach((p,pi)=>{
       const ans=window._ketListen.answers[pi]||{};
-      if(p.id===2){Object.entries(p.answers||{}).forEach(([k,c],i)=>{max++;const given=(ans[i]||'').toLowerCase();const correct=(c||'').toLowerCase();if(given===correct||correct.includes(given))score++;});}
+      if(p.id===2){Object.entries(p.answers||{}).forEach(([k,c],i)=>{max++;const given=(ans[i]||'').toLowerCase();const correct=(c||'').toLowerCase();
+        // 14 agosto: bug encontrado en auditoría pre-examen de Fer — "correct".includes(given) da
+        // true si "given" es cadena vacía (JS: "algo".includes("") === true), así que dejar una
+        // nota en blanco se marcaba como correcta. Se exige que "given" no esté vacío antes de
+        // aceptar el match, para no inflar el puntaje real antes del examen de Cambridge.
+        if(given&&(given===correct||correct.includes(given)))score++;});}
       else{(p.items||[]).forEach((item,i)=>{max++;if(ans[i]===item.ans)score++;});}
     });
     _ketSess.listening={score,max};
@@ -7465,9 +7470,13 @@ Provide 2-3 corrections max. Be encouraging but precise.`;
     </div>`;
 
     showToast(`✏️ Writing: Band ${band}/5 — +${km} km!`);
-    if(isRevision){
-      setTimeout(()=>showPETSessionCard(_petCurrentSection?.title||'Writing',band,5,_petCurrentSection?.id),700);
-    }
+    // 14 agosto: bug encontrado en auditoría — antes esto solo se llamaba si isRevision era true,
+    // así que si el alumno no hacía clic en "Submit revised version" (que es opcional), esa parte
+    // de Writing nunca quedaba registrada en _petFullResults ni en la ficha PDF final, aunque los
+    // km sí se sumaban. _petRecordResult sobrescribe por sectionId, así que llamarlo siempre acá
+    // es seguro: si después el alumno revisa, el segundo llamado simplemente actualiza el mismo
+    // registro con la banda mejorada.
+    setTimeout(()=>showPETSessionCard(_petCurrentSection?.title||'Writing',band,5,_petCurrentSection?.id),700);
   }catch(e){fb.innerHTML=`<div class="error-box">Evaluation failed. ${e.message}</div>`;}
 }
 
