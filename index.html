@@ -7274,7 +7274,10 @@ function checkPETWp1(){
     if(!inp||!fb)return;
     const userVal=_normAns(inp.value);
     const correct=_normAns(it.answer);
-    const isOk=userVal===correct||userVal.includes(correct)||correct.includes(userVal);
+    // 14 agosto: mismo bug encontrado en KET Listening Parte 2 — "correct".includes(userVal) da
+    // true si userVal es cadena vacía, así que dejar la transformación en blanco se marcaba
+    // como correcta. Se exige userVal no vacío antes de aceptar cualquier match.
+    const isOk=!!userVal&&(userVal===correct||userVal.includes(correct)||correct.includes(userVal));
     if(isOk){
       score++;
       const grammarNote=it.grammar||it.rule||'';
@@ -7340,7 +7343,8 @@ function checkPETLp2(){
     const userVal=_normAns(inp.value);
     const correct=_normAns(g.answer||g.correct||'');
     const correctRaw=g.answer||g.correct||'';
-    if(userVal===correct||correct.includes(userVal)){
+    // 14 agosto: mismo bug de KET Listening Parte 2 — exigir userVal no vacío antes del match laxo.
+    if(userVal&&(userVal===correct||correct.includes(userVal))){
       score++;
       fb.innerHTML=`<span style="color:#4ade80">✅ ${correctRaw}</span>`;
       inp.style.borderColor='#4ade80';
