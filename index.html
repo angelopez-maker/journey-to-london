@@ -1839,6 +1839,16 @@ const MOVERS_CONFIRMED_MATERIAL={
     confirmedOn:'2026-08-06',
     source:'Lesson plan oficial "A1 Movers Reading and Writing Part 5" (Cambridge) — confirmado por Angel contra lo que Rodrigo ve en clases esta semana.',
     summary:`A girl named Daisy travels with her mother and father from the city to the countryside to visit her grandma and grandad. On the way there is rain and different weather. At grandma's farm, Daisy sees the farmhouse and things around it (the story mentions trucks, even though a picture in the original shows chickens — a detail worth keeping in mind if adapting). By the end of the day Daisy feels happy but tired. Key vocabulary: countryside, city, mother, father, parents, rain, house, farm, grandma, grandad, inside, outside, happy, tired.`
+  },
+  rw4:{
+    confirmedOn:'2026-08-08',
+    source:'Lesson plan oficial "A1 Movers Reading and Writing Part 4" (Cambridge) — confirmado por Angel/Rodrigo contra el Mini Mock que están viendo en el colegio esta semana ("de los delfines").',
+    summary:`A short informational text about dolphins. Dolphins are part of the whale family but smaller, with small teeth. They are very clever animals that learn things quickly, and they can make noises to "talk" to each other. Dolphins live together with their families and like to play in the water, jumping out of the water and back in again. People who sail boats say dolphins like to be near people — they sometimes swim near or alongside boats. Key vocabulary/grammar the real exam tests in the gaps: comparative "than" (smaller than), adverb of manner "quickly", phrasal verb particle "out" (jump out), relative pronoun "who" (people who sail boats), base verb form "swim".`
+  },
+  l4:{
+    confirmedOn:'2026-08-08',
+    source:'NO hay lesson plan oficial de Cambridge para Listening Part 4 cargado — este tema se reutiliza del material confirmado de R&W Part 4 (mismo Mini Mock semanal, mismo tema de delfines que ve Rodrigo), no es un texto de Listening verificado contra el colegio. Si en el futuro Angel consigue el guion real de Listening Part 4, reemplazar este resumen.',
+    summary:`Same dolphin facts as R&W Part 4: dolphins are part of the whale family, smaller than most whales, with small teeth. They are clever, learn quickly, and "talk" to each other with sounds. They live with their families, like to jump out of the water and back in, and are often friendly and curious around people and boats.`
   }
 };
 function moversConfirmedMaterial(part){ return MOVERS_CONFIRMED_MATERIAL[part]||null; }
@@ -6121,7 +6131,15 @@ function checkMoversRW3(){
 
 async function runMoversRW4(){
   showLoading('Preparing Part 4...');
-  const topicHint=`Topic: ${moversRandomTopic()}.`;
+  const confirmed=moversConfirmedMaterial('rw4');
+  // Mismo patrón que runMoversRW5(): si hay material confirmado contra lo que Rodrigo ve realmente
+  // en el colegio esta semana, se usa como ancla obligatoria (hechos/vocabulario reales) en vez del
+  // tema al azar — pero pidiendo a la IA redactar un texto NUEVO cada vez sobre esa misma base, nunca
+  // una copia palabra por palabra del material original (evita derechos de autor y memorización).
+  const topicHint=confirmed
+    ? `CONFIRMED CLASSROOM MATERIAL — this is what the student is actually studying in school this week (${confirmed.source}). Base your text on these exact facts/vocabulary: ${confirmed.summary}
+IMPORTANT: write an ORIGINAL text each time using this same topic, these same facts and this same vocabulary, in your own words — never a word-for-word copy of any existing text. Where possible, test similar grammar categories in the gaps to the ones listed (comparative, adverb of manner, phrasal verb particle, relative pronoun, base verb form) — vary which gap tests which category each time.`
+    : `Topic: ${moversRandomTopic()}.`;
   const prompt=`You are a Cambridge A1 Movers Reading & Writing Part 4 generator.
 Write a short informational or narrative text (60-80 words, A1 Movers level) with exactly 6 numbered gaps __(1)__ to __(6)__. For each gap provide 3 options (A, B, C) where only one is grammatically and contextually correct. The wrong options must be the same word class as the correct answer.
 ${topicHint}
@@ -6252,6 +6270,14 @@ async function runMoversL(part){
   const info=MOCK_PART_INFO[part];
   showLoading(`Preparing ${info.label}...`);
   const topicHint=`Topic: ${moversRandomTopic()}.`;
+  // l4: mismo criterio de anclaje que R&W4 (moversConfirmedMaterial), pero sin fuente oficial de
+  // Listening propia — reutiliza el tema/hechos reales de R&W4 (mismo Mini Mock semanal). Ver nota
+  // en MOVERS_CONFIRMED_MATERIAL.l4.source.
+  const confirmedL4=part==='l4'?moversConfirmedMaterial('l4'):null;
+  const l4Hint=confirmedL4
+    ? `CONFIRMED TOPIC — the student's real classroom material this week is about this topic (${confirmedL4.source}). Base the dialogue/description on these facts/vocabulary, in your own words: ${confirmedL4.summary}
+IMPORTANT: write an ORIGINAL dialogue/description each time — never a word-for-word copy of any existing text.`
+    : '';
   const formats={
     l1:`Generate a Listening Part 1 exercise: 5 items. Each has a person's name and one activity/object. The student listens to descriptions and matches people to activities.
 Return JSON: {"items":[{"name":"Lucy","activity":"swimming","clue":"Lucy loves the water and goes to the pool every morning."},... 5 items],"distractors":["cycling","painting","cooking"]}`,
@@ -6260,6 +6286,7 @@ Return JSON: {"context":"A boy is telling his teacher about a school trip.","fie
     l3:`Generate a Listening Part 3 exercise: 5 questions. Each has 3 picture descriptions (A, B, C) and a listening clue. Student picks the right picture.
 Return JSON: {"items":[{"question":"What did Tom eat for breakfast?","options":["A: a bowl of cereal","B: two eggs","C: toast and jam"],"answer":"B","clue":"I had two eggs this morning. They were delicious!"},... 5 items]}`,
     l4:`Generate a Listening Part 4 exercise: 5 short questions with 3 answer choices (A, B, C). Based on a short dialogue or description.
+${l4Hint}
 Return JSON: {"items":[{"question":"Where does the girl go after school?","options":["A: the park","B: the library","C: the sports centre"],"answer":"A","clue":"After school I always go to the park to play with my friends."},... 5 items]}`,
     l5:`Generate a Listening Part 5 exercise: A description of a picture scene with 5 instructions about what to colour or write. Adapt for digital: 5 comprehension questions about the described scene.
 Return JSON: {"scene":"A busy classroom with children doing different activities.","items":[{"question":"What colour is the teacher's bag?","answer":"red","clue":"The teacher has a red bag on her chair."},... 5 items]}`,
