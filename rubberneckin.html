@@ -254,6 +254,9 @@
   .rk-gap-input.rk-wrong{border-color:#b91c1c;background:rgba(239,68,68,.14);}
   .rk-gap-hint{font-size:12px;font-weight:700;color:#b91c1c;margin-left:2px;}
   .rk-gap-feedback{margin-top:10px;font-size:13px;color:#3a3a52;}
+  .rk-gap-photo-link{font-size:12px;font-weight:700;color:#0d7a5f;margin-left:2px;text-decoration:none;
+    border-bottom:1px dashed #0d7a5f;}
+  .rk-gap-photo-link:hover{color:#08543f;}
 
   /* ── Electric Cinema — catálogo tipo Netflix (10 agosto) ── */
   .rk-cinema-cat-title{font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;
@@ -842,78 +845,176 @@ const RK_ACTIVE_THEME = 'neutral';
 
 // ══════════════════════════════════════════════════════════════════════════
 // MATCH DAY (Reading) — 18 agosto, primera de las 5 estaciones nuevas de la Fase 1
-// Mecánica deliberadamente simple (a pedido de Angel: "nada sofisticado, relax de vacaciones"):
-// un mini reporte de partido inventado (no un hecho real que verificar — es lectura, no
-// trivia de fútbol real) + 3 preguntas de opción múltiple con feedback inmediato. Botón
-// "Another match" cicla al siguiente del pool. Mismo criterio de contenido 100% escrito a
-// mano que el resto de Rubberneckin' (Principio 15).
-const RK_MATCHDAY_CONTENT = {
-  neutral: {
-    title: '⚽ Match Day',
-    matches: [
-      {headline: 'CHELSEA 3 — 2 ARSENAL',
-       report: "Chelsea played against Arsenal at Stamford Bridge. Arsenal scored first, in the 10th minute. Before half-time, Chelsea's striker scored twice and took the lead. In the second half, Arsenal scored again, but it wasn't enough. Chelsea won the match 3-2.",
-       questions: [
-         {q:'Who scored the first goal of the match?', options:['Arsenal','Chelsea','Nobody'], answer:0},
-         {q:"What was the final score?", options:['3-2 to Chelsea','2-3 to Arsenal','3-3 draw'], answer:0},
-         {q:"How many goals did Chelsea's striker score before half-time?", options:['One','Two','Three'], answer:1},
-       ]},
-      {headline: 'LIVERPOOL 1 — 1 MANCHESTER CITY',
-       report: "It was a tough match at Anfield. Manchester City took an early lead in the 15th minute. Liverpool fought back, and their captain scored a fantastic equaliser in the 60th minute. The match ended 1-1. Both teams were happy with the result.",
-       questions: [
-         {q:'Which team scored first?', options:['Manchester City','Liverpool','Neither team'], answer:0},
-         {q:'What was the final score?', options:['1-1 draw','2-1 to Liverpool','1-0 to Man City'], answer:0},
-         {q:'Who scored the equaliser?', options:['A Manchester City player',"Liverpool's captain",'The referee'], answer:1},
-       ]},
-    ]},
-  fiestas_patrias: {
-    title: '⚽ Match Day — ¡Viva Chile!',
-    matches: [
-      {headline: 'CHILE 2 — 1 ENGLAND (Friendly Match)',
-       report: "Chile played a friendly match against England to celebrate Fiestas Patrias. Chile's forward scored a beautiful goal in the first half. England equalised just after half-time. In the final minutes, Chile's captain scored the winning goal. The stadium celebrated with cueca music and Chilean flags. Chile won 2-1!",
-       questions: [
-         {q:'Who scored first?', options:['Chile','England','Nobody'], answer:0},
-         {q:'What was the final score?', options:['2-1 to Chile','1-1 draw','2-1 to England'], answer:0},
-         {q:'When did Chile score the winning goal?', options:['In the first half','Just after half-time','In the final minutes'], answer:2},
-       ]},
-    ]},
+// v2 (mismo día, rediseño a pedido de Angel tras ver v1): de "reporte de partido inventado"
+// a trivia REAL por categorías, estilo concurso ("Who Wants to Be a Millionaire") con
+// comodines. Angel: "preguntas que no sean muy difíciles, fáciles de verificar, cuidado con
+// que no haya alucinaciones de la IA". Cada pregunta fue investigada y verificada con
+// búsqueda web real por un subagente (mismo criterio que las fichas de Abbey Road),
+// priorizando hechos DURADEROS (récords históricos ya cerrados) sobre datos "actuales" que
+// puedan caducar con un fichaje o un resultado nuevo.
+// Comodines: 50/50 (elimina 1 opción incorrecta) y "Llamar a Oliver" — Oliver SIEMPRE
+// acierta (decisión explícita de Angel: en contenido educativo el comodín no debe poder
+// enseñar un dato falso; la tensión del juego está en decidir CUÁNDO gastarlo, no en si
+// Oliver falla). Cada comodín se quema una sola vez POR PARTIDA (por categoría jugada), no
+// por pregunta — se resetea solo si se vuelve a jugar la misma categoría desde cero.
+// NOTA de consistencia (aclarada con Angel el mismo día): la regla "Oliver = Survival Kit,
+// punto" era sobre Oliver como personaje CONVERSACIONAL con voz (TTS, chat real). Acá no hay
+// nada de eso — es solo un ícono/botón de comodín ("📞 Call Oliver") con una frase fija de
+// texto, sin voz ni conversación. No rompe la regla original, la acota correctamente.
+const RK_MATCHDAY_CATEGORIES = [
+  {id:'epl', label:'⚽ Premier League', questions:[
+    {q:"Which team has won the most Premier League titles in history?", options:['Manchester United','Chelsea','Arsenal'], answer:0},
+    {q:"Who is the Premier League's all-time top goal scorer, with 260 goals?", options:['Alan Shearer','Wayne Rooney','Harry Kane'], answer:0},
+    {q:"In the 2003-04 season, which team went the whole season without losing a single match?", options:['Arsenal','Liverpool','Manchester City'], answer:0},
+    {q:"In 2016, which team amazed everyone by winning the Premier League for the very first time?", options:['Leicester City','Everton','West Ham United'], answer:0},
+    {q:"What is the nickname of Manchester United?", options:['The Red Devils','The Blues','The Gunners'], answer:0},
+  ]},
+  {id:'ucl', label:'🏆 Champions League', questions:[
+    {q:"Which club has won the UEFA Champions League the most times in history?", options:['Real Madrid','Bayern Munich','Chelsea'], answer:0},
+    {q:"Who has scored the most goals in the history of the Champions League?", options:['Lionel Messi','Cristiano Ronaldo','Kylian Mbappé'], answer:1},
+    {q:"Before 1992, the competition had a different name. What was it called?", options:['The European Cup','The World Cup','The Euro Trophy'], answer:0},
+    {q:"Which club won the very first European Cup final, back in 1956?", options:['Real Madrid','Liverpool','AC Milan'], answer:0},
+    {q:"Which club has won the competition 7 times, the second-highest total in history?", options:['AC Milan','Arsenal','Ajax'], answer:0},
+  ]},
+  {id:'crossborder', label:'🌍 Players Abroad', questions:[
+    {q:"In 2023, Harry Kane left Tottenham Hotspur to join a big club. Which country is that club from?", options:['Germany','Spain','France'], answer:0},
+    {q:"Jude Bellingham is English. Before joining Real Madrid, he played for a German club. What was it called?", options:['Borussia Dortmund','Bayern Munich','Schalke 04'], answer:0},
+    {q:"David Beckham was a famous English player. After leaving Manchester United, which Spanish club did he join?", options:['Real Madrid','Barcelona','Atletico Madrid'], answer:0},
+    {q:"Alexis Sánchez, from Chile, played for Arsenal in England. Which other English club did he join after leaving Arsenal?", options:['Manchester United','Liverpool','Chelsea'], answer:0},
+    {q:"Claudio Bravo is a goalkeeper from Chile. Which English club did he play for?", options:['Manchester City','Everton','Tottenham'], answer:0},
+  ]},
+  {id:'england', label:'🦁 England', questions:[
+    {q:"What is the nickname of the England national football team?", options:['The Three Lions','The Red Devils','The Eagles'], answer:0},
+    {q:"What is the name of England's most famous football stadium?", options:['Wembley Stadium','Old Trafford','Anfield'], answer:0},
+    {q:"In which year did England win their only football World Cup?", options:['1966','1986','2006'], answer:0},
+    {q:"Which country did England beat in the 1966 World Cup final?", options:['West Germany','Brazil','France'], answer:0},
+    {q:"Who is the captain of the England men's football team?", options:['Harry Kane','Wayne Rooney','Jordan Henderson'], answer:0},
+  ]},
+];
+// Categoría especial por tema — solo aparece si RK_ACTIVE_THEME tiene una entrada acá.
+// Preguntas verificadas con la misma investigación que confirmó los datos que Angel recordaba
+// (11 feb 1998, Wembley, 0-2, doblete de Salas, debut de Michael Owen).
+const RK_MATCHDAY_SPECIAL = {
+  fiestas_patrias: {id:'chile1998', label:'🇨🇱 Chile 2-0 England (1998)', questions:[
+    {q:"What was the final score when Chile played England at Wembley in 1998?", options:['England 0-2 Chile','England 2-0 Chile','England 1-1 Chile'], answer:0},
+    {q:"Who scored both of Chile's goals in that match?", options:['Marcelo Salas','Iván Zamorano','Claudio Bravo'], answer:0},
+    {q:"Where was the match played?", options:['Wembley Stadium, London','Old Trafford, Manchester','Anfield, Liverpool'], answer:0},
+    {q:"This match was a warm-up before a big tournament. Which one?", options:['The 1998 World Cup in France','The 2002 World Cup in Japan and Korea','Euro 1996'], answer:0},
+    {q:"An 18-year-old English striker made his very first appearance for England in this match. Who was he?", options:['Michael Owen','Wayne Rooney','Harry Kane'], answer:0},
+  ]},
 };
-let _rkMatchIdx = 0;
+function _rkMatchAllCategories(){
+  const extra = RK_MATCHDAY_SPECIAL[RK_ACTIVE_THEME];
+  return extra ? [...RK_MATCHDAY_CATEGORIES, extra] : RK_MATCHDAY_CATEGORIES;
+}
+let _rkMatchState = null; // {catId, qIdx, score, answered, used5050, usedOliver, eliminated}
 function rkRenderMatchDay(){
-  const c = RK_MATCHDAY_CONTENT[RK_ACTIVE_THEME] || RK_MATCHDAY_CONTENT.neutral;
-  _rkMatchIdx = _rkMatchIdx % c.matches.length;
-  const m = c.matches[_rkMatchIdx];
+  _rkMatchState = null;
+  const cats = _rkMatchAllCategories();
   const wrap = document.getElementById('rk-info-wrap');
   wrap.innerHTML = `
-    <div class="rk-sk-card"><div class="rk-info-title">${rkEscapeHtml(c.title)}</div>
-      <div class="rk-info-blurb" style="font-weight:700;letter-spacing:.5px">${rkEscapeHtml(m.headline)}</div>
-      <div class="rk-info-blurb" style="margin-top:8px">${rkEscapeHtml(m.report)}</div></div>
-    <div id="rk-match-questions">${m.questions.map((q,qi) => `
-      <div class="rk-sk-card" style="margin-bottom:8px">
-        <div class="rk-info-blurb" style="font-weight:700;margin-bottom:8px">${qi+1}. ${rkEscapeHtml(q.q)}</div>
-        ${q.options.map((opt,oi) => `<button class="rk-mc-option" id="rk-match-q${qi}-o${oi}" onclick="rkMatchAnswer(${qi},${oi})">${rkEscapeHtml(opt)}</button>`).join('')}
-      </div>`).join('')}</div>
-    <div class="rk-sk-actions">
-      <button class="rk-sk-secondary-btn" onclick="rkMatchNext()">🔄 Another match</button>
+    <div class="rk-sk-card">
+      <div class="rk-info-title">⚽ Match Day</div>
+      <div class="rk-info-blurb">Pick a topic! You get two lifelines per game — 50/50 and Call Oliver — use them wisely, you only get one of each.</div>
+    </div>
+    <div class="rk-sk-actions" style="flex-direction:column;align-items:stretch;gap:8px">
+      ${cats.map(c => `<button class="rk-sk-primary-btn" onclick="rkStartMatchQuiz('${c.id}')">${rkEscapeHtml(c.label)}</button>`).join('')}
     </div>`;
 }
-function rkMatchAnswer(qi, oi){
-  const c = RK_MATCHDAY_CONTENT[RK_ACTIVE_THEME] || RK_MATCHDAY_CONTENT.neutral;
-  const q = c.matches[_rkMatchIdx].questions[qi];
-  // Candado real, no solo visual — mismo criterio que el fix del exploit de Q&A Trivia en JTL:
-  // si ya se respondió esta pregunta, no se vuelve a evaluar.
-  if(document.getElementById(`rk-match-q${qi}-o0`)?.disabled) return;
+function rkStartMatchQuiz(catId){
+  const cat = _rkMatchAllCategories().find(c => c.id === catId);
+  if(!cat) return;
+  _rkMatchState = {catId, qIdx:0, score:0, answered:false, used5050:false, usedOliver:false, eliminated:null};
+  rkRenderMatchQuiz();
+}
+function rkRenderMatchQuiz(){
+  const s = _rkMatchState;
+  const cat = _rkMatchAllCategories().find(c => c.id === s.catId);
+  const q = cat.questions[s.qIdx];
+  const wrap = document.getElementById('rk-info-wrap');
+  wrap.innerHTML = `
+    <div class="rk-sk-card">
+      <div class="rk-info-title">${rkEscapeHtml(cat.label)}</div>
+      <div class="rk-info-blurb" style="font-size:12px">Question ${s.qIdx+1} of ${cat.questions.length} · Score: ${s.score}</div>
+      <div class="rk-info-blurb" style="font-weight:700;margin-top:8px">${rkEscapeHtml(q.q)}</div>
+      <div id="rk-match-oliver-note"></div>
+    </div>
+    <div id="rk-match-options">
+      ${q.options.map((opt,oi) => `<button class="rk-mc-option" id="rk-match-o${oi}" onclick="rkMatchAnswer(${oi})"${s.eliminated && s.eliminated.includes(oi) ? ' disabled style="opacity:.35"' : ''}>${rkEscapeHtml(opt)}</button>`).join('')}
+    </div>
+    <div class="rk-sk-actions">
+      <button class="rk-sk-secondary-btn" onclick="rkMatchUse5050()"${s.used5050 || s.answered ? ' disabled style="opacity:.4"' : ''}>🔀 50/50</button>
+      <button class="rk-sk-secondary-btn" onclick="rkMatchCallOliver()"${s.usedOliver || s.answered ? ' disabled style="opacity:.4"' : ''}>📞 Call Oliver</button>
+    </div>
+    <div class="rk-sk-actions">
+      <button class="rk-sk-secondary-btn" onclick="rkRenderMatchDay()">← Back to topics</button>
+    </div>`;
+}
+function rkMatchUse5050(){
+  const s = _rkMatchState;
+  if(!s || s.used5050 || s.answered) return;
+  const cat = _rkMatchAllCategories().find(c => c.id === s.catId);
+  const q = cat.questions[s.qIdx];
+  const wrongIdx = q.options.map((_,i) => i).filter(i => i !== q.answer);
+  const toRemove = rkShuffle(wrongIdx)[0]; // aleatoriedad controlada (Fisher-Yates), no Math.random directo
+  s.used5050 = true;
+  s.eliminated = [toRemove];
+  rkRenderMatchQuiz();
+}
+function rkMatchCallOliver(){
+  const s = _rkMatchState;
+  if(!s || s.usedOliver || s.answered) return;
+  s.usedOliver = true;
+  rkRenderMatchQuiz();
+  const cat = _rkMatchAllCategories().find(c => c.id === s.catId);
+  const q = cat.questions[s.qIdx];
+  const note = document.getElementById('rk-match-oliver-note');
+  if(note) note.innerHTML = `<div class="rk-info-blurb" style="margin-top:6px;font-style:italic">📞 Oliver: "Hmm, let me think... I'm sure it's this one!"</div>`;
+  const btn = document.getElementById(`rk-match-o${q.answer}`);
+  if(btn) btn.style.outline = '3px solid var(--gold)';
+}
+function rkMatchAnswer(oi){
+  const s = _rkMatchState;
+  if(!s || s.answered) return; // candado real, no solo visual — mismo criterio del fix de Q&A Trivia en JTL
+  s.answered = true;
+  const cat = _rkMatchAllCategories().find(c => c.id === s.catId);
+  const q = cat.questions[s.qIdx];
+  if(oi === q.answer) s.score++;
   q.options.forEach((_,i) => {
-    const btn = document.getElementById(`rk-match-q${qi}-o${i}`);
+    const btn = document.getElementById(`rk-match-o${i}`);
     if(!btn) return;
     btn.disabled = true;
+    btn.style.opacity = '';
+    btn.style.outline = '';
     if(i === q.answer) btn.classList.add('rk-correct');
     else if(i === oi) btn.classList.add('rk-wrong');
   });
+  const wrap = document.getElementById('rk-info-wrap');
+  const label = (s.qIdx + 1 < cat.questions.length) ? 'Next question →' : 'See final score';
+  wrap.insertAdjacentHTML('beforeend', `<div class="rk-sk-actions"><button class="rk-sk-primary-btn" onclick="rkMatchNextQuestion()">${label}</button></div>`);
 }
-function rkMatchNext(){
-  _rkMatchIdx++;
-  rkRenderMatchDay();
+function rkMatchNextQuestion(){
+  const s = _rkMatchState;
+  const cat = _rkMatchAllCategories().find(c => c.id === s.catId);
+  s.qIdx++;
+  s.answered = false;
+  s.eliminated = null;
+  if(s.qIdx >= cat.questions.length) rkRenderMatchResult();
+  else rkRenderMatchQuiz();
+}
+function rkRenderMatchResult(){
+  const s = _rkMatchState;
+  const cat = _rkMatchAllCategories().find(c => c.id === s.catId);
+  const wrap = document.getElementById('rk-info-wrap');
+  wrap.innerHTML = `
+    <div class="rk-sk-card">
+      <div class="rk-info-title">${rkEscapeHtml(cat.label)}</div>
+      <div class="rk-info-blurb" style="font-weight:700">Final score: ${s.score} / ${cat.questions.length}</div>
+    </div>
+    <div class="rk-sk-actions">
+      <button class="rk-sk-primary-btn" onclick="rkStartMatchQuiz('${cat.id}')">🔄 Play again</button>
+      <button class="rk-sk-secondary-btn" onclick="rkRenderMatchDay()">← Back to topics</button>
+    </div>`;
 }
 
 // ══════════════════════════════════════════════════════════════════════════
@@ -921,9 +1022,20 @@ function rkMatchNext(){
 // Formato postal con espacios para completar — el mismo hallazgo de Chatty (10 agosto, ver
 // traspaso sección 9): las 3 versiones (neutral/Fiestas Patrias/Halloween) son variaciones
 // naturales del MISMO formato, así que basta una estructura de datos reutilizada. Personajes
-// propios de cada postal, nunca Oliver (decisión cerrada — Oliver = Survival Kit, punto).
+// propios de cada postal, nunca Oliver (decisión cerrada — Oliver, como personaje
+// CONVERSACIONAL con voz, vive solo en Survival Kit; ver aclaración en Match Day más abajo).
 // Validación: exige respuesta no vacía antes de aceptar cualquier match (mismo bug de "" que
 // se corrigió en KET/PET esta semana — acá se escribe bien desde el principio).
+// 18 agosto (mismo día, ampliación pedida por Angel tras probar la primera postal):
+// - Cada gap tiene un campo opcional `img` (string de búsqueda) — al responder bien, el hint
+//   se reemplaza por un link "📷 See photo" que abre una búsqueda de imágenes en pestaña nueva.
+//   No hosteamos fotos, solo el link de búsqueda (mismo patrón estable que YouTube Music).
+// - Criterio de Angel para escribir cada postal nueva: 1 gap es la palabra clave del lugar
+//   (el nombre propio), los otros 2 son vocabulario de "entorno" general — así no se
+//   queman lugares y se amplía vocabulario más allá de nombres propios.
+// - 5 postales neutral + 3 Fiestas Patrias nuevas. Quedan en backlog (ideas de Angel, no
+//   escritas aún): Royal Albert Hall, Buckingham Palace, Thames River (neutral) y
+//   Cerro Santa Lucía, Plaza de Armas (Fiestas Patrias) — para cuando se quiera ampliar más.
 function _rkNormGap(s){ return (s||'').trim().toLowerCase(); }
 const RK_GAP_CONTENT = {
   neutral: {
@@ -932,9 +1044,44 @@ const RK_GAP_CONTENT = {
       {from: 'Emma, a traveller in London',
        text: 'Dear friend, Greetings from London! Today I rode the giant wheel called the London ___1___. Then I walked by the river and saw a famous clock tower called Big ___2___. The city is full of red double-decker ___3___ and black taxis. Wish you were here! Emma',
        gaps: [
-         {n:1, accept:['eye']},
-         {n:2, accept:['ben']},
-         {n:3, accept:['buses','bus']},
+         {n:1, accept:['eye'], img:'London Eye ferris wheel'},
+         {n:2, accept:['ben'], img:'Big Ben clock tower London'},
+         {n:3, accept:['buses','bus'], img:'red double-decker bus London'},
+       ]},
+      {from: 'Emma, a traveller in London',
+       text: 'Dear friend, Today I travelled outside London to see an amazing ancient monument made of huge grey ___1___. The whole circle is called ___2___, and it\'s thousands of years old! I stood in a big green ___3___ and watched the sun go down behind the stones. Wish you were here! Emma',
+       gaps: [
+         {n:1, accept:['stones','stone'], img:'Stonehenge stones close up'},
+         {n:2, accept:['stonehenge'], img:'Stonehenge England'},
+         {n:3, accept:['field','fields'], img:'green field Stonehenge'},
+       ]},
+      {from: 'Emma, a traveller in London',
+       text: 'Dear friend, Yesterday I watched a football match at a huge stadium called ___1___. Thousands of fans were singing in the ___2___, waving flags and scarves. At the end, the winning team lifted a golden ___3___ high in the air. What an atmosphere! Emma',
+       gaps: [
+         {n:1, accept:['wembley','wembley stadium'], img:'Wembley Stadium London'},
+         {n:2, accept:['stands','stand'], img:'football stadium stands crowd'},
+         {n:3, accept:['trophy','cup'], img:'football trophy gold cup'},
+       ]},
+      {from: 'Emma, a traveller in London',
+       text: 'Dear friend, Today I visited the film studio where they made the Harry Potter movies! It\'s called ___1___. I saw real costumes, magic ___2___, and even walked through the Great Hall set with long wooden tables and floating ___3___. It felt like real magic! Emma',
+       gaps: [
+         {n:1, accept:['warner bros studios','warner bros','warner brothers studios'], img:'Warner Bros Studio Tour London Harry Potter'},
+         {n:2, accept:['wands','wand'], img:'Harry Potter magic wand'},
+         {n:3, accept:['candles','candle'], img:'floating candles Great Hall Harry Potter'},
+       ]},
+      {from: 'Emma, a traveller in London',
+       text: 'Dear friend, Today I walked across a famous bridge with two tall towers, right next to the Tower of London. It\'s called ___1___. Sometimes the middle of the bridge lifts up to let tall ___2___ pass underneath on the ___3___. Wish you were here! Emma',
+       gaps: [
+         {n:1, accept:['tower bridge'], img:'Tower Bridge London'},
+         {n:2, accept:['ships','boats','ship','boat'], img:'ship passing under Tower Bridge'},
+         {n:3, accept:['river','thames'], img:'River Thames London'},
+       ]},
+      {from: 'Emma, a traveller in London',
+       text: 'Dear friend, Today I travelled around London using the famous underground train system called the ___1___. I went down a long moving ___2___ and waited on the platform for the next ___3___ to arrive. It\'s the fastest way to get around the city! Emma',
+       gaps: [
+         {n:1, accept:['tube','underground'], img:'London Underground Tube sign'},
+         {n:2, accept:['escalator','escalators'], img:'London Underground escalator'},
+         {n:3, accept:['train'], img:'London Underground train platform'},
        ]},
     ]},
   fiestas_patrias: {
@@ -943,10 +1090,70 @@ const RK_GAP_CONTENT = {
       {from: "Lucy, Fernando and Rodrigo's pen-pal in London",
        text: 'Dear Rodrigo, Happy birthday! I heard it\'s Fiestas Patrias in Chile today too — how exciting! People dance a traditional dance called the ___1___, everyone flies the Chilean ___2___ with pride, and there\'s a party tent called a ___3___ with music and food. I really want to try a pastry called an ___4___ — I heard it\'s filled with meat and onion! Happy 18th of September! Love, Lucy',
        gaps: [
-         {n:1, accept:['cueca']},
-         {n:2, accept:['flag']},
-         {n:3, accept:['fonda','fondas']},
-         {n:4, accept:['empanada','empanadas']},
+         {n:1, accept:['cueca'], img:'cueca dance Chile'},
+         {n:2, accept:['flag'], img:'Chilean flag'},
+         {n:3, accept:['fonda','fondas'], img:'fonda Fiestas Patrias Chile'},
+         {n:4, accept:['empanada','empanadas'], img:'empanada de pino Chile'},
+       ]},
+      {from: "Lucy, Fernando and Rodrigo's pen-pal in London",
+       text: "Dear Fernando and Rodrigo, I've been reading about Chile! I learned that the president works in a white government palace called ___1___, right in the middle of Santiago. Every day, guards in smart ___2___ march outside and change shifts, like a little ___3___. I'd love to see it one day! Love, Lucy",
+       gaps: [
+         {n:1, accept:['la moneda'], img:'Palacio La Moneda Santiago Chile'},
+         {n:2, accept:['uniforms','uniform'], img:'Chilean presidential guard uniform'},
+         {n:3, accept:['ceremony'], img:'changing of the guard ceremony La Moneda'},
+       ]},
+      {from: "Lucy, Fernando and Rodrigo's pen-pal in London",
+       text: "Dear Fernando and Rodrigo, Someone told me about a big hill in Santiago called ___1___, with an enormous white statue of the Virgin Mary right at the top! You can take a cable car or a funicular up the ___2___ to reach her, and from there you can see the whole ___3___ below. It sounds incredible! Love, Lucy",
+       gaps: [
+         {n:1, accept:['cerro san cristobal','san cristobal'], img:'Cerro San Cristobal Virgin Mary statue Santiago'},
+         {n:2, accept:['hill','mountain'], img:'funicular Cerro San Cristobal'},
+         {n:3, accept:['city'], img:'Santiago Chile city view from above'},
+       ]},
+      {from: "Lucy, Fernando and Rodrigo's pen-pal in London",
+       text: "Dear Fernando and Rodrigo, I saw a photo of the tallest building in South America - it's called the ___1___! There's a viewpoint near the top called Sky Costanera where you can look through the ___2___ and see the Andes ___3___ in the distance. I'd love to go up there! Love, Lucy",
+       gaps: [
+         {n:1, accept:['costanera','torre costanera','gran torre costanera'], img:'Torre Costanera Santiago Chile'},
+         {n:2, accept:['windows','glass'], img:'Sky Costanera viewpoint glass windows'},
+         {n:3, accept:['mountains','mountain'], img:'Andes mountains Santiago Chile view'},
+       ]},
+    ]},
+  halloween: {
+    title: '🎃 Mind the Gap — Halloween Special',
+    postcards: [
+      {from: 'Alex, a pen-pal who loves spooky legends',
+       text: "Dear Fernando, Happy birthday for the 29th of October — and happy almost-Halloween! I've been reading about a spooky castle in Romania called ___1___, which people say inspired the story of Count Dracula. It sits on top of a tall ___2___, surrounded by a dark ___3___. I wonder if it's really haunted... Love, Alex",
+       gaps: [
+         {n:1, accept:['bran castle','bran'], img:'Bran Castle Dracula Romania'},
+         {n:2, accept:['hill','hills'], img:'Bran Castle hill Transylvania'},
+         {n:3, accept:['forest','forests','woods'], img:'dark forest Transylvania'},
+       ]},
+      {from: 'Alex, a pen-pal who loves spooky legends',
+       text: "Dear Fernando and Rodrigo, Did you know Halloween might be even bigger in Northern Ireland than in the USA? A city called ___1___ holds the biggest Halloween festival in the world! Thousands of people walk through the streets in amazing ___2___, and at night there's a huge firework ___3___ over the old city walls. I'd love to go! Love, Alex",
+       gaps: [
+         {n:1, accept:['derry','londonderry'], img:'Derry Halloween festival Northern Ireland'},
+         {n:2, accept:['costumes','costume'], img:'Halloween costumes parade Derry'},
+         {n:3, accept:['display','show'], img:'Halloween fireworks Derry city walls'},
+       ]},
+      {from: 'Alex, a pen-pal who loves spooky legends',
+       text: "Dear Fernando and Rodrigo, Dublin has a spooky festival named after Bram Stoker, the writer who created Dracula. It's called the ___1___! Every Halloween, the city fills with actors, live music, and ghost ___2___ through the old streets. There's even a huge outdoor screening where people watch spooky films under the night ___3___. Love, Alex",
+       gaps: [
+         {n:1, accept:['bram stoker festival','bram stoker'], img:'Bram Stoker Festival Dublin Ireland'},
+         {n:2, accept:['tours','tour'], img:'ghost tour Dublin'},
+         {n:3, accept:['sky'], img:'night sky Dublin Halloween'},
+       ]},
+      {from: 'Alex, a pen-pal who loves spooky legends',
+       text: "Dear Fernando and Rodrigo, In Mexico there's a strange, spooky place called the ___1___, in the canals near Mexico City. Hundreds of old, dirty ___2___ hang from the trees, tied there over many years. Local legend says the dolls keep a lost girl's spirit ___3___ so she's never alone. Would you dare to visit? Love, Alex",
+       gaps: [
+         {n:1, accept:['island of the dolls','isla de las munecas','isla de las muñecas'], img:'Isla de las Munecas Island of the Dolls Mexico'},
+         {n:2, accept:['dolls','doll'], img:'dolls hanging trees Island of the Dolls Mexico'},
+         {n:3, accept:['company'], img:'creepy doll Mexico canal'},
+       ]},
+      {from: 'Alex, a pen-pal who loves spooky legends',
+       text: "Dear Fernando and Rodrigo, People say ___1___, the capital of Scotland, is one of the most haunted cities in the world! Under the old streets there are hidden underground ___2___ where guides take visitors on spooky night ___3___, telling true ghost stories from hundreds of years ago. Would you be brave enough? Love, Alex",
+       gaps: [
+         {n:1, accept:['edinburgh'], img:'Edinburgh Scotland old town'},
+         {n:2, accept:['vaults','vault'], img:'Edinburgh underground vaults'},
+         {n:3, accept:['tours','tour'], img:'Edinburgh ghost tour night'},
        ]},
     ]},
 };
@@ -982,7 +1189,15 @@ function rkGapCheck(){
     const isOk = !!given && g.accept.includes(given);
     inp.classList.remove('rk-correct','rk-wrong');
     inp.classList.add(isOk ? 'rk-correct' : 'rk-wrong');
-    if(hint) hint.textContent = isOk ? '' : `(${g.accept[0]})`;
+    if(hint){
+      if(isOk && g.img){
+        const url = 'https://www.google.com/search?tbm=isch&q=' + encodeURIComponent(g.img);
+        hint.innerHTML = `<a href="${url}" target="_blank" rel="noopener" class="rk-gap-photo-link">📷 See photo</a>`;
+      } else {
+        hint.innerHTML = '';
+        hint.textContent = isOk ? '' : `(${g.accept[0]})`;
+      }
+    }
     if(isOk) correct++;
   });
   const fb = document.getElementById('rk-gap-feedback');
