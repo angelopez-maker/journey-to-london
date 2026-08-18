@@ -238,6 +238,23 @@
   .rk-info-layout a.rk-sk-primary-btn,.rk-info-layout a.rk-sk-secondary-btn{
     text-decoration:none;text-align:center;display:flex;align-items:center;justify-content:center;}
 
+  /* ── Match Day / Mind the Gap — 18 agosto (Fase 1 del roadmap) ── */
+  .rk-mc-option{display:block;width:100%;text-align:left;padding:11px 14px;margin-bottom:6px;
+    background:rgba(255,255,255,.92);border:1px solid rgba(40,40,70,.12);border-radius:10px;
+    color:#2a2a40;font-size:14px;font-weight:500;cursor:pointer;font-family:'Rajdhani',sans-serif;}
+  .rk-mc-option:hover:not(:disabled){border-color:var(--gold);}
+  .rk-mc-option:disabled{cursor:default;}
+  .rk-mc-option.rk-correct{border-color:#0d7a5f;background:rgba(16,185,129,.18);font-weight:700;}
+  .rk-mc-option.rk-wrong{border-color:#b91c1c;background:rgba(239,68,68,.14);}
+  .rk-gap-text{font-size:14px;font-weight:500;line-height:2.1;color:#2a2a40;}
+  .rk-gap-input{display:inline-block;width:110px;padding:4px 8px;margin:0 2px;
+    border:1px solid rgba(40,40,70,.3);border-radius:6px;font-size:14px;
+    font-family:'Rajdhani',sans-serif;text-align:center;background:rgba(255,255,255,.92);}
+  .rk-gap-input.rk-correct{border-color:#0d7a5f;background:rgba(16,185,129,.18);}
+  .rk-gap-input.rk-wrong{border-color:#b91c1c;background:rgba(239,68,68,.14);}
+  .rk-gap-hint{font-size:12px;font-weight:700;color:#b91c1c;margin-left:2px;}
+  .rk-gap-feedback{margin-top:10px;font-size:13px;color:#3a3a52;}
+
   /* ── Electric Cinema — catálogo tipo Netflix (10 agosto) ── */
   .rk-cinema-cat-title{font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;
     color:#5a5a75;text-transform:uppercase;margin-top:4px;}
@@ -586,7 +603,7 @@ function rkRenderStation(st){
   // tienen su propio layout. Las 5 estaciones restantes siguen mostrando el bloque genérico
   // "Coming soon" (#rk-station-body) sin ningún cambio.
   const isSurvival = st.id === 'survival_kit';
-  const isInfo = st.id === 'abbey_road' || st.id === 'electric_cinema';
+  const isInfo = ['abbey_road','electric_cinema','match_day','mind_the_gap'].includes(st.id);
   document.getElementById('rk-station-body').style.display = (isSurvival || isInfo) ? 'none' : 'flex';
   document.getElementById('rk-sk-layout').style.display = isSurvival ? 'flex' : 'none';
   document.getElementById('rk-info-layout').style.display = isInfo ? 'flex' : 'none';
@@ -766,6 +783,10 @@ function rkRenderInfoStation(id){
       </div>`;
   } else if(id === 'electric_cinema'){
     rkCinemaShowCatalog();
+  } else if(id === 'match_day'){
+    rkRenderMatchDay();
+  } else if(id === 'mind_the_gap'){
+    rkRenderGap();
   }
 }
 
@@ -803,6 +824,173 @@ function rkCinemaShowMovie(mid){
 function rkBackToMap(){
   rkMicRelease(); // libera el micrófono del todo — no tiene sentido dejarlo prendido fuera de Survival Kit
   rkGoto('screen-menu');
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// TEMA ACTIVO — "Admin Abuse" (18 agosto, Fase 1 del roadmap hacia Fiestas Patrias/Halloween)
+// Activación 100% manual, sin lógica de fecha (new Date() no se usa en ningún lado de este
+// archivo) — mismo patrón que ADMIN_SECRET en el JTL real: Angel cambia esta constante a mano
+// y vuelve a subir el archivo cuando quiera activar/desactivar un tema especial. Decisión
+// documentada en el traspaso (sección 9): un cumpleaños es un momento demasiado importante
+// como para arriesgar un bug de fecha/zona horaria que rompa la sorpresa.
+// 'neutral' = contenido base, funciona todo el año. 'fiestas_patrias' = activar cerca del 18 de
+// septiembre. 'halloween' = Fase 2, todavía sin contenido escrito.
+// Cada estación cae de vuelta a 'neutral' automáticamente si el tema activo no tiene contenido
+// propio todavía (ver el patrón "content[RK_ACTIVE_THEME] || content.neutral" abajo) — así nunca
+// se puede romper por activar un tema a medio construir.
+const RK_ACTIVE_THEME = 'neutral';
+
+// ══════════════════════════════════════════════════════════════════════════
+// MATCH DAY (Reading) — 18 agosto, primera de las 5 estaciones nuevas de la Fase 1
+// Mecánica deliberadamente simple (a pedido de Angel: "nada sofisticado, relax de vacaciones"):
+// un mini reporte de partido inventado (no un hecho real que verificar — es lectura, no
+// trivia de fútbol real) + 3 preguntas de opción múltiple con feedback inmediato. Botón
+// "Another match" cicla al siguiente del pool. Mismo criterio de contenido 100% escrito a
+// mano que el resto de Rubberneckin' (Principio 15).
+const RK_MATCHDAY_CONTENT = {
+  neutral: {
+    title: '⚽ Match Day',
+    matches: [
+      {headline: 'CHELSEA 3 — 2 ARSENAL',
+       report: "Chelsea played against Arsenal at Stamford Bridge. Arsenal scored first, in the 10th minute. Before half-time, Chelsea's striker scored twice and took the lead. In the second half, Arsenal scored again, but it wasn't enough. Chelsea won the match 3-2.",
+       questions: [
+         {q:'Who scored the first goal of the match?', options:['Arsenal','Chelsea','Nobody'], answer:0},
+         {q:"What was the final score?", options:['3-2 to Chelsea','2-3 to Arsenal','3-3 draw'], answer:0},
+         {q:"How many goals did Chelsea's striker score before half-time?", options:['One','Two','Three'], answer:1},
+       ]},
+      {headline: 'LIVERPOOL 1 — 1 MANCHESTER CITY',
+       report: "It was a tough match at Anfield. Manchester City took an early lead in the 15th minute. Liverpool fought back, and their captain scored a fantastic equaliser in the 60th minute. The match ended 1-1. Both teams were happy with the result.",
+       questions: [
+         {q:'Which team scored first?', options:['Manchester City','Liverpool','Neither team'], answer:0},
+         {q:'What was the final score?', options:['1-1 draw','2-1 to Liverpool','1-0 to Man City'], answer:0},
+         {q:'Who scored the equaliser?', options:['A Manchester City player',"Liverpool's captain",'The referee'], answer:1},
+       ]},
+    ]},
+  fiestas_patrias: {
+    title: '⚽ Match Day — ¡Viva Chile!',
+    matches: [
+      {headline: 'CHILE 2 — 1 ENGLAND (Friendly Match)',
+       report: "Chile played a friendly match against England to celebrate Fiestas Patrias. Chile's forward scored a beautiful goal in the first half. England equalised just after half-time. In the final minutes, Chile's captain scored the winning goal. The stadium celebrated with cueca music and Chilean flags. Chile won 2-1!",
+       questions: [
+         {q:'Who scored first?', options:['Chile','England','Nobody'], answer:0},
+         {q:'What was the final score?', options:['2-1 to Chile','1-1 draw','2-1 to England'], answer:0},
+         {q:'When did Chile score the winning goal?', options:['In the first half','Just after half-time','In the final minutes'], answer:2},
+       ]},
+    ]},
+};
+let _rkMatchIdx = 0;
+function rkRenderMatchDay(){
+  const c = RK_MATCHDAY_CONTENT[RK_ACTIVE_THEME] || RK_MATCHDAY_CONTENT.neutral;
+  _rkMatchIdx = _rkMatchIdx % c.matches.length;
+  const m = c.matches[_rkMatchIdx];
+  const wrap = document.getElementById('rk-info-wrap');
+  wrap.innerHTML = `
+    <div class="rk-sk-card"><div class="rk-info-title">${rkEscapeHtml(c.title)}</div>
+      <div class="rk-info-blurb" style="font-weight:700;letter-spacing:.5px">${rkEscapeHtml(m.headline)}</div>
+      <div class="rk-info-blurb" style="margin-top:8px">${rkEscapeHtml(m.report)}</div></div>
+    <div id="rk-match-questions">${m.questions.map((q,qi) => `
+      <div class="rk-sk-card" style="margin-bottom:8px">
+        <div class="rk-info-blurb" style="font-weight:700;margin-bottom:8px">${qi+1}. ${rkEscapeHtml(q.q)}</div>
+        ${q.options.map((opt,oi) => `<button class="rk-mc-option" id="rk-match-q${qi}-o${oi}" onclick="rkMatchAnswer(${qi},${oi})">${rkEscapeHtml(opt)}</button>`).join('')}
+      </div>`).join('')}</div>
+    <div class="rk-sk-actions">
+      <button class="rk-sk-secondary-btn" onclick="rkMatchNext()">🔄 Another match</button>
+    </div>`;
+}
+function rkMatchAnswer(qi, oi){
+  const c = RK_MATCHDAY_CONTENT[RK_ACTIVE_THEME] || RK_MATCHDAY_CONTENT.neutral;
+  const q = c.matches[_rkMatchIdx].questions[qi];
+  // Candado real, no solo visual — mismo criterio que el fix del exploit de Q&A Trivia en JTL:
+  // si ya se respondió esta pregunta, no se vuelve a evaluar.
+  if(document.getElementById(`rk-match-q${qi}-o0`)?.disabled) return;
+  q.options.forEach((_,i) => {
+    const btn = document.getElementById(`rk-match-q${qi}-o${i}`);
+    if(!btn) return;
+    btn.disabled = true;
+    if(i === q.answer) btn.classList.add('rk-correct');
+    else if(i === oi) btn.classList.add('rk-wrong');
+  });
+}
+function rkMatchNext(){
+  _rkMatchIdx++;
+  rkRenderMatchDay();
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// MIND THE GAP (Reading · Writing) — 18 agosto, segunda estación de la Fase 1
+// Formato postal con espacios para completar — el mismo hallazgo de Chatty (10 agosto, ver
+// traspaso sección 9): las 3 versiones (neutral/Fiestas Patrias/Halloween) son variaciones
+// naturales del MISMO formato, así que basta una estructura de datos reutilizada. Personajes
+// propios de cada postal, nunca Oliver (decisión cerrada — Oliver = Survival Kit, punto).
+// Validación: exige respuesta no vacía antes de aceptar cualquier match (mismo bug de "" que
+// se corrigió en KET/PET esta semana — acá se escribe bien desde el principio).
+function _rkNormGap(s){ return (s||'').trim().toLowerCase(); }
+const RK_GAP_CONTENT = {
+  neutral: {
+    title: '📮 Mind the Gap',
+    postcards: [
+      {from: 'Emma, a traveller in London',
+       text: 'Dear friend, Greetings from London! Today I rode the giant wheel called the London ___1___. Then I walked by the river and saw a famous clock tower called Big ___2___. The city is full of red double-decker ___3___ and black taxis. Wish you were here! Emma',
+       gaps: [
+         {n:1, accept:['eye']},
+         {n:2, accept:['ben']},
+         {n:3, accept:['buses','bus']},
+       ]},
+    ]},
+  fiestas_patrias: {
+    title: '📮 Mind the Gap — Fiestas Patrias Special',
+    postcards: [
+      {from: "Lucy, Fernando and Rodrigo's pen-pal in London",
+       text: 'Dear Rodrigo, Happy birthday! I heard it\'s Fiestas Patrias in Chile today too — how exciting! People dance a traditional dance called the ___1___, everyone flies the Chilean ___2___ with pride, and there\'s a party tent called a ___3___ with music and food. I really want to try a pastry called an ___4___ — I heard it\'s filled with meat and onion! Happy 18th of September! Love, Lucy',
+       gaps: [
+         {n:1, accept:['cueca']},
+         {n:2, accept:['flag']},
+         {n:3, accept:['fonda','fondas']},
+         {n:4, accept:['empanada','empanadas']},
+       ]},
+    ]},
+};
+let _rkGapIdx = 0;
+function rkRenderGap(){
+  const c = RK_GAP_CONTENT[RK_ACTIVE_THEME] || RK_GAP_CONTENT.neutral;
+  _rkGapIdx = _rkGapIdx % c.postcards.length;
+  const p = c.postcards[_rkGapIdx];
+  const textHtml = rkEscapeHtml(p.text).replace(/___(\d+)___/g, (_, n) =>
+    `<input type="text" class="rk-gap-input" id="rk-gap-${n}" placeholder="..."><span class="rk-gap-hint" id="rk-gap-hint-${n}"></span>`);
+  const wrap = document.getElementById('rk-info-wrap');
+  wrap.innerHTML = `
+    <div class="rk-sk-card">
+      <div class="rk-info-title">${rkEscapeHtml(c.title)}</div>
+      <div class="rk-info-blurb" style="font-style:italic;margin-bottom:6px">From: ${rkEscapeHtml(p.from)}</div>
+      <div class="rk-gap-text">${textHtml}</div>
+      <div class="rk-gap-feedback" id="rk-gap-feedback"></div>
+    </div>
+    <div class="rk-sk-actions">
+      <button class="rk-sk-primary-btn" onclick="rkGapCheck()">✓ Check answers</button>
+      <button class="rk-sk-secondary-btn" onclick="rkGapNext()">🔄 Another postcard</button>
+    </div>`;
+}
+function rkGapCheck(){
+  const c = RK_GAP_CONTENT[RK_ACTIVE_THEME] || RK_GAP_CONTENT.neutral;
+  const p = c.postcards[_rkGapIdx];
+  let correct = 0;
+  p.gaps.forEach(g => {
+    const inp = document.getElementById(`rk-gap-${g.n}`);
+    const hint = document.getElementById(`rk-gap-hint-${g.n}`);
+    if(!inp) return;
+    const given = _rkNormGap(inp.value);
+    const isOk = !!given && g.accept.includes(given);
+    inp.classList.remove('rk-correct','rk-wrong');
+    inp.classList.add(isOk ? 'rk-correct' : 'rk-wrong');
+    if(hint) hint.textContent = isOk ? '' : `(${g.accept[0]})`;
+    if(isOk) correct++;
+  });
+  const fb = document.getElementById('rk-gap-feedback');
+  if(fb) fb.textContent = `${correct}/${p.gaps.length} correct.`;
+}
+function rkGapNext(){
+  _rkGapIdx++;
+  rkRenderGap();
 }
 
 // ══════════════════════════════════════════════════════════════════════════
