@@ -260,6 +260,8 @@
   .rk-hunt-input{display:block;width:100%;box-sizing:border-box;padding:10px 12px;font-size:15px;
     font-family:'Rajdhani',sans-serif;border:1px solid rgba(40,40,70,.3);border-radius:8px;
     background:rgba(255,255,255,.92);text-align:center;}
+  .rk-mystery-fuse{height:10px;border-radius:6px;background:rgba(40,40,70,.15);overflow:hidden;margin-top:8px;}
+  .rk-mystery-fuse-fill{height:100%;background:linear-gradient(90deg,#d97706,#dc2626);transition:width .3s ease;}
 
   /* ── Electric Cinema — catálogo tipo Netflix (10 agosto) ── */
   .rk-cinema-cat-title{font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;
@@ -405,9 +407,9 @@ const RK_STATIONS = [
     img:'rubberneckin-assets/stations/mind_the_gap.jpg',
     desc:'A postcard from a real place in Britain — write, guess, and match.',
     left:29.8, top:68.8, w:7.8, h:14.3},
-  {id:'mystery_picture', icon:'🧩', name:'Mystery Picture', sub:'Characters & Places', skill:'Reading',
+  {id:'mystery_picture', icon:'📦', name:'Mystery Box', sub:'Characters & Places', skill:'Reading',
     img:'rubberneckin-assets/stations/mystery_picture.jpg',
-    desc:'Answer trivia about British characters and places to reveal the picture.',
+    desc:'Follow the clues one by one and guess the mystery — no picture needed, just your wits!',
     left:66.8, top:66.2, w:7.8, h:14.3},
   {id:'stop_look_and_listen', icon:'🎧', name:'Stop, Look & Listen', sub:'Listening', skill:'Listening',
     img:'rubberneckin-assets/stations/stop_look_and_listen.jpg',
@@ -609,7 +611,7 @@ function rkRenderStation(st){
   // tienen su propio layout. Las 5 estaciones restantes siguen mostrando el bloque genérico
   // "Coming soon" (#rk-station-body) sin ningún cambio.
   const isSurvival = st.id === 'survival_kit';
-  const isInfo = ['abbey_road','electric_cinema','match_day','mind_the_gap','scavenger_hunt'].includes(st.id);
+  const isInfo = ['abbey_road','electric_cinema','match_day','mind_the_gap','scavenger_hunt','mystery_picture'].includes(st.id);
   document.getElementById('rk-station-body').style.display = (isSurvival || isInfo) ? 'none' : 'flex';
   document.getElementById('rk-sk-layout').style.display = isSurvival ? 'flex' : 'none';
   document.getElementById('rk-info-layout').style.display = isInfo ? 'flex' : 'none';
@@ -795,6 +797,8 @@ function rkRenderInfoStation(id){
     rkRenderGap();
   } else if(id === 'scavenger_hunt'){
     rkRenderHunt();
+  } else if(id === 'mystery_picture'){
+    rkRenderMysteryBox();
   }
 }
 
@@ -1436,6 +1440,124 @@ function rkHuntAskOliverFinal(){
   const fb = document.getElementById('rk-hunt-final-feedback');
   if(fb) fb.innerHTML = `<div class="rk-info-blurb" style="font-style:italic;margin-top:8px">📞 Oliver: "${rkEscapeHtml(p.oliverLine)}"</div>
     <div class="rk-sk-actions"><button class="rk-sk-primary-btn" onclick="rkHuntStart()">🔄 Another puzzle</button></div>`;
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// MYSTERY BOX (Reading) — 18 agosto, sexta estación de la Fase 1. Antes "Mystery Picture":
+// mutó de nombre y de mecánica el mismo día a pedido de Angel — la idea original (revelar una
+// imagen real progresivamente) implicaba hostear/generar imágenes (riesgo de derechos, gasto,
+// y contra Principio 15) y además podía frustrar si la imagen revelada no se veía clara. La
+// nueva mecánica es 100% texto: una "mecha" (barra de progreso) se va llenando con cada pista
+// — 7 pistas por misterio, de lo más abstracto a lo más obvio — y el niño puede intentar
+// adivinar en CUALQUIER momento, no solo al final (el botón "Check" siempre está visible).
+// Si llega a la última pista sin acertar, aparece "Ask Oliver" que da la respuesta directa —
+// mismo criterio de Match Day/Scavenger Hunt (Oliver siempre acierta, sin conversación real,
+// solo un botón con una frase fija — no rompe la regla "Oliver = solo Survival Kit habla").
+// Piloto de 4 misterios para validar el flujo antes de escalar (mismo patrón de siempre).
+const RK_MYSTERY_BANK = [
+  {answer:'Big Ben', accept:['big ben'], clues:[
+    'I am found in a capital city.',
+    'I am very old — more than 160 years old.',
+    'I am famous for my sound, which rings out every hour.',
+    'I stand right beside a river.',
+    'Tourists love taking photos of me from Westminster Bridge.',
+    "I am actually the nickname of a huge bell inside a clock tower — most people use my name for the whole tower!",
+    'I am one of the most famous clock towers in the world, right next to the Houses of Parliament in London.',
+  ]},
+  {answer:'The Loch Ness Monster', accept:['the loch ness monster','loch ness monster','nessie'], clues:[
+    'I live in the water.',
+    'I am famous in Scotland.',
+    'Many people say they have seen me, but no one has ever proven I am real.',
+    'I supposedly live in a very deep, dark loch (a Scottish word for lake).',
+    'People sometimes call me by a nickname that sounds like a girl\'s name.',
+    'My home is Loch Ness, in the Scottish Highlands.',
+    'I am often described as a huge creature with a long neck, like a dinosaur living underwater!',
+  ]},
+  {answer:'Winston Churchill', accept:['winston churchill','churchill'], clues:[
+    'I am a real person from history.',
+    'I lived in the 20th century.',
+    'I led my country during a very difficult time.',
+    'I am famous for giving powerful speeches.',
+    'I led the United Kingdom during World War II.',
+    "I am often shown smoking a big cigar and making a 'V' sign with my fingers.",
+    'I was the Prime Minister of the United Kingdom, famous for saying "We shall never surrender."',
+  ]},
+  {answer:'Wimbledon', accept:['wimbledon'], clues:[
+    'I happen every year, usually in the summer.',
+    'I take place in London.',
+    'I am connected to a sport.',
+    'Players wear white clothes during me, by tradition.',
+    'People eat strawberries and cream while watching me.',
+    'I am the oldest tournament of my kind in the world.',
+    'I am the most famous tennis championship in the world, played on grass courts in London.',
+  ]},
+];
+let _rkMysteryState = null;
+function rkRenderMysteryBox(){
+  _rkMysteryState = null;
+  const wrap = document.getElementById('rk-info-wrap');
+  wrap.innerHTML = `
+    <div class="rk-sk-card">
+      <div class="rk-info-title">📦 Mystery Box</div>
+      <div class="rk-info-blurb">Read the clues one by one. Guess as soon as you know — or keep going for more clues!</div>
+    </div>
+    <div class="rk-sk-actions"><button class="rk-sk-primary-btn" onclick="rkStartMystery()">🔍 Start</button></div>`;
+}
+function rkStartMystery(){
+  const m = rkShuffle(RK_MYSTERY_BANK)[0]; // aleatoriedad controlada (Fisher-Yates)
+  _rkMysteryState = {mystery:m, clueIdx:0, oliverUsed:false};
+  rkRenderMysteryStep();
+}
+function rkRenderMysteryStep(){
+  const s = _rkMysteryState;
+  const m = s.mystery;
+  const total = m.clues.length;
+  const pct = Math.round(((s.clueIdx + 1) / total) * 100);
+  const cluesShown = m.clues.slice(0, s.clueIdx + 1);
+  const wrap = document.getElementById('rk-info-wrap');
+  wrap.innerHTML = `
+    <div class="rk-sk-card">
+      <div class="rk-info-title">📦 Mystery Box</div>
+      <div class="rk-mystery-fuse"><div class="rk-mystery-fuse-fill" style="width:${pct}%"></div></div>
+      <div class="rk-info-blurb" style="font-size:12px;margin-top:4px">${s.clueIdx + 1} of ${total} clues</div>
+      <div id="rk-mystery-clues">${cluesShown.map((c,i) => `<div class="rk-info-blurb" style="margin-top:6px"><b>Clue ${i+1}:</b> ${rkEscapeHtml(c)}</div>`).join('')}</div>
+      <input type="text" class="rk-hunt-input" id="rk-mystery-guess" placeholder="Know it? Type your guess..." style="margin-top:10px">
+    </div>
+    <div class="rk-sk-actions">
+      ${s.clueIdx < total - 1 ? `<button class="rk-sk-secondary-btn" onclick="rkMysteryNextClue()">Next clue →</button>` : ''}
+      <button class="rk-sk-primary-btn" onclick="rkMysteryCheck()">✓ Check</button>
+    </div>
+    <div id="rk-mystery-feedback"></div>`;
+}
+function rkMysteryNextClue(){
+  _rkMysteryState.clueIdx++;
+  rkRenderMysteryStep();
+}
+function rkMysteryCheck(){
+  const s = _rkMysteryState;
+  const m = s.mystery;
+  const inp = document.getElementById('rk-mystery-guess');
+  const given = _rkNormGap(inp.value);
+  const isOk = !!given && m.accept.includes(given);
+  const fb = document.getElementById('rk-mystery-feedback');
+  if(isOk){
+    if(fb) fb.innerHTML = `<div class="rk-info-blurb" style="color:#0d7a5f;font-weight:700;margin-top:8px">🎉 Correct! It's ${rkEscapeHtml(m.answer)}!</div>
+      <div class="rk-sk-actions"><button class="rk-sk-primary-btn" onclick="rkStartMystery()">🔄 Another mystery</button></div>`;
+  } else if(s.clueIdx >= m.clues.length - 1){
+    if(fb) fb.innerHTML = `<div class="rk-info-blurb" style="color:#b91c1c;font-weight:700;margin-top:8px">Not quite...</div>
+      ${!s.oliverUsed ? `<div class="rk-sk-actions"><button class="rk-sk-secondary-btn" onclick="rkMysteryAskOliver()">📞 Ask Oliver</button></div>` : ''}`;
+  } else {
+    if(fb) fb.innerHTML = `<div class="rk-info-blurb" style="color:#b91c1c;margin-top:8px">Not quite yet — try another clue!</div>`;
+  }
+}
+function rkMysteryAskOliver(){
+  const s = _rkMysteryState;
+  if(s.oliverUsed) return;
+  s.oliverUsed = true;
+  const m = s.mystery;
+  const fb = document.getElementById('rk-mystery-feedback');
+  if(fb) fb.innerHTML = `<div class="rk-info-blurb" style="font-style:italic;margin-top:8px">📞 Oliver: "It's ${rkEscapeHtml(m.answer)}!"</div>
+    <div class="rk-sk-actions"><button class="rk-sk-primary-btn" onclick="rkStartMystery()">🔄 Another mystery</button></div>`;
 }
 
 // ══════════════════════════════════════════════════════════════════════════
