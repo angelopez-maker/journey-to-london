@@ -257,6 +257,9 @@
   .rk-gap-photo-link{font-size:12px;font-weight:700;color:#0d7a5f;margin-left:2px;text-decoration:none;
     border-bottom:1px dashed #0d7a5f;}
   .rk-gap-photo-link:hover{color:#08543f;}
+  .rk-hunt-input{display:block;width:100%;box-sizing:border-box;padding:10px 12px;font-size:15px;
+    font-family:'Rajdhani',sans-serif;border:1px solid rgba(40,40,70,.3);border-radius:8px;
+    background:rgba(255,255,255,.92);text-align:center;}
 
   /* ── Electric Cinema — catálogo tipo Netflix (10 agosto) ── */
   .rk-cinema-cat-title{font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;
@@ -606,7 +609,7 @@ function rkRenderStation(st){
   // tienen su propio layout. Las 5 estaciones restantes siguen mostrando el bloque genérico
   // "Coming soon" (#rk-station-body) sin ningún cambio.
   const isSurvival = st.id === 'survival_kit';
-  const isInfo = ['abbey_road','electric_cinema','match_day','mind_the_gap'].includes(st.id);
+  const isInfo = ['abbey_road','electric_cinema','match_day','mind_the_gap','scavenger_hunt'].includes(st.id);
   document.getElementById('rk-station-body').style.display = (isSurvival || isInfo) ? 'none' : 'flex';
   document.getElementById('rk-sk-layout').style.display = isSurvival ? 'flex' : 'none';
   document.getElementById('rk-info-layout').style.display = isInfo ? 'flex' : 'none';
@@ -790,6 +793,8 @@ function rkRenderInfoStation(id){
     rkRenderMatchDay();
   } else if(id === 'mind_the_gap'){
     rkRenderGap();
+  } else if(id === 'scavenger_hunt'){
+    rkRenderHunt();
   }
 }
 
@@ -868,6 +873,16 @@ const RK_MATCHDAY_CATEGORIES = [
     {q:"In the 2003-04 season, which team went the whole season without losing a single match?", options:['Arsenal','Liverpool','Manchester City'], answer:0},
     {q:"In 2016, which team amazed everyone by winning the Premier League for the very first time?", options:['Leicester City','Everton','West Ham United'], answer:0},
     {q:"What is the nickname of Manchester United?", options:['The Red Devils','The Blues','The Gunners'], answer:0},
+    {q:"What is Liverpool FC's nickname?", options:['The Reds','The Blues','The Toffees'], answer:0},
+    {q:"What is Chelsea FC's nickname?", options:['The Blues','The Reds','The Hammers'], answer:0},
+    {q:"What is the short nickname fans use for Tottenham Hotspur?", options:['Spurs','The Magpies','The Gunners'], answer:0},
+    {q:"What is Everton FC's nickname?", options:['The Toffees','The Eagles','The Saints'], answer:0},
+    {q:"Liverpool FC plays its home matches at which famous stadium?", options:['Anfield','Old Trafford','Stamford Bridge'], answer:0},
+    {q:"Manchester United's stadium, Old Trafford, has a famous nickname. What is it?", options:['The Theatre of Dreams','The Emirates','The Bridge'], answer:0},
+    {q:"In what year did the Premier League begin?", options:['1992','1985','2000'], answer:0},
+    {q:"Which legendary French striker is Arsenal's all-time record goalscorer?", options:['Thierry Henry','Alan Shearer','Wayne Rooney'], answer:0},
+    {q:'The "Merseyside derby" is the famous match between Liverpool and which other team?', options:['Everton','Manchester City','Chelsea'], answer:0},
+    {q:"What color shirts does Chelsea wear for home matches?", options:['Blue','Red','Green'], answer:0},
   ]},
   {id:'ucl', label:'🏆 Champions League', questions:[
     {q:"Which club has won the UEFA Champions League the most times in history?", options:['Real Madrid','Bayern Munich','Chelsea'], answer:0},
@@ -875,6 +890,16 @@ const RK_MATCHDAY_CATEGORIES = [
     {q:"Before 1992, the competition had a different name. What was it called?", options:['The European Cup','The World Cup','The Euro Trophy'], answer:0},
     {q:"Which club won the very first European Cup final, back in 1956?", options:['Real Madrid','Liverpool','AC Milan'], answer:0},
     {q:"Which club has won the competition 7 times, the second-highest total in history?", options:['AC Milan','Arsenal','Ajax'], answer:0},
+    {q:'What famous piece of classical music was the UEFA Champions League anthem based on?', options:["Handel's \"Zadok the Priest\"","Beethoven's \"Ode to Joy\"","Mozart's \"Eine kleine Nachtmusik\""], answer:0},
+    {q:'What is the nickname of the Champions League trophy, because of its two big handles?', options:['"Big Ears"','"The Golden Cup"','"The Silver Star"'], answer:0},
+    {q:"In the famous 2005 final in Istanbul, which team came back from 3-0 down at half-time to win the trophy?", options:['Liverpool','AC Milan','Real Madrid'], answer:0},
+    {q:"In the 1999 final, which team scored two goals in the last minutes to beat Bayern Munich?", options:['Manchester United','Juventus','Arsenal'], answer:0},
+    {q:"In the 1970s, which Dutch club, led by star player Johan Cruyff, won the European Cup three times in a row?", options:['Ajax','PSV Eindhoven','Feyenoord'], answer:0},
+    {q:"Which club became the first English team ever to win the European Cup, in 1968?", options:['Manchester United','Liverpool','Chelsea'], answer:0},
+    {q:"In the 2002 final, French star Zinedine Zidane scored an amazing goal for Real Madrid. How did he score it?", options:['A powerful volley with his weaker foot','A header from a corner kick','A penalty kick'], answer:0},
+    {q:"Since 2001, which sportswear brand has made the official Champions League match ball, decorated with stars?", options:['Adidas','Nike','Puma'], answer:0},
+    {q:'The Champions League\'s famous "starball" logo, made of a football covered in stars, was first introduced in which year?', options:['1992','1985','2001'], answer:0},
+    {q:"Legendary Spanish goalkeeper Iker Casillas holds the record for winning the Champions League more times than any other goalkeeper. How many times did he win it?", options:['3 times','2 times','5 times'], answer:0},
   ]},
   {id:'crossborder', label:'🌍 Players Abroad', questions:[
     {q:"In 2023, Harry Kane left Tottenham Hotspur to join a big club. Which country is that club from?", options:['Germany','Spain','France'], answer:0},
@@ -882,6 +907,16 @@ const RK_MATCHDAY_CATEGORIES = [
     {q:"David Beckham was a famous English player. After leaving Manchester United, which Spanish club did he join?", options:['Real Madrid','Barcelona','Atletico Madrid'], answer:0},
     {q:"Alexis Sánchez, from Chile, played for Arsenal in England. Which other English club did he join after leaving Arsenal?", options:['Manchester United','Liverpool','Chelsea'], answer:0},
     {q:"Claudio Bravo is a goalkeeper from Chile. Which English club did he play for?", options:['Manchester City','Everton','Tottenham'], answer:0},
+    {q:"Wayne Rooney was a famous English striker. In 2018, he left England to join a club in the USA. What was that club called?", options:['DC United','LA Galaxy','New York City FC'], answer:0},
+    {q:"Steven Gerrard played for Liverpool his whole career in England. In 2015, he moved to the USA to join a new club. What was it called?", options:['LA Galaxy','DC United','Inter Miami'], answer:0},
+    {q:"Michael Owen was a top English striker for Liverpool. In 2004, he moved to Spain to join a big club. Which club was it?", options:['Real Madrid','FC Barcelona','Atletico Madrid'], answer:0},
+    {q:"Gary Lineker was a famous English striker in the 1980s. He played for a Spanish club from 1986 to 1989. Which club was it?", options:['FC Barcelona','Real Madrid','Valencia CF'], answer:0},
+    {q:"Gary Medel is a Chilean defender. In 2013, he joined an English Premier League club. Which club was it?", options:['Cardiff City','Everton','West Ham'], answer:0},
+    {q:"Mark González is a Chilean winger. In 2006, he signed for a famous English club. Which one?", options:['Liverpool','Chelsea','Arsenal'], answer:0},
+    {q:"Ben Brereton Díaz was born in England but plays for the Chilean national team. Which English club did he play for many years?", options:['Blackburn Rovers','Leeds United','Everton'], answer:0},
+    {q:'Paul Gascoigne, nicknamed "Gazza", was an English midfielder. In 1992, he left Tottenham to play in Italy. Which Italian club did he join?', options:['Lazio','AC Milan','Juventus'], answer:0},
+    {q:"Jean Beausejour is a Chilean winger. He was part of an English club's squad that won the FA Cup in 2013. Which club was it?", options:['Wigan Athletic','Manchester City','Sunderland'], answer:0},
+    {q:"David Pizarro was the first Chilean player ever to play for this English club, joining on loan in 2012. Which club was it?", options:['Manchester City','Manchester United','Liverpool'], answer:0},
   ]},
   {id:'england', label:'🦁 England', questions:[
     {q:"What is the nickname of the England national football team?", options:['The Three Lions','The Red Devils','The Eagles'], answer:0},
@@ -889,6 +924,15 @@ const RK_MATCHDAY_CATEGORIES = [
     {q:"In which year did England win their only football World Cup?", options:['1966','1986','2006'], answer:0},
     {q:"Which country did England beat in the 1966 World Cup final?", options:['West Germany','Brazil','France'], answer:0},
     {q:"Who is the captain of the England men's football team?", options:['Harry Kane','Wayne Rooney','Jordan Henderson'], answer:0},
+    {q:"What color shirt does the England team traditionally wear at home?", options:['White','Red','Blue'], answer:0},
+    {q:"Who scored a hat-trick for England in the 1966 World Cup Final?", options:['Geoff Hurst','Bobby Moore','Bobby Charlton'], answer:0},
+    {q:"Who was the captain of England's 1966 World Cup winning team?", options:['Bobby Moore','Geoff Hurst','Alf Ramsey'], answer:0},
+    {q:"How many lions appear on England's football team badge?", options:['Three','Two','Four'], answer:0},
+    {q:"Which England player was famous for his free kicks, including a last-minute goal against Greece that sent England to the 2002 World Cup?", options:['David Beckham','Wayne Rooney','Michael Owen'], answer:0},
+    {q:"Before Harry Kane, who was England's all-time top goalscorer?", options:['Wayne Rooney','David Beckham','Bobby Charlton'], answer:0},
+    {q:"In the 1966 World Cup Final, England did NOT wear their usual white shirts. What color did they wear instead?", options:['Red','Yellow','Green'], answer:0},
+    {q:"What is the national anthem played for the England football team before matches?", options:['God Save the King','Jerusalem','Rule Britannia'], answer:0},
+    {q:"What does the gold star above the three lions on England's badge represent?", options:['Winning the 1966 World Cup','100 years of football','Winning the Euros'], answer:0},
   ]},
 ];
 // Categoría especial por tema — solo aparece si RK_ACTIVE_THEME tiene una entrada acá.
@@ -921,21 +965,29 @@ function rkRenderMatchDay(){
       ${cats.map(c => `<button class="rk-sk-primary-btn" onclick="rkStartMatchQuiz('${c.id}')">${rkEscapeHtml(c.label)}</button>`).join('')}
     </div>`;
 }
+// 18 agosto (mismo día): Angel — "sencillo pero extenso, que no se quemen pronto". En vez de
+// jugar siempre las mismas 5 preguntas en el mismo orden, cada partida elige al azar
+// (aleatoriedad controlada, rkShuffle) un subset de 5 preguntas del pool completo de la
+// categoría (que ahora tiene ~15). La sesión de juego sigue siendo corta y liviana, pero el
+// pool grande hace que jugar varias veces se sienta distinto cada vez. Mismo principio a
+// aplicar en Mystery Picture, Stop Look & Listen y Scavenger Hunt cuando se construyan.
+const RK_MATCHDAY_QUIZ_LENGTH = 5;
 function rkStartMatchQuiz(catId){
   const cat = _rkMatchAllCategories().find(c => c.id === catId);
   if(!cat) return;
-  _rkMatchState = {catId, qIdx:0, score:0, answered:false, used5050:false, usedOliver:false, eliminated:null};
+  const pool = rkShuffle(cat.questions).slice(0, Math.min(RK_MATCHDAY_QUIZ_LENGTH, cat.questions.length));
+  _rkMatchState = {catId, pool, qIdx:0, score:0, answered:false, used5050:false, usedOliver:false, eliminated:null};
   rkRenderMatchQuiz();
 }
 function rkRenderMatchQuiz(){
   const s = _rkMatchState;
   const cat = _rkMatchAllCategories().find(c => c.id === s.catId);
-  const q = cat.questions[s.qIdx];
+  const q = s.pool[s.qIdx];
   const wrap = document.getElementById('rk-info-wrap');
   wrap.innerHTML = `
     <div class="rk-sk-card">
       <div class="rk-info-title">${rkEscapeHtml(cat.label)}</div>
-      <div class="rk-info-blurb" style="font-size:12px">Question ${s.qIdx+1} of ${cat.questions.length} · Score: ${s.score}</div>
+      <div class="rk-info-blurb" style="font-size:12px">Question ${s.qIdx+1} of ${s.pool.length} · Score: ${s.score}</div>
       <div class="rk-info-blurb" style="font-weight:700;margin-top:8px">${rkEscapeHtml(q.q)}</div>
       <div id="rk-match-oliver-note"></div>
     </div>
@@ -953,8 +1005,7 @@ function rkRenderMatchQuiz(){
 function rkMatchUse5050(){
   const s = _rkMatchState;
   if(!s || s.used5050 || s.answered) return;
-  const cat = _rkMatchAllCategories().find(c => c.id === s.catId);
-  const q = cat.questions[s.qIdx];
+  const q = s.pool[s.qIdx];
   const wrongIdx = q.options.map((_,i) => i).filter(i => i !== q.answer);
   const toRemove = rkShuffle(wrongIdx)[0]; // aleatoriedad controlada (Fisher-Yates), no Math.random directo
   s.used5050 = true;
@@ -966,8 +1017,7 @@ function rkMatchCallOliver(){
   if(!s || s.usedOliver || s.answered) return;
   s.usedOliver = true;
   rkRenderMatchQuiz();
-  const cat = _rkMatchAllCategories().find(c => c.id === s.catId);
-  const q = cat.questions[s.qIdx];
+  const q = s.pool[s.qIdx];
   const note = document.getElementById('rk-match-oliver-note');
   if(note) note.innerHTML = `<div class="rk-info-blurb" style="margin-top:6px;font-style:italic">📞 Oliver: "Hmm, let me think... I'm sure it's this one!"</div>`;
   const btn = document.getElementById(`rk-match-o${q.answer}`);
@@ -978,7 +1028,7 @@ function rkMatchAnswer(oi){
   if(!s || s.answered) return; // candado real, no solo visual — mismo criterio del fix de Q&A Trivia en JTL
   s.answered = true;
   const cat = _rkMatchAllCategories().find(c => c.id === s.catId);
-  const q = cat.questions[s.qIdx];
+  const q = s.pool[s.qIdx];
   if(oi === q.answer) s.score++;
   q.options.forEach((_,i) => {
     const btn = document.getElementById(`rk-match-o${i}`);
@@ -990,16 +1040,15 @@ function rkMatchAnswer(oi){
     else if(i === oi) btn.classList.add('rk-wrong');
   });
   const wrap = document.getElementById('rk-info-wrap');
-  const label = (s.qIdx + 1 < cat.questions.length) ? 'Next question →' : 'See final score';
+  const label = (s.qIdx + 1 < s.pool.length) ? 'Next question →' : 'See final score';
   wrap.insertAdjacentHTML('beforeend', `<div class="rk-sk-actions"><button class="rk-sk-primary-btn" onclick="rkMatchNextQuestion()">${label}</button></div>`);
 }
 function rkMatchNextQuestion(){
   const s = _rkMatchState;
-  const cat = _rkMatchAllCategories().find(c => c.id === s.catId);
   s.qIdx++;
   s.answered = false;
   s.eliminated = null;
-  if(s.qIdx >= cat.questions.length) rkRenderMatchResult();
+  if(s.qIdx >= s.pool.length) rkRenderMatchResult();
   else rkRenderMatchQuiz();
 }
 function rkRenderMatchResult(){
@@ -1009,7 +1058,7 @@ function rkRenderMatchResult(){
   wrap.innerHTML = `
     <div class="rk-sk-card">
       <div class="rk-info-title">${rkEscapeHtml(cat.label)}</div>
-      <div class="rk-info-blurb" style="font-weight:700">Final score: ${s.score} / ${cat.questions.length}</div>
+      <div class="rk-info-blurb" style="font-weight:700">Final score: ${s.score} / ${s.pool.length}</div>
     </div>
     <div class="rk-sk-actions">
       <button class="rk-sk-primary-btn" onclick="rkStartMatchQuiz('${cat.id}')">🔄 Play again</button>
@@ -1206,6 +1255,187 @@ function rkGapCheck(){
 function rkGapNext(){
   _rkGapIdx++;
   rkRenderGap();
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// SCAVENGER HUNT (Reading) — 18 agosto, quinta y última estación nueva de la Fase 1.
+// Mecánica diseñada en conjunto con Angel — dos fases:
+//   FASE 1 (individual, en secreto): se "llama" primero a Rodrigo y después a Fernando, cada
+//     uno recibe 3 pistas propias que convergen en UNA palabra secreta (no en el resultado
+//     final). 3 pistas progresivas → input de texto libre con tolerancia. Si no la sacan
+//     (vacío o incorrecta), aparece una 4ta pista + 3 alternativas de opción múltiple. Si
+//     fallan la alternativa, aparece "Ask Oliver", que revela la palabra directamente.
+//     Siempre terminan sabiendo su palabra — no hay estado de fracaso.
+//   FASE 2 (juntos): se revelan las dos palabras encontradas y deben deducir/investigar el
+//     concepto cultural que las combina (el banco original de Chatty: Pista A + Pista B →
+//     Respuesta). Texto libre con tolerancia. Si fallan, "¿Están seguros? Piensen, piensen" +
+//     opción de "Ask Oliver", que en este caso SÍ da la respuesta directa (no otra pista) —
+//     decisión de Angel: ya tienen bastante ayuda acumulada, y mantener a Oliver siempre
+//     acertando es consistente con el criterio ya usado en Match Day.
+// Contenido: banco de Chatty en el Word "Scavenger Hunt.docx" (99 pares, 145 palabras únicas,
+// ~13 categorías, todo revisado y marcado "OK" por Angel). Este primer lanzamiento es un
+// PILOTO de 5 acertijos (10 palabras) para validar la mecánica end-to-end antes de escalar
+// al resto del banco — mismo patrón de "empezar chico" que Abbey Road (1 canción) y Match Day
+// (2 partidos). Point clave del diseño de Chatty: las palabras se REUSAN entre acertijos
+// (ej. "Red" aparece en 5 pares distintos), así que cada palabra se escribe una sola vez acá
+// y se referencia por key en múltiples puzzles — así el banco escala sin escribir 2x el texto.
+const RK_HUNT_WORDS = {
+  bear: {label:'Bear', clues:['I am an animal.','I love honey, and sometimes marmalade sandwiches.','Animal, forest, teddy...'], clue4:'Big, furry, and I sleep all winter. What am I?', options:['Bear','Wolf','Fox'], answer:0, accept:['bear']},
+  marmalade: {label:'Marmalade', clues:['I am a type of food.',"I'm sweet, made from oranges, and you spread me on toast.",'Orange, jam, breakfast...'], clue4:'A famous London bear loves me on his sandwiches. What am I?', options:['Marmalade','Butter','Honey'], answer:0, accept:['marmalade']},
+  detective: {label:'Detective', clues:['I am a job — a person who has this job.','I solve mysteries and look for clues.','Mystery, clues, magnifying glass...'], clue4:'I wear a special hat and smoke a pipe while solving crimes in London. What am I?', options:['Detective','Police officer','Spy'], answer:0, accept:['detective']},
+  pipe: {label:'Pipe', clues:['I am an object.',"You can smoke me, and I'm often seen in old detective stories.",'Smoke, tobacco, old-fashioned...'], clue4:'Sherlock Holmes is famous for holding one of me in his mouth. What am I?', options:['Pipe','Cigar','Hat'], answer:0, accept:['pipe']},
+  abbey: {label:'Abbey', clues:['I am a type of building.',"I'm a place of worship, often very old, connected to monks or a church.",'Church, old, monastery...'], clue4:'A famous London street and a Beatles album share my name. What am I?', options:['Abbey','Cathedral','Castle'], answer:0, accept:['abbey']},
+  road: {label:'Road', clues:['I am something you walk or drive on.','Cars, bikes and buses travel along me every day.','Street, path, travel...'], clue4:'The Beatles crossed a famous one of me in London for an album cover. What am I?', options:['Road','Bridge','Path'], answer:0, accept:['road']},
+  red: {label:'Red', clues:['I am a color.',"I'm the color of love, and also of London's buses and phone boxes.",'Color, love, London...'], clue4:"Roses are this color, and so is a stripe on the Chilean flag. What color am I?", options:['Red','Blue','Green'], answer:0, accept:['red']},
+  bus: {label:'Bus', clues:['I am a type of vehicle.','I carry many passengers, and in London I\'m famously red with two floors.','Vehicle, passengers, wheels...'], clue4:'I drive around London and you can sit upstairs for the best view. What am I?', options:['Bus','Taxi','Train'], answer:0, accept:['bus']},
+  crown: {label:'Crown', clues:['I am an object.','I\'m made of gold and jewels, and a king or queen wears me on their head.','Gold, jewels, royalty...'], clue4:"You'd see me on the King's or Queen's head during a coronation. What am I?", options:['Crown','Hat','Ring'], answer:0, accept:['crown']},
+  palace: {label:'Palace', clues:['I am a type of building.','I\'m huge and fancy, and a royal family lives inside me.','Royal, huge, fancy...'], clue4:'Buckingham is a famous one of me in London, home to the King. What am I?', options:['Palace','Castle','Mansion'], answer:0, accept:['palace']},
+};
+const RK_HUNT_PUZZLES = [
+  {wordA:'bear', wordB:'marmalade', answer:'Paddington', accept:['paddington','paddington bear'], oliverLine:'Bear + Marmalade... Paddington! The bear who loves marmalade sandwiches.'},
+  {wordA:'detective', wordB:'pipe', answer:'Sherlock Holmes', accept:['sherlock holmes','sherlock'], oliverLine:'Detective + Pipe... Sherlock Holmes! The famous detective who solves mysteries with his pipe.'},
+  {wordA:'abbey', wordB:'road', answer:'The Beatles', accept:['the beatles','beatles'], oliverLine:'Abbey + Road... The Beatles! Abbey Road is their famous album, named after a street in London.'},
+  {wordA:'red', wordB:'bus', answer:'London double-decker bus', accept:['double-decker bus','double decker bus','bus','london bus','double-decker','double decker','the london bus'], oliverLine:"Red + Bus... London's famous double-decker bus!"},
+  {wordA:'crown', wordB:'palace', answer:'Buckingham Palace', accept:['buckingham palace','buckingham'], oliverLine:"Crown + Palace... Buckingham Palace! Home of the King."},
+];
+let _rkHuntState = null;
+function rkRenderHunt(){
+  _rkHuntState = null;
+  const wrap = document.getElementById('rk-info-wrap');
+  wrap.innerHTML = `
+    <div class="rk-sk-card">
+      <div class="rk-info-title">🕵️ Scavenger Hunt</div>
+      <div class="rk-info-blurb">Time to call each explorer! Rodrigo and Fernando each get their own secret clues — figure out your word, then put both words together to solve the final mystery.</div>
+    </div>
+    <div class="rk-sk-actions">
+      <button class="rk-sk-primary-btn" onclick="rkHuntStart()">📞 Call Rodrigo</button>
+    </div>`;
+}
+function rkHuntStart(){
+  const p = rkShuffle(RK_HUNT_PUZZLES)[0]; // aleatoriedad controlada (Fisher-Yates)
+  _rkHuntState = {puzzle:p, who:'Rodrigo', wordKey:p.wordA, clueIdx:0, mcShown:false, mcAnswered:false, oliverUsed:false,
+    wordAResult:null, wordBResult:null, phase2OliverUsed:false};
+  rkRenderHuntPhase1();
+}
+function rkRenderHuntPhase1(){
+  const s = _rkHuntState;
+  const w = RK_HUNT_WORDS[s.wordKey];
+  const cluesShown = w.clues.slice(0, s.clueIdx + 1);
+  const wrap = document.getElementById('rk-info-wrap');
+  let html = `<div class="rk-sk-card">
+      <div class="rk-info-title">📞 ${rkEscapeHtml(s.who)}'s secret</div>
+      <div class="rk-info-blurb" style="font-style:italic">Only ${rkEscapeHtml(s.who)} should look at this screen! Figure out the secret word.</div>
+      <div id="rk-hunt-clues">${cluesShown.map((c,i) => `<div class="rk-info-blurb" style="margin-top:6px"><b>Clue ${i+1}:</b> ${rkEscapeHtml(c)}</div>`).join('')}</div>
+    </div>`;
+  if(s.clueIdx < w.clues.length - 1){
+    html += `<div class="rk-sk-actions"><button class="rk-sk-primary-btn" onclick="rkHuntNextClue()">Next clue →</button></div>`;
+  } else if(!s.mcShown){
+    html += `<div class="rk-sk-card"><input type="text" class="rk-hunt-input" id="rk-hunt-guess" placeholder="Type the word..."></div>
+      <div class="rk-sk-actions"><button class="rk-sk-primary-btn" onclick="rkHuntCheckGuess()">✓ Check</button></div>`;
+  } else {
+    html += `<div class="rk-sk-card"><div class="rk-info-blurb"><b>One more clue:</b> ${rkEscapeHtml(w.clue4)}</div></div>
+      <div id="rk-hunt-mc">${w.options.map((opt,oi) => `<button class="rk-mc-option" id="rk-hunt-mc-${oi}" onclick="rkHuntMcAnswer(${oi})">${rkEscapeHtml(opt)}</button>`).join('')}</div>
+      <div id="rk-hunt-oliver-wrap"></div>`;
+  }
+  wrap.innerHTML = html;
+}
+function rkHuntNextClue(){
+  _rkHuntState.clueIdx++;
+  rkRenderHuntPhase1();
+}
+function rkHuntCheckGuess(){
+  const s = _rkHuntState;
+  const w = RK_HUNT_WORDS[s.wordKey];
+  const inp = document.getElementById('rk-hunt-guess');
+  const given = _rkNormGap(inp.value);
+  const isOk = !!given && w.accept.includes(given);
+  if(isOk){ rkHuntWordSolved(w.label); }
+  else { s.mcShown = true; rkRenderHuntPhase1(); }
+}
+function rkHuntMcAnswer(oi){
+  const s = _rkHuntState;
+  if(s.mcAnswered) return; // candado real, no solo visual
+  s.mcAnswered = true;
+  const w = RK_HUNT_WORDS[s.wordKey];
+  w.options.forEach((_,i) => {
+    const btn = document.getElementById(`rk-hunt-mc-${i}`);
+    if(!btn) return;
+    btn.disabled = true;
+    if(i === w.answer) btn.classList.add('rk-correct');
+    else if(i === oi) btn.classList.add('rk-wrong');
+  });
+  if(oi === w.answer){
+    setTimeout(() => rkHuntWordSolved(w.label), 700);
+  } else {
+    const ow = document.getElementById('rk-hunt-oliver-wrap');
+    if(ow) ow.innerHTML = `<div class="rk-sk-actions"><button class="rk-sk-secondary-btn" onclick="rkHuntAskOliver()">📞 Ask Oliver</button></div>`;
+  }
+}
+function rkHuntAskOliver(){
+  const s = _rkHuntState;
+  if(s.oliverUsed) return;
+  s.oliverUsed = true;
+  const w = RK_HUNT_WORDS[s.wordKey];
+  const ow = document.getElementById('rk-hunt-oliver-wrap');
+  if(ow) ow.innerHTML = `<div class="rk-info-blurb" style="font-style:italic">📞 Oliver: "It's ${rkEscapeHtml(w.label)}!"</div>`;
+  setTimeout(() => rkHuntWordSolved(w.label), 1200);
+}
+function rkHuntWordSolved(wordLabel){
+  const s = _rkHuntState;
+  if(s.who === 'Rodrigo'){
+    s.wordAResult = wordLabel;
+    const wrap = document.getElementById('rk-info-wrap');
+    wrap.innerHTML = `<div class="rk-sk-card"><div class="rk-info-title">✓ Rodrigo found his word!</div>
+        <div class="rk-info-blurb">Now it's time to call the next explorer.</div></div>
+      <div class="rk-sk-actions"><button class="rk-sk-primary-btn" onclick="rkHuntCallSecond()">📞 Call Fernando</button></div>`;
+  } else {
+    s.wordBResult = wordLabel;
+    rkRenderHuntPhase2();
+  }
+}
+function rkHuntCallSecond(){
+  const s = _rkHuntState;
+  s.who = 'Fernando';
+  s.wordKey = s.puzzle.wordB;
+  s.clueIdx = 0; s.mcShown = false; s.mcAnswered = false; s.oliverUsed = false;
+  rkRenderHuntPhase1();
+}
+function rkRenderHuntPhase2(){
+  const s = _rkHuntState;
+  const wrap = document.getElementById('rk-info-wrap');
+  wrap.innerHTML = `
+    <div class="rk-sk-card">
+      <div class="rk-info-title">🔍 Put it together!</div>
+      <div class="rk-info-blurb">Rodrigo's word: <b>${rkEscapeHtml(s.wordAResult)}</b> &nbsp;+&nbsp; Fernando's word: <b>${rkEscapeHtml(s.wordBResult)}</b></div>
+      <div class="rk-info-blurb">What do these two things mean together?</div>
+      <input type="text" class="rk-hunt-input" id="rk-hunt-final-guess" placeholder="Type your answer...">
+    </div>
+    <div class="rk-sk-actions"><button class="rk-sk-primary-btn" onclick="rkHuntCheckFinal()">✓ Check</button></div>
+    <div id="rk-hunt-final-feedback"></div>`;
+}
+function rkHuntCheckFinal(){
+  const s = _rkHuntState;
+  const p = s.puzzle;
+  const inp = document.getElementById('rk-hunt-final-guess');
+  const given = _rkNormGap(inp.value);
+  const isOk = !!given && p.accept.includes(given);
+  const fb = document.getElementById('rk-hunt-final-feedback');
+  if(isOk){
+    if(fb) fb.innerHTML = `<div class="rk-info-blurb" style="color:#0d7a5f;font-weight:700;margin-top:8px">🎉 Correct! It's ${rkEscapeHtml(p.answer)}!</div>
+      <div class="rk-sk-actions"><button class="rk-sk-primary-btn" onclick="rkHuntStart()">🔄 Another puzzle</button></div>`;
+  } else if(!s.phase2OliverUsed){
+    if(fb) fb.innerHTML = `<div class="rk-info-blurb" style="color:#b91c1c;font-weight:700;margin-top:8px">🤔 Not quite... are you sure? Think, think!</div>
+      <div class="rk-sk-actions"><button class="rk-sk-secondary-btn" onclick="rkHuntAskOliverFinal()">📞 Ask Oliver</button></div>`;
+  }
+}
+function rkHuntAskOliverFinal(){
+  const s = _rkHuntState;
+  if(s.phase2OliverUsed) return;
+  s.phase2OliverUsed = true;
+  const p = s.puzzle;
+  const fb = document.getElementById('rk-hunt-final-feedback');
+  if(fb) fb.innerHTML = `<div class="rk-info-blurb" style="font-style:italic;margin-top:8px">📞 Oliver: "${rkEscapeHtml(p.oliverLine)}"</div>
+    <div class="rk-sk-actions"><button class="rk-sk-primary-btn" onclick="rkHuntStart()">🔄 Another puzzle</button></div>`;
 }
 
 // ══════════════════════════════════════════════════════════════════════════
