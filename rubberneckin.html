@@ -905,6 +905,7 @@ function rkCinemaShowMovie(mid){
 }
 function rkBackToMap(){
   rkMicRelease(); // libera el micrófono del todo — no tiene sentido dejarlo prendido fuera de Survival Kit
+  rkStopAllTts(); // corta a Oliver/narrador si seguía hablando (ver rkStopAllTts más abajo)
   rkGoto('screen-menu');
 }
 
@@ -1093,9 +1094,9 @@ function rkMatchCallOliver(){
   rkRenderMatchQuiz();
   const q = s.pool[s.qIdx];
   const note = document.getElementById('rk-match-oliver-note');
-  if(note) note.innerHTML = `<div class="rk-info-blurb" style="margin-top:6px;font-style:italic">📞 Oliver: "Hmm, let me think... I'm sure it's this one!"</div>`;
+  if(note) note.innerHTML = `<div class="rk-info-blurb" style="margin-top:6px;font-style:italic">📞 Oliver: "Hmm, let me think... I'm sure it's ${rkEscapeHtml(q.options[q.answer])}!"</div>`;
   const btn = document.getElementById(`rk-match-o${q.answer}`);
-  if(btn) btn.style.outline = '3px solid var(--gold)';
+  if(btn) btn.style.outline = '3px solid #f59e0b';
 }
 function rkMatchAnswer(oi){
   const s = _rkMatchState;
@@ -1724,6 +1725,7 @@ const RK_SLL_DIALOGUES = {id:'dialogues', icon:'🗣️', label:'Dialogues', q:'
 function _rkSLLAllCategories(){ return [...RK_SLL_CATEGORIES, RK_SLL_DIALOGUES]; }
 let _rkSLLState = null; // {catId, pool, qIdx, score, answered, used5050, usedOliver, eliminated, playing}
 function rkRenderSLL(){
+  rkStopAllTts(); // "← Back to topics" puede tocarse a mitad de un fragmento/diálogo sonando
   _rkSLLState = null;
   const cats = _rkSLLAllCategories();
   const wrap = document.getElementById('rk-info-wrap');
@@ -1807,9 +1809,9 @@ function rkSLLAskOliver(){
   rkRenderSLLQuiz();
   const item = s.pool[s.qIdx];
   const note = document.getElementById('rk-sll-oliver-note');
-  if(note) note.innerHTML = `<div class="rk-info-blurb" style="margin-top:6px;font-style:italic">📞 Oliver: "Hmm, let me think... I'm sure it's this one!"</div>`;
+  if(note) note.innerHTML = `<div class="rk-info-blurb" style="margin-top:6px;font-style:italic">📞 Oliver: "Hmm, let me think... I'm sure it's ${rkEscapeHtml(item.options[item.answer])}!"</div>`;
   const btn = document.getElementById(`rk-sll-o${item.answer}`);
-  if(btn) btn.style.outline = '3px solid var(--gold)';
+  if(btn) btn.style.outline = '3px solid #f59e0b';
 }
 function rkSLLAnswer(oi){
   const s = _rkSLLState;
@@ -2296,6 +2298,16 @@ async function rkTtsSpeakVoice(text, voice, instructions){
 // esto en el catálogo de OpenAI.
 async function rkTtsSpeak(text){
   return rkTtsSpeakVoice(text, 'fable', RK_OLIVER_TTS_INSTRUCTIONS);
+}
+// Corta cualquier audio de Oliver/narrador que siga sonando al salir de la estación —
+// hallazgo de QA (19 agosto): "← Map" es un botón global, siempre visible dentro de una
+// estación (línea ~332), así que se puede tocar a mitad de un audio de Survival Kit o de
+// Stop, Look & Listen. Antes solo rkTtsSpeakVoice() paraba el audio anterior, y solo al
+// arrancar uno nuevo — si el usuario simplemente se iba, el audio seguía sonando de fondo
+// sobre el mapa. Mismo criterio que rkMicRelease() en rkBackToMap().
+function rkStopAllTts(){
+  if(_rkTtsAudio){ try{ _rkTtsAudio.pause(); }catch(e){} _rkTtsAudio = null; }
+  if(window.speechSynthesis) window.speechSynthesis.cancel();
 }
 
 // ── Chat/IA — mismo patrón que callClaude() de index.html (línea ~1160), mismo endpoint
