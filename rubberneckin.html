@@ -413,7 +413,7 @@ const RK_STATIONS = [
     left:66.8, top:66.2, w:7.8, h:14.3},
   {id:'stop_look_and_listen', icon:'🎧', name:'Stop, Look & Listen', sub:'Listening', skill:'Listening',
     img:'rubberneckin-assets/stations/stop_look_and_listen.jpg',
-    desc:'Listen closely to a short clip... what is it, and where is it from?',
+    desc:'Listen closely, then figure out what it is — movies, places, football, books, people, quotes, and real conversations.',
     left:84.9, top:71.0, w:7.8, h:14.3},
 ];
 
@@ -611,7 +611,7 @@ function rkRenderStation(st){
   // tienen su propio layout. Las 5 estaciones restantes siguen mostrando el bloque genérico
   // "Coming soon" (#rk-station-body) sin ningún cambio.
   const isSurvival = st.id === 'survival_kit';
-  const isInfo = ['abbey_road','electric_cinema','match_day','mind_the_gap','scavenger_hunt','mystery_picture'].includes(st.id);
+  const isInfo = ['abbey_road','electric_cinema','match_day','mind_the_gap','scavenger_hunt','mystery_picture','stop_look_and_listen'].includes(st.id);
   document.getElementById('rk-station-body').style.display = (isSurvival || isInfo) ? 'none' : 'flex';
   document.getElementById('rk-sk-layout').style.display = isSurvival ? 'flex' : 'none';
   document.getElementById('rk-info-layout').style.display = isInfo ? 'flex' : 'none';
@@ -641,19 +641,93 @@ function rkRenderStation(st){
 // IMPORTANTE (regla de contenido del proyecto): nunca se reproduce la letra de la canción de
 // forma textual — el blurb y el vocabulario están escritos a mano, inspirados en el tono/tema
 // general de la canción, no citados de ella.
-const RK_ABBEY_CONTENT = {
-  title: "🎵 Rubberneckin' — Elvis Presley (1969)",
-  blurb: "This is a fun, upbeat song from Elvis — all about heading out, checking out the scene, and having a good time. It's playful and a little cheeky, perfect for singing along on a road trip through London!",
-  vocab: [
-    {w:'rubbernecking', m:'staring at something out of curiosity — like looking out the car window at everything going by'},
-    {w:'cruising', m:'driving around slowly, just for fun, with nowhere in particular to be'},
-    {w:'groovy', m:'old-fashioned slang for "really cool" or "great"'},
-    {w:'to dig something', m:'60s slang for "to really like something"'},
-    {w:'a blast', m:'a really fun time — "we had a blast!"'},
-    {w:'to sing along', m:'to sing together with a song that is playing'},
-  ],
-  ytMusicUrl: 'https://music.youtube.com/search?q=' + encodeURIComponent("Rubberneckin' Elvis Presley"),
+// 18 agosto (noche) — rediseño pedido por Angel: antes de esta ronda, Abbey Road mostraba
+// directo la ficha de "Rubberneckin'" (única canción cargada). Angel quiere un hub intermedio:
+// arriba, un botón directo a "Rubberneckin'" (con el ícono del rockero) porque es LA canción
+// del módulo (suena en las portadas); abajo, dos botones grandes — "A Side" entra a un catálogo
+// tipo Netflix (mismo patrón ya usado en Electric Cinema, `.rk-cinema-grid`/`.rk-cinema-card`)
+// que hoy solo tiene esta canción, listo para crecer a las 145 del Excel cuando Angel cierre la
+// lista con Nicolás; "B Side" queda en "Coming soon" (canciones 2006+, todavía en curaduría).
+// RK_ABBEY_CONTENT (objeto plano de una sola canción) pasa a RK_ABBEY_SONGS (diccionario por id,
+// mismo patrón que RK_MOVIES) + RK_ABBEY_ASIDE (lista ordenada de ids — hoy 1, mañana 145).
+const RK_ABBEY_SONGS = {
+  rubberneckin: {
+    title: "🎵 Rubberneckin' — Elvis Presley (1969)",
+    blurb: "This is a fun, upbeat song from Elvis — all about heading out, checking out the scene, and having a good time. It's playful and a little cheeky, perfect for singing along on a road trip through London!",
+    vocab: [
+      {w:'rubbernecking', m:'staring at something out of curiosity — like looking out the car window at everything going by'},
+      {w:'cruising', m:'driving around slowly, just for fun, with nowhere in particular to be'},
+      {w:'groovy', m:'old-fashioned slang for "really cool" or "great"'},
+      {w:'to dig something', m:'60s slang for "to really like something"'},
+      {w:'a blast', m:'a really fun time — "we had a blast!"'},
+      {w:'to sing along', m:'to sing together with a song that is playing'},
+    ],
+    ytMusicUrl: 'https://music.youtube.com/search?q=' + encodeURIComponent("Rubberneckin' Elvis Presley"),
+  },
 };
+const RK_ABBEY_ASIDE = ['rubberneckin'];
+
+// Hub de entrada — botón directo a "Rubberneckin'" (con el ícono) + A Side / B Side.
+function rkRenderAbbeyHub(){
+  const wrap = document.getElementById('rk-info-wrap');
+  wrap.innerHTML = `
+    <div class="rk-sk-card" style="text-align:center">
+      <div class="rk-info-title">🎵 Abbey Road</div>
+      <div class="rk-info-blurb">Sing along, one song at a time.</div>
+    </div>
+    <div class="rk-sk-actions" style="justify-content:center">
+      <button class="rk-sk-primary-btn" onclick="rkRenderAbbeySong('rubberneckin')" style="display:inline-flex;align-items:center;justify-content:center;gap:10px">
+        <span>Rubberneckin'</span>
+        <img src="rubberneckin-assets/covers/elvis_icon.png" alt="" style="height:44px;width:auto;display:block">
+      </button>
+    </div>
+    <div class="rk-sk-actions">
+      <button class="rk-sk-primary-btn" style="flex:1" onclick="rkRenderAbbeyASide()">A Side</button>
+      <button class="rk-sk-secondary-btn" style="flex:1" onclick="rkRenderAbbeyBSide()">B Side</button>
+    </div>`;
+}
+// Catálogo A Side — mismo patrón visual que Electric Cinema (.rk-cinema-grid/.rk-cinema-card).
+// Hoy solo tiene 1 canción (RK_ABBEY_ASIDE); crece sin tocar la mecánica cuando se cargue el
+// catálogo completo de 145 canciones (fichas de investigación en curso, tandas 1-8 de 10 ya
+// escritas en "Abbey Road - Fichas A Side").
+function rkRenderAbbeyASide(){
+  const wrap = document.getElementById('rk-info-wrap');
+  wrap.innerHTML = `
+    <div class="rk-sk-card"><div class="rk-info-title">💿 A Side</div><div class="rk-info-blurb">Pick a song to explore — vocabulary and a link to listen &amp; sing along.</div></div>
+    <div class="rk-cinema-grid">
+      ${RK_ABBEY_ASIDE.map(sid => {const s = RK_ABBEY_SONGS[sid]; return `
+        <button class="rk-cinema-card" onclick="rkRenderAbbeySong('${sid}')">
+          <div class="rk-cinema-card-title">${rkEscapeHtml(s.title)}</div>
+        </button>`;}).join('')}
+    </div>
+    <div class="rk-sk-actions">
+      <button class="rk-sk-secondary-btn" onclick="rkRenderAbbeyHub()">← Back</button>
+    </div>`;
+}
+// B Side (2006+) — todavía en curaduría con Nicolás, ver sección 5 del documento de Traspaso.
+function rkRenderAbbeyBSide(){
+  const wrap = document.getElementById('rk-info-wrap');
+  wrap.innerHTML = `
+    <div class="rk-sk-card"><div class="rk-info-title">💽 B Side</div><div class="rk-coming-soon">🚧 Coming soon</div></div>
+    <div class="rk-sk-actions">
+      <button class="rk-sk-secondary-btn" onclick="rkRenderAbbeyHub()">← Back</button>
+    </div>`;
+}
+// Ficha de una canción — mismo contenido/formato de siempre, solo que ahora toma el id en vez
+// de un objeto fijo único. "← All Songs" vuelve al catálogo A Side (no al hub) — mismo criterio
+// que "← All Movies" en Electric Cinema.
+function rkRenderAbbeySong(sid){
+  const wrap = document.getElementById('rk-info-wrap');
+  const s = RK_ABBEY_SONGS[sid];
+  if(!s) return;
+  wrap.innerHTML = `
+    <div class="rk-sk-card"><div class="rk-info-title">${rkEscapeHtml(s.title)}</div><div class="rk-info-blurb">${rkEscapeHtml(s.blurb)}</div></div>
+    <div class="rk-vocab-grid">${s.vocab.map(v => `<div class="rk-vocab-item"><div class="rk-vocab-word">${rkEscapeHtml(v.w)}</div><div class="rk-vocab-mean">${rkEscapeHtml(v.m)}</div></div>`).join('')}</div>
+    <div class="rk-sk-actions">
+      <a class="rk-sk-primary-btn" href="${s.ytMusicUrl}" target="_blank" rel="noopener">🎵 Listen &amp; Sing Along on YouTube Music</a>
+      <button class="rk-sk-secondary-btn" onclick="rkRenderAbbeyASide()">← All Songs</button>
+    </div>`;
+}
 
 // ══════════════════════════════════════════════════════════════════════════
 // ELECTRIC CINEMA — catálogo de 20 películas (10 agosto) — lista definitiva
@@ -782,13 +856,7 @@ const RK_CINEMA_CATALOG = [
 function rkRenderInfoStation(id){
   const wrap = document.getElementById('rk-info-wrap');
   if(id === 'abbey_road'){
-    const c = RK_ABBEY_CONTENT;
-    wrap.innerHTML = `
-      <div class="rk-sk-card"><div class="rk-info-title">${rkEscapeHtml(c.title)}</div><div class="rk-info-blurb">${rkEscapeHtml(c.blurb)}</div></div>
-      <div class="rk-vocab-grid">${c.vocab.map(v => `<div class="rk-vocab-item"><div class="rk-vocab-word">${rkEscapeHtml(v.w)}</div><div class="rk-vocab-mean">${rkEscapeHtml(v.m)}</div></div>`).join('')}</div>
-      <div class="rk-sk-actions">
-        <a class="rk-sk-primary-btn" href="${c.ytMusicUrl}" target="_blank" rel="noopener">🎵 Listen &amp; Sing Along on YouTube Music</a>
-      </div>`;
+    rkRenderAbbeyHub();
   } else if(id === 'electric_cinema'){
     rkCinemaShowCatalog();
   } else if(id === 'match_day'){
@@ -799,6 +867,8 @@ function rkRenderInfoStation(id){
     rkRenderHunt();
   } else if(id === 'mystery_picture'){
     rkRenderMysteryBox();
+  } else if(id === 'stop_look_and_listen'){
+    rkRenderSLL();
   }
 }
 
@@ -1561,6 +1631,229 @@ function rkMysteryAskOliver(){
 }
 
 // ══════════════════════════════════════════════════════════════════════════
+// STOP, LOOK & LISTEN (Listening) — 18 agosto, última de las 8 estaciones de la Fase 1.
+// Concepto cerrado con Angel + Chatty: no es "listening exercises" genérico, es
+// "Listen → Understand → Discover" — se escucha un fragmento narrado o un diálogo corto y hay
+// que reconocer de qué/quién se trata. 3 categorías (Movies, Places, Football) reutilizan
+// hechos ya verificados en otras estaciones a propósito — un "universo conectado" entre
+// estaciones, idea anotada desde el 8 de agosto que recién encuentra su lugar acá — más 3 de
+// contenido nuevo (Books & Stories, Characters, Famous Quotes) y Dialogues, la única con DOS
+// voces. Dialogues es el espejo pedagógico de Survival Kit: allá "you speak → Oliver listens",
+// acá "they speak → you listen".
+// Voz: NUNCA Oliver narrando (regla "Oliver = Survival Kit" sigue firme, ver nota en Match
+// Day) — un narrador neutro (rkTtsSpeakVoice con voz/instrucciones propias) para las 6
+// categorías narrativas, y dos voces distintas para Dialogues. Oliver solo aparece como
+// comodín estático "📞 Ask Oliver", igual criterio que Match Day/Scavenger Hunt/Mystery Box.
+// Quotes: solo frases históricas de dominio público (discursos, cartas, teatro clásico) —
+// nunca diálogo textual de una película con copyright, mismo criterio de todo el proyecto.
+// Comodines: 50/50 + Ask Oliver, quemables una vez por categoría jugada (mismo patrón que
+// Match Day) — "escuchar de nuevo" es gratis e ilimitado, no es un comodín (limitarlo generaría
+// frustración sin aportar nada al juego).
+// Piloto: 4 fragmentos por categoría (28 en total) — escalar el pool más adelante, mismo
+// principio "sencillo pero extenso" ya aplicado en Match Day/Mystery Box.
+const RK_SLL_CATEGORIES = [
+  {id:'movies', icon:'🎬', label:'Movies', q:'Which movie is this describing?', items:[
+    {fragment:"A young bear leaves the deep, dark jungle and travels all the way to London, wearing a red hat and carrying a suitcase. He is taken in by a kind family, and he loves marmalade sandwiches more than anything else in the world.", options:['Paddington','The Iron Giant','Wonder'], answer:0},
+    {fragment:"Based on a true story, this film follows a team of astronauts whose spacecraft is badly damaged on the way to the Moon. Back on Earth, engineers race against time to bring them home safely.", options:['Apollo 13','The Wild Robot','Inside Out'], answer:0},
+    {fragment:"A teenage boy is bullied at his new school, so an older man teaches him martial arts — not just how to fight, but patience and self-respect. His most famous lesson involves painting a fence and waxing a car.", options:['The Karate Kid','Rocky','Michael'], answer:0},
+    {fragment:"An underdog boxer from Philadelphia gets a once-in-a-lifetime shot at the heavyweight title. Nobody expects him to win, but he trains hard, running up the steps of the art museum before dawn.", options:['Rocky','The Karate Kid','The Greatest Showman'], answer:0},
+  ]},
+  {id:'places', icon:'📮', label:'Places', q:'Which place is this describing?', items:[
+    {fragment:"This is a giant wheel on the south bank of the River Thames in London. Visitors ride in glass capsules and get a spectacular view over the whole city, including Big Ben and the Houses of Parliament.", options:['The London Eye','Tower Bridge','Wembley Stadium'], answer:0},
+    {fragment:"This is an ancient circle of huge grey stones, thousands of years old, standing alone in a green field in the English countryside. Nobody is completely sure why it was built.", options:['Stonehenge','Edinburgh Castle','Windsor Castle'], answer:0},
+    {fragment:"This bridge crosses the River Thames right next to the Tower of London. It has two tall towers, and the middle section can lift up to let tall ships pass underneath.", options:['Tower Bridge','The London Eye','Millennium Bridge'], answer:0},
+    {fragment:"This film studio just outside London lets visitors walk through the real sets used to make a famous series of wizard movies — including the Great Hall, with its floating candles.", options:['Warner Bros Studio Tour','Pinewood Studios','The British Museum'], answer:0},
+  ]},
+  {id:'football', icon:'⚽', label:'Football', q:'What is this describing?', items:[
+    {fragment:"In the 2015-16 season, a small English club that had almost been relegated the year before shocked the entire football world by winning the Premier League title for the very first time.", options:['Leicester City','Everton','West Ham United'], answer:0},
+    {fragment:"In the 2003-04 season, one Premier League club went the whole season without losing a single match — 38 games unbeaten. Fans still call that team by a special nickname.", options:['The Invincibles (Arsenal)','Manchester United','Chelsea'], answer:0},
+    {fragment:"In the 2005 Champions League final, one team was losing 3-0 at half-time — a disaster. But they scored three goals in just six second-half minutes and went on to win the trophy on penalties.", options:['Liverpool (Istanbul, 2005)','AC Milan','Real Madrid'], answer:0},
+    {fragment:"In 1966, this team won its only football World Cup so far, beating West Germany 4-2 in the final at Wembley Stadium — with a hat-trick from striker Geoff Hurst.", options:['England','Brazil','France'], answer:0},
+  ]},
+  {id:'books', icon:'📚', label:'Books & Stories', q:'Which story is this?', items:[
+    {fragment:"A curious girl follows a white rabbit down a hole and falls into a strange world full of a grinning cat, a hatter having a never-ending tea party, and a queen who loves to shout \"Off with their heads!\"", options:["Alice's Adventures in Wonderland",'Peter Pan','The Chronicles of Narnia'], answer:0},
+    {fragment:"A poor boy finds a golden ticket hidden inside a chocolate bar wrapper, winning him a tour of the strangest, most magical chocolate factory in the world, run by a mysterious and eccentric owner.", options:["Charlie and the Chocolate Factory",'Matilda','James and the Giant Peach'], answer:0},
+    {fragment:"A boy who never wants to grow up flies out of his bedroom window and leads three children to a magical island full of pirates, mermaids, and a ticking crocodile.", options:['Peter Pan','Alice in Wonderland','The Wind in the Willows'], answer:0},
+    {fragment:"A gentle, honey-loving bear lives in a forest with his animal friends, including an anxious piglet, a bouncy tiger, and a gloomy donkey. He often gets stuck when he eats too much honey.", options:['Winnie-the-Pooh','Paddington','The Wind in the Willows'], answer:0},
+  ]},
+  {id:'characters', icon:'👤', label:'Characters', q:'Who is this describing?', items:[
+    {fragment:"This English scientist described the force of gravity after supposedly watching an apple fall from a tree. He is buried in Westminster Abbey, and a unit of force is named after him.", options:['Isaac Newton','Charles Darwin','Alexander Fleming'], answer:0},
+    {fragment:"This fictional detective lives on Baker Street in London, is famous for his deerstalker hat and pipe, and solves impossible mysteries using logic and careful observation. His loyal friend is a doctor.", options:['Sherlock Holmes','James Bond','Peter Pan'], answer:0},
+    {fragment:"This woman became Queen of the United Kingdom in 1952 and reigned for over 70 years, longer than any other British monarch. She was famous for her love of corgi dogs.", options:['Queen Elizabeth II','Queen Victoria','Queen Anne'], answer:0},
+    {fragment:"This playwright, born in the town of Stratford-upon-Avon, wrote plays like Romeo and Juliet and Hamlet, and is often considered the greatest writer in the English language.", options:['William Shakespeare','Charles Dickens','J.R.R. Tolkien'], answer:0},
+  ]},
+  {id:'quotes', icon:'💬', label:'Famous Quotes', q:'Who said this, or where is it from?', items:[
+    {fragment:"During the Second World War, a British Prime Minister gave a famous speech that included the line: \"We shall fight on the beaches, we shall fight on the landing grounds...\"", options:['Winston Churchill','King George VI','Margaret Thatcher'], answer:0},
+    {fragment:"A scientist once wrote in a letter: \"If I have seen further, it is by standing on the shoulders of giants\" — meaning his discoveries built on the work of scientists before him.", options:['Isaac Newton','Charles Darwin','Michael Faraday'], answer:0},
+    {fragment:"Before a famous naval battle in 1805, a British admiral sent a signal to his fleet that read: \"England expects that every man will do his duty.\"", options:['Admiral Nelson (Battle of Trafalgar)','Admiral Drake','Winston Churchill'], answer:0},
+    {fragment:"In a famous play, a prince stands alone on stage and asks the audience: \"To be, or not to be, that is the question.\"", options:['Hamlet (by Shakespeare)','Romeo and Juliet','Macbeth'], answer:0},
+  ]},
+];
+// Dialogues — la única categoría con DOS voces (RK_SLL_VOICE_A / B), reproducidas en
+// secuencia. `level` marcado a propósito (A1 → B1+, mismo lenguaje de niveles que PET/Movers en
+// index.html) para cuando se amplíe el pool — en las primeras la información está explícita,
+// en las últimas hay que inferir el lugar sin que nadie lo diga.
+const RK_SLL_DIALOGUES = {id:'dialogues', icon:'🗣️', label:'Dialogues', q:'Where are they, or what is happening?', items:[
+  {level:'A1', lines:[
+    {v:'A', t:"Excuse me, is this the train to Oxford?"},
+    {v:'B', t:"No, I think that one goes to Cambridge."},
+    {v:'A', t:"Oh! So where should I go?"},
+    {v:'B', t:"Platform six."},
+  ], options:['At a train station','At an airport','At a bus stop'], answer:0},
+  {level:'A2', lines:[
+    {v:'A', t:"Hi there, what can I get you today?"},
+    {v:'B', t:"Could I have a cup of tea and a slice of that chocolate cake, please?"},
+    {v:'A', t:"Of course. Eating in or taking away?"},
+    {v:'B', t:"Eating in, thank you."},
+  ], options:['At a café','At a supermarket','At a train station'], answer:0},
+  {level:'B1', lines:[
+    {v:'A', t:"Sorry to bother you — I'm a bit lost. I'm trying to find the dinosaur skeletons."},
+    {v:'B', t:"Ah, you want the Blue Zone. Go through those big doors and turn left at the giant whale."},
+    {v:'A', t:"A giant whale?"},
+    {v:'B', t:"You can't miss it — it hangs from the ceiling."},
+  ], options:['At a natural history museum','At a zoo','At an aquarium'], answer:0},
+  {level:'B1+', lines:[
+    {v:'A', t:"Name?"},
+    {v:'B', t:"Rodrigo Pérez."},
+    {v:'A', t:"Purpose of your visit?"},
+    {v:'B', t:"Just visiting my family — we're here for two weeks."},
+    {v:'A', t:"And how long have you been travelling today?"},
+    {v:'B', t:"About sixteen hours, with a stop in Madrid."},
+  ], options:['At passport control','At a hotel check-in','At a job interview'], answer:0},
+]};
+function _rkSLLAllCategories(){ return [...RK_SLL_CATEGORIES, RK_SLL_DIALOGUES]; }
+let _rkSLLState = null; // {catId, pool, qIdx, score, answered, used5050, usedOliver, eliminated, playing}
+function rkRenderSLL(){
+  _rkSLLState = null;
+  const cats = _rkSLLAllCategories();
+  const wrap = document.getElementById('rk-info-wrap');
+  wrap.innerHTML = `
+    <div class="rk-sk-card">
+      <div class="rk-info-title">🎧 Stop, Look &amp; Listen</div>
+      <div class="rk-info-blurb">Listen closely, then figure out what it's about. Two lifelines per round — 50/50 and Ask Oliver.</div>
+    </div>
+    <div class="rk-sk-actions" style="flex-direction:column;align-items:stretch;gap:8px">
+      ${cats.map(c => `<button class="rk-sk-primary-btn" onclick="rkStartSLLQuiz('${c.id}')">${c.icon} ${rkEscapeHtml(c.label)}</button>`).join('')}
+    </div>`;
+}
+const RK_SLL_QUIZ_LENGTH = 4; // piloto: pool chico (4 por categoría), se juega completo por ahora
+function rkStartSLLQuiz(catId){
+  const cat = _rkSLLAllCategories().find(c => c.id === catId);
+  if(!cat) return;
+  const pool = rkShuffle(cat.items).slice(0, Math.min(RK_SLL_QUIZ_LENGTH, cat.items.length));
+  _rkSLLState = {catId, pool, qIdx:0, score:0, answered:false, used5050:false, usedOliver:false, eliminated:null, playing:false};
+  rkRenderSLLQuiz();
+}
+function rkRenderSLLQuiz(){
+  const s = _rkSLLState;
+  const cat = _rkSLLAllCategories().find(c => c.id === s.catId);
+  const item = s.pool[s.qIdx];
+  const wrap = document.getElementById('rk-info-wrap');
+  wrap.innerHTML = `
+    <div class="rk-sk-card">
+      <div class="rk-info-title">${cat.icon} ${rkEscapeHtml(cat.label)}</div>
+      <div class="rk-info-blurb" style="font-size:12px">Question ${s.qIdx+1} of ${s.pool.length} · Score: ${s.score}</div>
+      <div class="rk-sk-actions" style="margin-top:6px">
+        <button class="rk-sk-primary-btn" id="rk-sll-play-btn" onclick="rkSLLPlayFragment()">▶ Listen</button>
+      </div>
+      <div class="rk-info-blurb" style="font-weight:700;margin-top:10px">${rkEscapeHtml(cat.q)}</div>
+      <div id="rk-sll-oliver-note"></div>
+    </div>
+    <div id="rk-sll-options">
+      ${item.options.map((opt,oi) => `<button class="rk-mc-option" id="rk-sll-o${oi}" onclick="rkSLLAnswer(${oi})"${s.eliminated && s.eliminated.includes(oi) ? ' disabled style="opacity:.35"' : ''}>${rkEscapeHtml(opt)}</button>`).join('')}
+    </div>
+    <div class="rk-sk-actions">
+      <button class="rk-sk-secondary-btn" onclick="rkSLLUse5050()"${s.used5050 || s.answered ? ' disabled style="opacity:.4"' : ''}>🔀 50/50</button>
+      <button class="rk-sk-secondary-btn" onclick="rkSLLAskOliver()"${s.usedOliver || s.answered ? ' disabled style="opacity:.4"' : ''}>📞 Ask Oliver</button>
+    </div>
+    <div class="rk-sk-actions">
+      <button class="rk-sk-secondary-btn" onclick="rkRenderSLL()">← Back to topics</button>
+    </div>`;
+}
+// Reproduce el fragmento — un solo narrador neutro, o (Dialogues) varias líneas en secuencia
+// alternando dos voces distintas. `await` en cada línea asegura que no se solapen.
+async function rkSLLPlayFragment(){
+  const s = _rkSLLState;
+  if(!s || s.playing) return;
+  const item = s.pool[s.qIdx];
+  const btn = document.getElementById('rk-sll-play-btn');
+  s.playing = true;
+  if(btn){ btn.disabled = true; btn.textContent = '🔊 Playing...'; }
+  if(item.lines){
+    for(const line of item.lines){
+      const voice = line.v === 'A' ? RK_SLL_VOICE_A : RK_SLL_VOICE_B;
+      await rkTtsSpeakVoice(line.t, voice.voice, voice.instructions);
+    }
+  } else {
+    await rkTtsSpeakVoice(item.fragment, 'onyx', RK_NARRATOR_TTS_INSTRUCTIONS);
+  }
+  s.playing = false;
+  if(btn){ btn.disabled = false; btn.textContent = '🔁 Listen again'; }
+}
+function rkSLLUse5050(){
+  const s = _rkSLLState;
+  if(!s || s.used5050 || s.answered) return;
+  const item = s.pool[s.qIdx];
+  const wrongIdx = item.options.map((_,i) => i).filter(i => i !== item.answer);
+  const toRemove = rkShuffle(wrongIdx)[0]; // aleatoriedad controlada (Fisher-Yates), no Math.random directo
+  s.used5050 = true;
+  s.eliminated = [toRemove];
+  rkRenderSLLQuiz();
+}
+function rkSLLAskOliver(){
+  const s = _rkSLLState;
+  if(!s || s.usedOliver || s.answered) return;
+  s.usedOliver = true;
+  rkRenderSLLQuiz();
+  const item = s.pool[s.qIdx];
+  const note = document.getElementById('rk-sll-oliver-note');
+  if(note) note.innerHTML = `<div class="rk-info-blurb" style="margin-top:6px;font-style:italic">📞 Oliver: "Hmm, let me think... I'm sure it's this one!"</div>`;
+  const btn = document.getElementById(`rk-sll-o${item.answer}`);
+  if(btn) btn.style.outline = '3px solid var(--gold)';
+}
+function rkSLLAnswer(oi){
+  const s = _rkSLLState;
+  if(!s || s.answered) return; // candado real, no solo visual — mismo criterio del fix de Q&A Trivia en JTL
+  s.answered = true;
+  const item = s.pool[s.qIdx];
+  if(oi === item.answer) s.score++;
+  item.options.forEach((_,i) => {
+    const btn = document.getElementById(`rk-sll-o${i}`);
+    if(!btn) return;
+    btn.disabled = true;
+    btn.style.opacity = '';
+    btn.style.outline = '';
+    if(i === item.answer) btn.classList.add('rk-correct');
+    else if(i === oi) btn.classList.add('rk-wrong');
+  });
+  const wrap = document.getElementById('rk-info-wrap');
+  const label = (s.qIdx + 1 < s.pool.length) ? 'Next question →' : 'See final score';
+  wrap.insertAdjacentHTML('beforeend', `<div class="rk-sk-actions"><button class="rk-sk-primary-btn" onclick="rkSLLNextQuestion()">${label}</button></div>`);
+}
+function rkSLLNextQuestion(){
+  const s = _rkSLLState;
+  s.qIdx++;
+  s.answered = false;
+  s.eliminated = null;
+  if(s.qIdx >= s.pool.length) rkRenderSLLResult();
+  else rkRenderSLLQuiz();
+}
+function rkRenderSLLResult(){
+  const s = _rkSLLState;
+  const cat = _rkSLLAllCategories().find(c => c.id === s.catId);
+  const wrap = document.getElementById('rk-info-wrap');
+  wrap.innerHTML = `
+    <div class="rk-sk-card">
+      <div class="rk-info-title">${cat.icon} ${rkEscapeHtml(cat.label)}</div>
+      <div class="rk-info-blurb" style="font-weight:700">Final score: ${s.score} / ${s.pool.length}</div>
+    </div>
+    <div class="rk-sk-actions">
+      <button class="rk-sk-primary-btn" onclick="rkStartSLLQuiz('${cat.id}')">🔄 Play again</button>
+      <button class="rk-sk-secondary-btn" onclick="rkRenderSLL()">← Back to topics</button>
+    </div>`;
+}
+
+// ══════════════════════════════════════════════════════════════════════════
 // SURVIVAL KIT — primera estación con mecánica real (8-9 de agosto)
 // Única de las 8 con Speaking. v1 acordada con Angel: 4-5 escenarios reales de
 // supervivencia en Londres, sin evaluar pronunciación (igual criterio que
@@ -1951,36 +2244,58 @@ function rkMicRelease(){
 // El preset de voz ('echo') no controla el acento en sí — la única palanca real es este texto
 // de "instructions", así que se hace explícito y repetido (no alcanza con decirlo una vez).
 const RK_OLIVER_TTS_INSTRUCTIONS = 'Speak with a natural British English accent (like a friendly London teenager) — this is essential: NOT American, avoid any American vowel sounds, rhotic R\'s, or American intonation patterns. Upbeat and playful but relaxed and easygoing, never rushed, around 16-18 years old, like a fun older brother. Clear pronunciation for a young English learner, natural conversational pace.';
+// Narrador neutro y voces de diálogo para Stop, Look & Listen (18 agosto) — deliberadamente
+// NO son Oliver (regla "Oliver = Survival Kit" sigue firme). Mismo endpoint /api/tts, solo con
+// voz/instrucciones distintas — ver rkTtsSpeakVoice() más abajo.
+const RK_NARRATOR_TTS_INSTRUCTIONS = 'Speak with a clear, neutral British English accent. Warm and engaging storytelling voice, like a documentary narrator — NOT a specific character, NOT American. Measured pace, clear pronunciation for a young English learner.';
+const RK_SLL_VOICE_A = {voice:'echo', instructions:'Speak with a British English accent, adult voice, friendly and clear, natural conversational pace, NOT American.'};
+const RK_SLL_VOICE_B = {voice:'nova', instructions:'Speak with a British English accent, a different adult voice from the other speaker, friendly and clear, natural conversational pace, NOT American.'};
 let _rkTtsAudio = null;
-async function rkTtsSpeak(text){
+// Núcleo genérico con voz/instrucciones parametrizables — refactor del 18 de agosto (antes
+// rkTtsSpeak() tenía la voz de Oliver fija adentro). Devuelve una Promise que se resuelve
+// cuando el audio termina, para poder encadenar líneas de un diálogo en secuencia sin que se
+// atropellen (await rkTtsSpeakVoice(...) por cada línea).
+async function rkTtsSpeakVoice(text, voice, instructions){
   if(_rkTtsAudio){ try{ _rkTtsAudio.pause(); }catch(e){} _rkTtsAudio = null; }
   if(window.speechSynthesis) window.speechSynthesis.cancel();
   if(!text || !text.trim()) return;
   try{
-    // 'fable' en vez del 'echo' por defecto — experimento (9 agosto, 2do intento): las
-    // "instructions" ya piden explícitamente acento británico y no americano, y aun así Angel
-    // lo siguió escuchando americano. El preset de voz SÍ influye en qué tan bien seguir la
-    // instrucción de acento (no es solo un timbre) — 'fable' es el candidato más prometedor
-    // para esto en el catálogo de OpenAI. Si tampoco se nota, hay que probar otro preset o
-    // aceptar que esta API no da un acento británico confiable y evaluar alternativas.
     const r = await fetch('/api/tts', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({text, instructions: RK_OLIVER_TTS_INSTRUCTIONS, voice:'fable'})
+      body: JSON.stringify({text, instructions, voice})
     });
     if(!r.ok) throw new Error('tts http ' + r.status);
     const data = await r.json();
     if(!data.audio) throw new Error('no audio');
     const audio = new Audio(`data:${data.mimeType || 'audio/mpeg'};base64,${data.audio}`);
     _rkTtsAudio = audio;
-    audio.onended = () => { if(_rkTtsAudio === audio) _rkTtsAudio = null; };
-    await audio.play();
+    await new Promise((resolve) => {
+      audio.onended = () => { if(_rkTtsAudio === audio) _rkTtsAudio = null; resolve(); };
+      audio.play().catch(() => resolve());
+    });
   }catch(e){
-    try{
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = 'en-GB'; u.rate = 0.9;
-      window.speechSynthesis.speak(u);
-    }catch(e2){ rkDebugLog('TTS falló y el fallback nativo también — ' + e2); }
+    await new Promise((resolve) => {
+      try{
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = 'en-GB'; u.rate = 0.9;
+        u.onend = () => resolve();
+        window.speechSynthesis.speak(u);
+      }catch(e2){ rkDebugLog('TTS falló y el fallback nativo también — ' + e2); resolve(); }
+    });
   }
+}
+// Oliver (Survival Kit) — mismo patrón que ttsSpeak() de index.html (línea ~1524), mismo
+// endpoint POST /api/tts, con el mismo fallback a speechSynthesis si la llamada falla.
+// Reforzado el 9 de agosto — Angel notó que sonaba más americano (tipo Boston) que británico.
+// El preset de voz ('echo') no controla el acento en sí — la única palanca real es este texto
+// de "instructions", así que se hace explícito y repetido (no alcanza con decirlo una vez).
+// 'fable' en vez del 'echo' por defecto — experimento (9 agosto, 2do intento): las
+// "instructions" ya piden explícitamente acento británico y no americano, y aun así Angel lo
+// siguió escuchando americano. El preset de voz SÍ influye en qué tan bien seguir la
+// instrucción de acento (no es solo un timbre) — 'fable' es el candidato más prometedor para
+// esto en el catálogo de OpenAI.
+async function rkTtsSpeak(text){
+  return rkTtsSpeakVoice(text, 'fable', RK_OLIVER_TTS_INSTRUCTIONS);
 }
 
 // ── Chat/IA — mismo patrón que callClaude() de index.html (línea ~1160), mismo endpoint
