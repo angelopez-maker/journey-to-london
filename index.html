@@ -705,6 +705,9 @@
     <!-- Fernando weekly skill card -->
     <div id="fer-week-card" style="display:none;margin-bottom:12px"></div>
 
+    <!-- Fernando repaso plan card — calendario guiado desde el último KET Diagnostic -->
+    <div id="fer-repaso-card" style="display:none;margin-bottom:12px"></div>
+
     <!-- Fernando hub: 8 módulos -->
     <div id="fernando-quick-nav" style="display:none">
       <div class="rqn-grid">
@@ -1548,12 +1551,15 @@ function ttsStop(){
   if(window.speechSynthesis)window.speechSynthesis.cancel();
 }
 
-// text: lo que se dice. opts: {rate, instructions, onEnd, fallback}
+// text: lo que se dice. opts: {rate, instructions, voice, onEnd, fallback}
 // fallback: función que reproduce con speechSynthesis — cada módulo trae la suya (elige voz
 // masculina/general, pitch, etc.) para no perder sus particularidades si hay que caer a ella.
+// voice: 20 agosto — antes NUNCA se mandaba al servidor (siempre quedaba en 'echo' por defecto,
+// para todo: Oliver, listening, todo). Se agrega acá para poder pedir voces distintas por hablante
+// en los diálogos de Listening (ver _ketPlayItemAudio) sin tocar el resto de los usos existentes.
 async function ttsSpeak(text,opts={}){
   ttsStop();
-  const {rate=1,instructions=OLIVER_TTS_INSTRUCTIONS,onEnd,fallback}=opts||{};
+  const {rate=1,instructions=OLIVER_TTS_INSTRUCTIONS,voice,onEnd,fallback}=opts||{};
   if(!text||!text.trim()){if(onEnd)onEnd();return;}
   const doFallback=()=>{if(fallback)fallback();else if(onEnd)onEnd();};
   try{
@@ -1562,7 +1568,7 @@ async function ttsSpeak(text,opts={}){
     const r=await fetch('/api/tts',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({text,instructions}),
+      body:JSON.stringify({text,instructions,voice}),
       signal:ctrl.signal
     });
     clearTimeout(timer);
@@ -1753,7 +1759,7 @@ function updateTopbar(){
   if(fqn)fqn.style.display=p==='fernando'?'block':'none';
   if(dls)dls.style.display=(p==='rodrigo'||p==='fernando')?'none':'block';
   if(p==='rodrigo')updateRodrigoQuickNav();
-  if(p==='fernando'){updateFerWeekCard();updateTalkingUnlock();}
+  if(p==='fernando'){updateFerWeekCard();updateTalkingUnlock();renderRepasoPlanCard();}
   // Both hubs hide modules grid, test button, and Fernando-specific elements
   ['modules-label-el','modules-grid-el','test-btn-el','pet-btn-hero','btn-bookclub','btn-vocabeng'].forEach(id=>{
     const el=document.getElementById(id);
@@ -1876,6 +1882,72 @@ function updateFerWeekCard(){
     </div>
     <div style="color:${s.color};font-size:20px">→</div>
   </div>`;
+}
+
+// ── PLAN DE REPASO — calendario guiado desde el último KET Diagnostic (20 agosto) ──────────────
+// Lee /api/repaso-plan/:profile (persistido en servidor, sobrevive entre sesiones/dispositivos —
+// mismo criterio que se usó para corregir la pérdida de progreso de _ketSess) y muestra el día de
+// hoy (o el próximo pendiente si hoy no hay nada agendado o ya se completó). "Marcar hecho" guarda
+// el cambio en el servidor de inmediato.
+const REPASO_MODULE_ACTION={versus:'openVersusModeF()',showtell:'openShowAndTell()',oliver:'openQATrivia()',free:'openFernandoLibre()',ket:'openKETDiagnostic()'};
+
+async function renderRepasoPlanCard(){
+  const card=document.getElementById('fer-repaso-card');
+  if(!card||state.profile!=='fernando')return;
+  let plan;
+  try{
+    const res=await fetch('/api/repaso-plan/'+state.profile);
+    plan=res.ok?await res.json():null;
+  }catch(e){plan=null;}
+  if(!plan||!Array.isArray(plan.days)||!plan.days.length){card.style.display='none';return;}
+
+  const today=_calToday();
+  const actionable=plan.days.filter(d=>d.type!=='rest');
+  const doneCount=actionable.filter(d=>d.done).length;
+  const todayEntry=plan.days.find(d=>d.date===today);
+  const target=todayEntry||plan.days.find(d=>d.type!=='rest'&&!d.done)||null;
+
+  card.style.display='block';
+
+  if(!target){
+    card.innerHTML=`<div style="padding:14px 16px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.3);border-radius:12px;text-align:center">
+      <div style="font-size:22px;margin-bottom:4px">🎉</div>
+      <div style="color:var(--text);font-weight:700;font-size:14px">¡Plan de repaso completo!</div>
+      <div style="color:var(--muted);font-size:12px;margin-top:2px">Re-test sugerido: ${_calFmt(plan.retestDate)}</div>
+    </div>`;
+    return;
+  }
+
+  const isRest=target.type==='rest';
+  const isToday=target.date===today;
+  const action=REPASO_MODULE_ACTION[target.module]||'';
+  const col=isRest?'#666':target.done?'#22c55e':'#f59e0b';
+  const bg=isRest?'rgba(255,255,255,.03)':target.done?'rgba(34,197,94,.08)':'rgba(245,158,11,.08)';
+  const border=isRest?'rgba(255,255,255,.1)':target.done?'rgba(34,197,94,.3)':'rgba(245,158,11,.3)';
+
+  card.innerHTML=`<div style="padding:13px 16px;background:${bg};border:1px solid ${border};border-radius:12px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <div style="font-family:'Orbitron',monospace;font-size:9px;font-weight:700;color:${col};letter-spacing:1.5px">
+        📅 PLAN DE REPASO · SEMANA ${target.week} ${isToday?'· HOY':'· PENDIENTE'}
+      </div>
+      <div style="font-size:11px;color:var(--muted)">${doneCount}/${actionable.length} días</div>
+    </div>
+    <div style="font-weight:700;color:var(--text);font-size:14px;margin-bottom:10px">${target.label}</div>
+    <div style="display:flex;gap:8px">
+      ${(!isRest&&action)?`<button onclick="${action}" style="flex:1;padding:9px;background:${col};border:none;border-radius:8px;color:#0a0a1a;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;cursor:pointer">Abrir →</button>`:''}
+      ${!isRest?`<button onclick="_repasoToggleDay('${target.date}',${!target.done})" style="${action?'':'flex:1;'}padding:9px 14px;background:rgba(255,255,255,.06);border:1px solid #333;border-radius:8px;color:${target.done?'#22c55e':'#888'};font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;cursor:pointer">${target.done?'✓ Hecho':'Marcar hecho'}</button>`:''}
+    </div>
+  </div>`;
+}
+
+async function _repasoToggleDay(date,done){
+  try{
+    await fetch('/api/repaso-plan/'+state.profile+'/day',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({date,done})
+    });
+  }catch(e){}
+  renderRepasoPlanCard();
 }
 
 function updateRodrigoQuickNav(){
@@ -2688,12 +2760,45 @@ function oliverSpeak(text){
 
 let _ketSess=null;
 
-function openKETDiagnostic(){
+// 19-20 agosto: Fernando perdió el progreso de Reading y Writing a mitad del diagnóstico y tuvo
+// que rehacer ambas secciones — causa raíz: _ketSess vivía SOLO en esta variable de JS en memoria,
+// sin respaldo en localStorage (a diferencia de state.progress/state.prestige, que sí se guardan).
+// Cualquier recarga de página, pérdida de conexión, o que el navegador descargue la pestaña (común
+// en mobile) borraba _ketSess entero y no había forma de recuperar las secciones ya completadas.
+// Fix: cada vez que se completa una sección se guarda en localStorage (por perfil), y al abrir el
+// módulo se hidrata desde ahí antes de asumir que no hay nada hecho.
+// 20 agosto (2): localStorage por sí solo protege ante una recarga, pero no ante un cambio de
+// dispositivo/navegador — el servidor es ahora la fuente de verdad; localStorage queda solo como
+// caché instantánea para que la UI no tenga que esperar la red al pintar el menú por primera vez.
+function _ketStorageKey(){return 'jtl_ket_sess_'+(state.profile||'fernando');}
+function _ketPersist(){
+  try{localStorage.setItem(_ketStorageKey(),JSON.stringify(_ketSess));}catch(e){}
+  fetch('/api/ket-session/'+(state.profile||'fernando'),{
+    method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(_ketSess||{})
+  }).catch(()=>{/* silent — localStorage sigue disponible como respaldo local */});
+}
+function _ketLoadLocal(){try{const raw=localStorage.getItem(_ketStorageKey());return raw?JSON.parse(raw):null;}catch(e){return null;}}
+async function _ketLoadServer(){
+  try{
+    const res=await fetch('/api/ket-session/'+(state.profile||'fernando'));
+    return res.ok?await res.json():null;
+  }catch(e){return null;}
+}
+
+async function openKETDiagnostic(){
+  ttsStop();_longAudioEl=null;_longAudioActiveId=null;
   openModule('movers');
   document.getElementById('mod-icon').textContent='🎓';
   document.getElementById('mod-title').textContent='KET DIAGNOSTIC';
   document.getElementById('mod-sub').textContent='Cambridge A2 Key · Diagnóstico · Sin tiempo';
-  if(!_ketSess)_ketSess={reading:null,writing:null,listening:null,speaking:null};
+  if(!_ketSess){
+    // Pinta de inmediato con lo que haya en caché local (si hay) para que no se sienta lento...
+    _ketSess=_ketLoadLocal()||{reading:null,writing:null,listening:null,speaking:null};
+    _renderKETMenu();
+    // ...y apenas responda el servidor, esa es la verdad — si difiere, se actualiza la pantalla.
+    const server=await _ketLoadServer();
+    if(server){_ketSess=server;try{localStorage.setItem(_ketStorageKey(),JSON.stringify(_ketSess));}catch(e){}}
+  }
   _renderKETMenu();
 }
 
@@ -2726,10 +2831,15 @@ function _renderKETMenu(){
 }
 
 function _ketCard(id,icon,title,desc,color){
-  const done=_ketSess&&_ketSess[id]!==null&&_ketSess[id]!==undefined;
+  const s=_ketSess&&_ketSess[id];
+  const done=s!==null&&s!==undefined;
+  // 20 agosto: antes solo se mostraba un ✅ genérico — Angel/Fer notaron que una sección no
+  // mostraba puntaje, así que ahora el número real queda visible acá, no solo en el toast que
+  // desaparece al tiro ni escondido dentro del reporte final.
+  const scoreLabel=(done&&s.score!=null&&s.max!=null)?` ${s.score}/${s.max}`:'';
   return `<button onclick="ketGo('${id}')" style="display:flex;flex-direction:column;gap:8px;padding:16px;background:${done?'rgba(34,197,94,.06)':'rgba(255,255,255,.02)'};border:1px solid ${done?'rgba(34,197,94,.4)':`${color}44`};border-radius:12px;cursor:pointer;text-align:left;width:100%" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
     <div style="font-size:26px">${icon}</div>
-    <div style="font-family:'Orbitron',monospace;font-size:11px;font-weight:700;color:${done?'#22c55e':color}">${title.toUpperCase()}${done?' ✅':''}</div>
+    <div style="font-family:'Orbitron',monospace;font-size:11px;font-weight:700;color:${done?'#22c55e':color}">${title.toUpperCase()}${done?' ✅'+scoreLabel:''}</div>
     <div style="color:#8b949e;font-size:11px;line-height:1.4">${desc}</div>
     <div style="font-size:11px;color:${done?'#22c55e':color};font-weight:600">${done?'Repetir →':'Comenzar →'}</div>
   </button>`;
@@ -2863,6 +2973,7 @@ function _ketSubmitReadPart(){
       else{(p.items||[]).forEach((item,i)=>{max++;if(ans[i]===item.ans)score++;});}
     });
     _ketSess.reading={score,max};
+    _ketPersist();
     _renderKETMenu();
     showToast(`📖 Reading complete! ${score}/${max}`);
   }
@@ -2910,6 +3021,23 @@ function _ketRenderWriting(task){
   </div>`;
 }
 
+// 20 agosto: cuando la evaluación con IA fallaba (Writing/Speaking), antes se guardaba un puntaje
+// por defecto EN SILENCIO — un toast de 2 segundos ("Writing saved!") y de vuelta al menú, sin
+// mostrar nunca qué puntaje quedó registrado. Angel/Fer lo notaron como "no mostraba puntaje".
+// Ahora se muestra un panel explícito con el puntaje real que quedó guardado y opción de reintentar.
+function _ketRenderEvalFailed(label,icon,color,score,max,retryFnName){
+  const area=document.getElementById('module-content-area');
+  area.innerHTML=`<div style="max-width:640px;margin:0 auto;font-family:'Inter',sans-serif;background:#111214;border-radius:14px;padding:20px;text-align:center">
+    <div style="font-size:32px;margin-bottom:8px">${icon}</div>
+    <div style="color:#f59e0b;font-weight:700;font-size:14px;margin-bottom:6px">⚠️ No pudimos evaluar tu ${label} esta vez</div>
+    <div style="color:#8b949e;font-size:13px;line-height:1.6;margin-bottom:14px">Se guardó como completada con <strong style="color:${color}">${score}/${max}</strong> porque la evaluación automática falló (puede ser un problema de conexión). Puedes reintentarla o volver al menú y hacerla más tarde.</div>
+    <div style="display:flex;gap:10px">
+      <button onclick="_renderKETMenu()" style="flex:1;padding:11px;background:rgba(255,255,255,.06);border:1px solid #333;border-radius:8px;color:#888;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;cursor:pointer">← Menú</button>
+      <button onclick="${retryFnName}()" style="flex:1;padding:11px;background:${color};border:none;border-radius:8px;color:#fff;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;cursor:pointer">Reintentar</button>
+    </div>
+  </div>`;
+}
+
 async function _ketSubmitWriting(){
   const text=(document.getElementById('ket-write-area')?.value||'').trim();
   if(text.length<10){showToast('✏️ Please write your email first!');return;}
@@ -2926,11 +3054,12 @@ Return ONLY valid JSON:
     const ev=parseJSON(raw);
     if(!ev?.score&&ev?.score!==0)throw new Error('bad');
     _ketSess.writing={score:ev.score,max:ev.maxScore||10,evaluation:ev,text};
+    _ketPersist();
     _ketRenderWritingResult(ev,text);
   }catch(e){
     _ketSess.writing={score:0,max:10,text};
-    _renderKETMenu();
-    showToast('✏️ Writing saved!');
+    _ketPersist();
+    _ketRenderEvalFailed('escritura','✏️','#ec4899',0,10,'ketWriting');
   }
 }
 
@@ -2997,8 +3126,15 @@ function _ketRenderListenPart(){
       </div>`).join('')}
     </div>`;
   } else {
+    // 20 agosto: cada conversación ahora trae su propio botón de "Listen" junto a la pregunta
+    // (antes había un solo botón arriba para las 5 conversaciones juntas — reescuchar la 5 obligaba
+    // a partir de cero desde la 1). Ver _ketPlayItemAudio().
     bodyHtml=(part.items||[]).map((item,i)=>`<div style="background:#1e1f22;border-radius:10px;padding:14px;margin-bottom:10px">
-      <div style="color:#c9d1d9;font-size:14px;font-weight:600;margin-bottom:10px">${i+1}. ${item.q}</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:4px">
+        <div style="color:#c9d1d9;font-size:14px;font-weight:600">${i+1}. ${item.q}</div>
+        <button onclick="_ketPlayItemAudio(${i})" id="ket-item-play-${i}" style="flex-shrink:0;padding:7px 12px;background:#8b5cf6;border:none;border-radius:7px;color:#fff;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:12px;cursor:pointer">▶ Listen</button>
+      </div>
+      <div id="ket-item-status-${i}" style="font-size:11px;color:#555;font-style:italic;margin-bottom:8px"></div>
       ${['A','B','C'].map(opt=>`<label style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:#2b2d31;border-radius:6px;margin-bottom:6px;cursor:pointer">
         <input type="radio" name="ket-ln-mc-${i}" value="${opt}" style="accent-color:#8b5cf6;width:16px;height:16px">
         <span style="color:#c9d1d9;font-size:13px"><strong style="color:#8b5cf6">${opt}.</strong> ${item[opt]||''}</span>
@@ -3015,13 +3151,7 @@ function _ketRenderListenPart(){
       <div style="font-size:15px;font-weight:700;color:#c9d1d9;margin-bottom:4px">${part.title}</div>
       <div style="font-size:12px;color:#8b949e">${part.instructions}</div>
     </div>
-    <div style="background:#2b2d31;border-radius:10px;padding:14px;margin-bottom:14px">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
-        <button onclick="_ketPlayAudio()" id="ket-play-btn" style="padding:10px 18px;background:#8b5cf6;border:none;border-radius:8px;color:#fff;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">▶ Play Audio</button>
-        <div style="font-size:12px;color:#555">British English · Listen carefully before answering</div>
-      </div>
-      <div id="ket-audio-status" style="font-size:12px;color:#555;font-style:italic"></div>
-    </div>
+    ${part.id===2?_longAudioControlsHTML('ket-long-p2',part.audioText||''):`<div style="font-size:12px;color:#555;margin-bottom:14px">🎧 British English · Toca "▶ Listen" en cada conversación — puedes repetirla las veces que quieras.</div>`}
     ${bodyHtml}
     <div style="display:flex;gap:10px;margin-top:16px">
       <button onclick="openKETDiagnostic()" style="padding:11px 16px;background:rgba(255,255,255,.05);border:1px solid #333;border-radius:8px;color:#666;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;cursor:pointer">← Menu</button>
@@ -3030,37 +3160,194 @@ function _ketRenderListenPart(){
   </div>`;
 }
 
-function _ketPlayAudio(){
-  const {parts,partIdx}=window._ketListen;
-  const part=parts[partIdx];
-  const btn=document.getElementById('ket-play-btn');
-  const status=document.getElementById('ket-audio-status');
-  let text='';
-  if(part.id===2){text=part.audioText||'';}
-  else{text=(part.items||[]).map((item,i)=>`Conversation ${i+1}. ${item.audioText}`).join(' ... ');}
-  if(btn){btn.textContent='🔊 Playing...';btn.style.background='rgba(139,92,246,.4)';}
-  if(status)status.textContent='Audio playing — listen carefully...';
-  const onEnd=()=>{
-    if(btn){btn.textContent='▶ Play Again';btn.style.background='#8b5cf6';}
-    if(status)status.textContent='Done. Answer the questions below.';
+// ── Reproductor con pausa + barra de avance, para grabaciones de UN SOLO audio continuo ────────
+// 20 agosto: Angel pidió poder pausar y saltar a un párrafo específico en el monólogo (KET
+// Listening Part 2, y el equivalente en PET lp2 — ver petLongAudioHTML más abajo). A diferencia de
+// Part 1 (varias conversaciones cortas, ya con botón por pregunta) o de PET lp3/lp4 (diálogos de 2
+// voces armados encadenando varios clips, sin una sola barra de tiempo continua todavía), acá SÍ
+// hay un único archivo de audio real — por eso se puede pausar/retroceder/adelantar con los
+// controles nativos de <audio> sobre currentTime. Reutilizable por eso: cualquier pantalla con un
+// solo monólogo puede llamar a _longAudioControlsHTML(ctrlId,text) al pintar y listo.
+let _longAudioEl=null;
+let _longAudioActiveId=null;
+window._longAudioTexts=window._longAudioTexts||{};
+
+function _fmtTime(s){
+  if(!isFinite(s)||s<0)s=0;
+  const m=Math.floor(s/60),sec=Math.floor(s%60);
+  return `${m}:${String(sec).padStart(2,'0')}`;
+}
+
+function _longAudioControlsHTML(ctrlId,text){
+  window._longAudioTexts[ctrlId]=text;
+  return `<div style="background:#2b2d31;border-radius:10px;padding:14px;margin-bottom:14px">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+      <button onclick="_longAudioToggle('${ctrlId}')" id="${ctrlId}-btn" style="padding:10px 16px;background:#8b5cf6;border:none;border-radius:8px;color:#fff;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer;flex-shrink:0">▶ Play</button>
+      <input type="range" id="${ctrlId}-bar" min="0" max="0" value="0" step="1" disabled
+        oninput="_longAudioSeek('${ctrlId}',this.value)" style="flex:1;accent-color:#8b5cf6">
+      <span id="${ctrlId}-time" style="font-size:11px;color:#888;font-family:'Orbitron',monospace;min-width:68px;text-align:right">0:00 / 0:00</span>
+    </div>
+    <div id="${ctrlId}-status" style="font-size:12px;color:#555;font-style:italic">British English · Pausa y mueve la barra para repetir un párrafo</div>
+  </div>`;
+}
+
+function _longAudioSeek(ctrlId,val){
+  if(_longAudioEl&&_longAudioActiveId===ctrlId)_longAudioEl.currentTime=Number(val);
+}
+
+async function _longAudioToggle(ctrlId){
+  // Ya está cargada esta pista: solo pausa/reanuda, no vuelve a pedir el audio a la API.
+  if(_longAudioEl&&_longAudioActiveId===ctrlId){
+    if(_longAudioEl.paused)_longAudioEl.play();else _longAudioEl.pause();
+    return;
+  }
+  const text=window._longAudioTexts[ctrlId]||'';
+  const btn=document.getElementById(`${ctrlId}-btn`);
+  const bar=document.getElementById(`${ctrlId}-bar`);
+  const time=document.getElementById(`${ctrlId}-time`);
+  const status=document.getElementById(`${ctrlId}-status`);
+  ttsStop();
+  if(_longAudioEl){try{_longAudioEl.pause();}catch(e){}}
+  _longAudioEl=null;_longAudioActiveId=null;
+  if(btn){btn.disabled=true;btn.textContent='⏳';}
+  if(status)status.textContent='Cargando audio...';
+  try{
+    const ctrl=new AbortController();
+    const timer=setTimeout(()=>ctrl.abort(),TTS_TIMEOUT_MS);
+    const r=await fetch('/api/tts',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({text,instructions:OLIVER_TTS_INSTRUCTIONS}),
+      signal:ctrl.signal
+    });
+    clearTimeout(timer);
+    if(!r.ok)throw new Error('tts http '+r.status);
+    const data=await r.json();
+    if(!data.audio)throw new Error('no audio');
+    const audio=new Audio(`data:${data.mimeType||'audio/mpeg'};base64,${data.audio}`);
+    audio.playbackRate=0.9;
+    _longAudioEl=audio;_longAudioActiveId=ctrlId;_ttsAudio=audio;
+    audio.addEventListener('loadedmetadata',()=>{
+      if(bar){bar.max=Math.floor(audio.duration)||0;bar.disabled=false;}
+      if(time)time.textContent=`0:00 / ${_fmtTime(audio.duration)}`;
+    });
+    audio.addEventListener('timeupdate',()=>{
+      if(bar&&document.activeElement!==bar)bar.value=Math.floor(audio.currentTime);
+      if(time)time.textContent=`${_fmtTime(audio.currentTime)} / ${_fmtTime(audio.duration)}`;
+    });
+    audio.addEventListener('play',()=>{if(btn){btn.disabled=false;btn.textContent='⏸ Pause';}if(status)status.textContent='Reproduciendo...';});
+    audio.addEventListener('pause',()=>{if(btn){btn.disabled=false;btn.textContent='▶ Play';}if(status&&audio.currentTime>0&&audio.currentTime<audio.duration)status.textContent='En pausa — mueve la barra si quieres repetir un párrafo.';});
+    audio.addEventListener('ended',()=>{if(btn)btn.textContent='▶ Play Again';if(status)status.textContent='Listo. Responde las preguntas de abajo.';});
+    audio.addEventListener('error',()=>_longAudioFallback(text,ctrlId));
+    await audio.play();
+  }catch(e){
+    _longAudioFallback(text,ctrlId);
+  }
+}
+
+// Respaldo con la voz nativa del navegador si OpenAI TTS falla — sin barra de avance (speechSynthesis
+// no soporta saltar a un punto arbitrario), pero sí con pausa/reanudar real.
+function _longAudioFallback(text,ctrlId){
+  const btn=document.getElementById(`${ctrlId}-btn`);
+  const status=document.getElementById(`${ctrlId}-status`);
+  if(!window.speechSynthesis){
+    if(status)status.textContent='Audio no disponible en este momento.';
+    if(btn){btn.disabled=false;btn.textContent='▶ Play';}
+    return;
+  }
+  if(status)status.textContent='Reproduciendo (modo básico, sin barra de avance)...';
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang='en-GB';u.rate=0.85;
+  const v=getBestMaleVoice(true);if(v)u.voice=v;
+  if(btn){
+    btn.disabled=false;btn.textContent='⏸ Pause';
+    btn.onclick=()=>{
+      if(window.speechSynthesis.speaking&&!window.speechSynthesis.paused){window.speechSynthesis.pause();btn.textContent='▶ Play';}
+      else if(window.speechSynthesis.paused){window.speechSynthesis.resume();btn.textContent='⏸ Pause';}
+    };
+  }
+  u.onend=()=>{
+    if(btn){btn.textContent='▶ Play Again';btn.onclick=()=>_longAudioToggle(ctrlId);}
+    if(status)status.textContent='Listo.';
   };
-  ttsSpeak(text,{
-    rate:0.85,onEnd,
-    fallback:()=>{
-      if(!window.speechSynthesis){onEnd();return;}
-      const u=new SpeechSynthesisUtterance(text);
-      u.lang='en-GB';u.rate=0.85;u.pitch=1.0;
-      const v=getBestMaleVoice(true);if(v)u.voice=v;
-      u.onend=onEnd;
-      window.speechSynthesis.speak(u);
-    }
+  window.speechSynthesis.speak(u);
+}
+
+// ── Part 1: audio por conversación, con voces distintas por hablante ───────────────────────────
+// 20 agosto: el audioText que genera la IA trae el guion con etiquetas ("Woman: ... Man: ...")
+// para que quede claro quién dice qué — pero antes ese texto se mandaba TAL CUAL a un TTS de una
+// sola voz, así que la etiqueta se escuchaba como palabra hablada ("Woman... excuse me..."). Fix:
+// se separa el texto por turnos de hablante, se le quita la etiqueta antes de mandarlo a hablar, y
+// cada hablante distinto dentro de la conversación recibe una voz distinta de OpenAI TTS.
+const KET_DIALOGUE_VOICES=['nova','onyx','shimmer'];
+
+// Regex tolera etiquetas con o sin corchetes ("Man: ..." y "[Speaker A]: ...") — el PET Training
+// (petPlayRecording, más abajo) genera sus scripts con el formato de corchetes, KET sin ellos.
+function _ketParseDialogue(text){
+  // OJO: "Shop assistant" viene con la segunda palabra en minúscula en el texto real generado por
+  // la IA (no Title Case) — por eso la segunda palabra acepta minúsculas, solo la primera exige
+  // mayúscula inicial (así no confunde una oración normal con una etiqueta de hablante).
+  const re=/(?:^|\s)\[?([A-Z][a-zA-Z]*(?:\s[a-zA-Z]+)?)\]?:\s/g;
+  const matches=[...(text||'').matchAll(re)];
+  if(!matches.length)return [{speaker:null,line:(text||'').trim()}];
+  const turns=[];
+  for(let i=0;i<matches.length;i++){
+    const m=matches[i];
+    const start=m.index+m[0].length;
+    const end=i+1<matches.length?matches[i+1].index:text.length;
+    const line=text.slice(start,end).trim();
+    if(line)turns.push({speaker:m[1],line});
+  }
+  return turns.length?turns:[{speaker:null,line:(text||'').trim()}];
+}
+
+function _ketVoiceForTurns(turns){
+  const seen=[];
+  return turns.map(t=>{
+    let idx=seen.indexOf(t.speaker);
+    if(idx===-1){idx=seen.length;seen.push(t.speaker);}
+    return KET_DIALOGUE_VOICES[idx%KET_DIALOGUE_VOICES.length];
   });
+}
+
+async function _ketPlayItemAudio(i){
+  const {parts,partIdx}=window._ketListen;
+  const item=(parts[partIdx].items||[])[i];
+  if(!item)return;
+  const btn=document.getElementById(`ket-item-play-${i}`);
+  const status=document.getElementById(`ket-item-status-${i}`);
+  if(btn){if(btn.disabled)return;btn.disabled=true;btn.textContent='🔊 Playing...';}
+  if(status)status.textContent='Listening...';
+  const turns=_ketParseDialogue(item.audioText||'');
+  const voices=_ketVoiceForTurns(turns);
+  let idx=0;
+  const playNext=()=>{
+    if(idx>=turns.length){
+      if(btn){btn.disabled=false;btn.textContent='▶ Play Again';}
+      if(status)status.textContent='Done.';
+      return;
+    }
+    const t=turns[idx],v=turns.length>1?voices[idx]:undefined;idx++;
+    ttsSpeak(t.line,{
+      rate:0.9,voice:v,onEnd:playNext,
+      fallback:()=>{
+        if(!window.speechSynthesis){playNext();return;}
+        const u=new SpeechSynthesisUtterance(t.line);
+        u.lang='en-GB';u.rate=0.9;
+        const vo=v==='onyx'?getBestMaleVoice(true):getBestVoice();
+        if(vo)u.voice=vo;
+        u.onend=playNext;
+        window.speechSynthesis.speak(u);
+      }
+    });
+  };
+  playNext();
 }
 
 function _ketSubmitListenPart(){
   const {parts,partIdx}=window._ketListen;
   const part=parts[partIdx];
   ttsStop();
+  _longAudioEl=null;_longAudioActiveId=null; // se sale de esta pantalla — que no quede una pista "cargada" apuntando a un <audio>/DOM que ya no existe
   if(part.id===2){
     const ans={};
     Object.entries(part.notes||{}).forEach(([k,v],i)=>{ans[i]=(document.getElementById(`ket-ln-${i}`)?.value||'').trim().toLowerCase();});
@@ -3084,6 +3371,7 @@ function _ketSubmitListenPart(){
       else{(p.items||[]).forEach((item,i)=>{max++;if(ans[i]===item.ans)score++;});}
     });
     _ketSess.listening={score,max};
+    _ketPersist();
     _renderKETMenu();
     showToast(`🎧 Listening complete! ${score}/${max}`);
   }
@@ -3238,11 +3526,12 @@ Return ONLY valid JSON:
 {"score":7,"maxScore":10,"fluency":{"score":2,"max":3,"comment":"..."},"grammar":{"score":2,"max":3,"comment":"..."},"vocabulary":{"score":2,"max":4,"comment":"..."},"taskCompletion":{"score":1,"max":2,"comment":"Was relevant and responsive?"},"overall":"2-sentence honest evaluation","level":"A1/A2/B1","strengths":["...","..."],"toImprove":["...","..."]}`,1500);
     const ev=parseJSON(raw);
     _ketSess.speaking={score:ev?.score||5,max:ev?.maxScore||10,evaluation:ev};
+    _ketPersist();
     _ketRenderSpeakResult(ev);
   }catch(e){
     _ketSess.speaking={score:5,max:10};
-    _renderKETMenu();
-    showToast('🎤 Speaking saved!');
+    _ketPersist();
+    _ketRenderEvalFailed('conversación oral','🎤','#22c55e',5,10,'ketSpeaking');
   }
 }
 
@@ -3285,9 +3574,30 @@ async function ketResults(){
     listening:`${s.listening?.score||0}/${s.listening?.max||10}`,
     speaking:`${s.speaking?.score||0}/${s.speaking?.max||10}`
   };
+  // 19-20 agosto: el LLM se equivocó identificando la habilidad "más fuerte" en prosa (dijo Reading
+  // 50% cuando Writing 60% era en realidad el puntaje más alto) — el modelo no es confiable haciendo
+  // esta comparación por sí solo dentro del texto narrativo. Fix: calculamos % y ranking en JS (fuente
+  // de verdad) y se los pasamos ya resueltos al prompt, en vez de pedirle que los deduzca de cero.
+  const pct=(sc,mx)=>mx?Math.round((sc/mx)*100):0;
+  const skillPcts=[
+    {key:'reading',label:'Reading',pct:pct(s.reading?.score||0,s.reading?.max||21)},
+    {key:'writing',label:'Writing',pct:pct(s.writing?.score||0,s.writing?.max||10)},
+    {key:'listening',label:'Listening',pct:pct(s.listening?.score||0,s.listening?.max||10)},
+    {key:'speaking',label:'Speaking',pct:pct(s.speaking?.score||0,s.speaking?.max||10)}
+  ];
+  const ranked=[...skillPcts].sort((a,b)=>b.pct-a.pct);
+  const maxPct=ranked[0].pct;
+  const minPct=ranked[ranked.length-1].pct;
+  const strongest=ranked.filter(x=>x.pct===maxPct).map(x=>x.label);
+  const weakest=ranked.filter(x=>x.pct===minPct).map(x=>x.label);
+  const rankingLine=`RANKING (calculado, no lo recalcules ni lo contradigas): ${ranked.map(x=>`${x.label} ${x.pct}%`).join(' > ')}. `+
+    (strongest.length>1?`Empate como MÁS FUERTE: ${strongest.join(' y ')} (${maxPct}%). `:`MÁS FUERTE: ${strongest[0]} (${maxPct}%). `)+
+    (weakest.length>1?`Empate como MÁS DÉBIL: ${weakest.join(' y ')} (${minPct}%).`:`MÁS DÉBIL: ${weakest[0]} (${minPct}%).`);
   try{
     const raw=await callClaude(`You are a strict Cambridge language assessment expert writing a critical, evidence-based diagnostic report for a ${getAge()}-year-old A2 Key (KET) learner who did NOT come from a bilingual school. Be specific and honest, not generic praise — ground every point in the actual scores and evaluations below, not vague encouragement.
 SCORES: Reading ${scores.reading}, Writing ${scores.writing}, Listening ${scores.listening}, Speaking ${scores.speaking}
+${rankingLine}
+IMPORTANT: The ranking line above is pre-calculated ground truth. Do NOT claim a different skill is "strongest" or "weakest" than what it states — your prose must match those percentages exactly (e.g. if Writing has the highest %, Writing is the strength, even if another skill is easier to praise qualitatively).
 SPEAKING EVAL: ${JSON.stringify(s.speaking?.evaluation||{})}
 WRITING EVAL: ${JSON.stringify(s.writing?.evaluation||{})}
 
@@ -3295,9 +3605,30 @@ Return ONLY valid JSON:
 {"overallLevel":"Pre-A2/Borderline A2/Solid A2/Ready for B1","overallSummary":"3-4 sentence honest assessment of current level, referencing the actual scores above","readingAnalysis":"2-3 sentences citing the actual score","writingAnalysis":"2-3 sentences citing specifics from the writing evaluation","listeningAnalysis":"2-3 sentences citing the actual score","speakingAnalysis":"2-3 sentences citing specifics from the speaking evaluation","strengths":["specific strength tied to a real result","specific strength 2","specific strength 3"],"toImprove":["area 1 with concrete, actionable advice tied to a real mistake","area 2 with concrete advice"],"criticalGaps":["gap 1 grounded in a specific low score or error pattern","gap 2"],"roadmapToBl":"3-4 concrete sentences: what to focus on to reach B1 for the Cambridge exam after the London trip","priority":"reading/writing/listening/speaking — which to focus on MOST right now, based on the actual numbers"}`,2000);
     const r=parseJSON(raw);
     _ketRenderResults(r,scores);
+    _ketSaveDiagnosticToServer(r,scores,skillPcts);
   }catch(e){
     _ketRenderResults(null,scores);
   }
+}
+
+// Guarda el diagnóstico (puntajes + reporte) en el servidor apenas se genera — antes esto vivía
+// solo en memoria del navegador (_ketSess) y se perdía al cerrar la pestaña; la única forma de
+// recuperarlo era el PDF ya exportado. Silencioso ante error: el PDF sigue siendo el respaldo.
+async function _ketSaveDiagnosticToServer(report,scores,skillPcts){
+  try{
+    await fetch('/api/ket-diagnostics/'+(state.profile||'fernando'),{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        date:new Date().toISOString().slice(0,10),
+        scores,
+        percentages:Object.fromEntries(skillPcts.map(x=>[x.key,x.pct])),
+        speakingEvaluation:_ketSess.speaking?.evaluation||null,
+        writingEvaluation:_ketSess.writing?.evaluation||null,
+        report
+      })
+    });
+  }catch(e){/* silent — PDF export is the fallback record */}
 }
 
 function _ketRenderResults(r,scores){
@@ -4234,7 +4565,7 @@ function openModule(mod){
     writing:runWriting,playing:runPlaying,singing:runSinging,watching:runWatching,
     spelling:runSpelling,movers:runMovers,vocabmatch:runVocabMatch,
     pronunciation:runPronunciation,
-    pet:runPET,bookclub:runBookClub,vocabeng:runVocabEng,
+    pet:_petHydrateAndRun,bookclub:runBookClub,vocabeng:runVocabEng,
     resources:runResources,test:runTest,talking:runTalking};
   (handlers[mod]||runTalking)();
 }
@@ -6429,15 +6760,41 @@ let _petFullExamActive=false; // true when timed exam is running
 
 // Estado del "reporte PET consolidado" — guarda el ÚLTIMO resultado de cada parte (rp1-5, wp1-3,
 // lp1-4, sp1-4), agrupado por skill. No es un historial (no se guardan intentos anteriores, no
-// se persiste entre sesiones) — es solo la foto del estado actual, igual de simple que _ketSess.
+// se persiste entre sesiones) — esto era cierto hasta el 20 agosto. Ese mismo día, el mismo bug
+// en _ketSess (KET) hizo que Fernando perdiera el avance de 2 módulos y tuviera que rehacerlos —
+// causa raíz idéntica acá: vivía solo en esta variable de JS, sin servidor. Angel pidió el mismo
+// parche antes de probar PET él mismo: ahora _petFullResults se guarda en el servidor cada vez que
+// se registra un resultado (_petPersistSession, más abajo) y se hidrata desde ahí al abrir PET
+// (ver runPET() / handlers.pet en openModule) — localStorage queda solo como caché instantánea.
 // Se llena solo, a medida que se completan secciones (ver showPETSessionCard() y
 // evaluatePETSpeaking()). El botón "Ver Reporte PET" en runPET() arma un análisis con esto +
 // permite descargarlo en PDF, para que Angel pueda comparar iteraciones por fuera de la app.
 let _petFullResults={reading:{},writing:{},listening:{},speaking:{}};
+
+function _petSessionStorageKey(){return 'jtl_pet_sess_'+(state.profile||'fernando');}
+function _petPersistSession(){
+  try{localStorage.setItem(_petSessionStorageKey(),JSON.stringify(_petFullResults));}catch(e){}
+  fetch('/api/pet-session/'+(state.profile||'fernando'),{
+    method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(_petFullResults||{})
+  }).catch(()=>{/* silent — localStorage sigue disponible como respaldo local */});
+}
+async function _petHydrateSession(){
+  // Caché local primero (no bloquea), servidor manda si responde.
+  try{const raw=localStorage.getItem(_petSessionStorageKey());if(raw)_petFullResults=JSON.parse(raw);}catch(e){}
+  try{
+    const res=await fetch('/api/pet-session/'+(state.profile||'fernando'));
+    if(res.ok){
+      const server=await res.json();
+      if(server){_petFullResults=server;try{localStorage.setItem(_petSessionStorageKey(),JSON.stringify(_petFullResults));}catch(e){}}
+    }
+  }catch(e){/* silent — se queda con lo que haya en memoria/localStorage */}
+}
+
 function _petRecordResult(part,sectionId,title,score,max){
   const key=(part||'').toLowerCase();
   if(!_petFullResults[key]||!sectionId)return;
   _petFullResults[key][sectionId]={title:title||sectionId,score,max};
+  _petPersistSession();
 }
 let _petTimerRemaining=0;
 let _petTimerMinutes=0;
@@ -6646,7 +7003,36 @@ function petTimerTick(){
     if(r<=0){clearInterval(window._petTimerInterval);window._petTimerInterval=null;}
   }
 }
-function petPlayRecording(i){const sc=_petListeningScripts[i];if(sc)speak(sc,0.82);}
+// 20 agosto: mismo bug y mismo arreglo que en KET (ver _ketParseDialogue/_ketPlayItemAudio más
+// arriba) — Fer pidió explícitamente que aplicara también acá. Los scripts de PET Listening traen
+// etiquetas de hablante ("[Speaker A]: ...", "Teacher: ...") que antes se leían en voz alta tal
+// cual con una sola voz. Ahora se separan por turno y cada hablante distinto recibe una voz
+// distinta de OpenAI TTS; los botones de Play (uno por recording en Part 1, uno por texto en
+// Part 2-4) siguen igual — solo cambia lo que suena al presionarlos.
+function petPlayRecording(i){
+  const sc=_petListeningScripts[i];
+  if(!sc)return;
+  const turns=_ketParseDialogue(sc);
+  const voices=_ketVoiceForTurns(turns);
+  let idx=0;
+  const playNext=()=>{
+    if(idx>=turns.length)return;
+    const t=turns[idx],v=turns.length>1?voices[idx]:undefined;idx++;
+    ttsSpeak(t.line,{
+      rate:0.82,voice:v,onEnd:playNext,
+      fallback:()=>{
+        if(!window.speechSynthesis){playNext();return;}
+        const u=new SpeechSynthesisUtterance(t.line);
+        u.lang='en-GB';u.rate=0.82;
+        const vo=v==='onyx'?getBestMaleVoice(true):getBestVoice();
+        if(vo)u.voice=vo;
+        u.onend=playNext;
+        window.speechSynthesis.speak(u);
+      }
+    });
+  };
+  playNext();
+}
 
 const PET_SECTIONS = [
   {id:'rp1', part:'Reading', num:1, title:'Multiple choice (short texts)',  desc:'Read 5 short texts. Choose A, B or C for each question.',       km:100, time:30},
@@ -6666,6 +7052,14 @@ const PET_SECTIONS = [
   {id:'sp3', part:'Speaking', num:3, title:'Collaborative task',           desc:'Discuss a situation using visual prompts.',                        km:100, time:4},
   {id:'sp4', part:'Speaking', num:4, title:'Discussion',                   desc:'Answer questions and give opinions on the topic.',                 km:100, time:3},
 ];
+
+// Se registra en el handler de openModule en vez de runPET directo: hidrata _petFullResults desde
+// el servidor ANTES de pintar el menú, así las secciones ya completadas (en este dispositivo o en
+// otro) se ven marcadas desde el primer render, sin parpadeo de "nada hecho" seguido de un refresh.
+async function _petHydrateAndRun(){
+  await _petHydrateSession();
+  runPET();
+}
 
 function runPET(){
   const area=document.getElementById('module-content-area');
@@ -7078,16 +7472,13 @@ function renderPETSection(s,d){
   // ── Listening Part 2: Notes completion ──
   } else if(s.id==='lp2'&&(d.items||d.gaps)){
     const gaps=d.items||d.gaps||[];
-    _petListeningScripts=[(d.script||d.monologue||'')];
-    html+=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
-      <button onclick="petPlayRecording(0)"
-        style="background:var(--purple,#8b5cf6);color:#fff;border:none;border-radius:8px;
-          padding:8px 18px;cursor:pointer;font-size:14px;font-family:'Rajdhani',sans-serif;font-weight:700">
-        ▶ Play monologue
-      </button>
-      <span style="font-size:13px;color:var(--muted)">Listen and complete the notes</span>
-    </div>
-    <div class="writing-prompt" style="margin-bottom:16px">
+    const lp2Script=d.script||d.monologue||'';
+    _petListeningScripts=[lp2Script];
+    // 20 agosto: mismo reproductor con pausa + barra de avance que KET Listening Part 2 (ver
+    // _longAudioControlsHTML en el módulo KET) — acá también es un solo monólogo continuo, así que
+    // sí tiene sentido poder saltar a un párrafo específico en vez de solo reescuchar desde el inicio.
+    html+=_longAudioControlsHTML('pet-long-lp2',lp2Script);
+    html+=`<div class="writing-prompt" style="margin-bottom:16px">
       ${gaps.map((g,i)=>`<div style="margin-bottom:14px;font-size:14px">
         ${g.context||g.sentence||`Gap ${i+1}`}:
         <input id="lp2_${i}" type="text" class="blank-input"
