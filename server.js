@@ -6,7 +6,7 @@ const app = express();
 app.use(express.json({ limit: '12mb' }));
 
 // ── Block sensitive server-side files ─────────────────────────────────────────
-const BLOCKED = ['/server.js', '/package.json', '/package-lock.json', '/scores.json', '/books.json', '/gate4-data.json', '/ket-diagnostics.json', '/repaso-plan.json', '/ket-session.json', '/pet-session.json'];
+const BLOCKED = ['/server.js', '/package.json', '/package-lock.json', '/scores.json', '/books.json', '/gate4-data.json', '/ket-diagnostics.json', '/repaso-plan.json', '/ket-session.json', '/pet-session.json', '/activity-log.json'];
 app.use((req, res, next) => {
   if (BLOCKED.some(p => req.path === p)) return res.status(404).end();
   next();
@@ -145,6 +145,28 @@ function readPETSession() {
 function writePETSession(data) {
   if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
   fs.writeFileSync(PET_SESSION_FILE, JSON.stringify(data, null, 2));
+}
+
+// ── Activity Log — registro automático de actividades completadas ─────────────
+// 23 agosto: Angel pidió que la app registre sola cada actividad completada (Versus Mode,
+// canciones, etc.), en vez de que él transcriba a mano lo que Fernando marca en papel (ver
+// "Plan de Actividades - Fase 1.pdf"). Log append-only por perfil, enganchado en addKm()
+// (index.html) — es el único punto por el que pasan TODOS los módulos al completarse, así que
+// no hay que instrumentar cada módulo por separado. Cada entrada trae fecha, módulo, tema/duelo
+// y el km/puntaje otorgado (proxy de desempeño). Se capea a las últimas 2000 entradas por perfil
+// para que el archivo no crezca sin límite.
+const ACTIVITY_LOG_FILE = path.join(DATA_DIR, 'activity-log.json');
+
+function readActivityLog() {
+  try {
+    if (fs.existsSync(ACTIVITY_LOG_FILE)) return JSON.parse(fs.readFileSync(ACTIVITY_LOG_FILE, 'utf8'));
+  } catch (e) {}
+  return { rodrigo: [], fernando: [] };
+}
+
+function writeActivityLog(data) {
+  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+  fs.writeFileSync(ACTIVITY_LOG_FILE, JSON.stringify(data, null, 2));
 }
 
 // ── Plan de Repaso — calendario guiado generado a partir del KET Diagnostic ────
@@ -338,6 +360,33 @@ app.post('/api/pet-session/:profile', (req, res) => {
   const data = readPETSession();
   data[profile] = req.body && Object.keys(req.body).length ? req.body : null;
   writePETSession(data);
+  res.json({ ok: true });
+});
+
+// ── Activity Log API ──────────────────────────────────────────────────────────
+app.get('/api/activity-log/:profile', (req, res) => {
+  const profile = req.params.profile;
+  if (!['rodrigo', 'fernando'].includes(profile))
+    return res.status(400).json({ error: 'Invalid profile' });
+  res.set('Access-Control-Allow-Origin', '*');
+  res.json(readActivityLog()[profile] || []);
+});
+
+app.post('/api/activity-log/:profile', (req, res) => {
+  const profile = req.params.profile;
+  if (!['rodrigo', 'fernando'].includes(profile))
+    return res.status(400).json({ error: 'Invalid profile' });
+  const data = readActivityLog();
+  if (!data[profile]) data[profile] = [];
+  data[profile].push({
+    ts: new Date().toISOString(),
+    module: (req.body && req.body.module) || 'unknown',
+    topic: (req.body && req.body.topic) || '',
+    duel: (req.body && req.body.duel) || null,
+    amount: (req.body && req.body.amount) || 0,
+  });
+  if (data[profile].length > 2000) data[profile] = data[profile].slice(-2000);
+  writeActivityLog(data);
   res.json({ ok: true });
 });
 

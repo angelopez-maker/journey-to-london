@@ -4434,6 +4434,7 @@ function updateTalkingUnlock(){
 // ══ KM + PRESTIGE ══
 function addKm(amount,_skipStreakBonus=false){
   if(!amount||amount<=0){updateTopbar();return;}
+  logActivity(amount);
   const p=state.profile;
   // Streak bonus: 5+ consecutive days = +10 km extra per activity
   const streakCount=state.streak[p]?.count||0;
@@ -4459,6 +4460,30 @@ function addKm(amount,_skipStreakBonus=false){
   localStorage.setItem('jtl_progress',JSON.stringify(state.progress));
   updateTopbar();
   syncScoresToServer(p);
+}
+
+// ── ACTIVITY LOG ──────────────────────────────────────────────────────────────
+// 23 agosto: Angel pidió que la app registre sola cada actividad completada, en vez de
+// transcribir a mano desde el "Plan de Actividades" en papel. addKm() es el único punto por
+// el que pasan TODOS los módulos al completarse (cada uno llama addKm con el km/puntaje
+// ganado), así que enganchar acá cubre Versus Mode, canciones, spelling, etc. sin tener que
+// tocar cada módulo por separado. Fire-and-forget, igual que syncScoresToServer — si falla,
+// no debe interrumpir la experiencia del niño.
+function logActivity(amount){
+  try{
+    const duel=getDuel();
+    const topicInput=document.getElementById('topic-input');
+    fetch('/api/activity-log/'+state.profile,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        module:state.currentModule||'unknown',
+        topic:topicInput?topicInput.value:'',
+        duel:duel?duel.id:null,
+        amount:amount
+      })
+    });
+  }catch(e){/* silent — el registro nunca debe bloquear al alumno */}
 }
 
 // ── SERVER SYNC ──────────────────────────────────────────────────────────────
@@ -4552,6 +4577,7 @@ function showError(msg){
 
 // ══ OPEN MODULE ══
 function openModule(mod){
+  state.currentModule=mod; // 23 agosto: para que logActivity() sepa qué módulo se está completando
   const m=MODULES[mod];
   document.getElementById('mod-icon').textContent=m.icon;
   document.getElementById('mod-title').textContent=m.name.toUpperCase();
