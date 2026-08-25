@@ -4749,7 +4749,14 @@ function checkSpelling(){
 async function runLearning(){
   showLoading('Building your lesson...');
   const topic=getTopic(),age=getAge(),level=getLevelDesc(),duel=getDuel();
-  const duelNote=duel?`\n${duel.focus}\nThe topic "${topic}" is secondary — use it only for context/examples.`:'';
+  // 25 agosto: Angel reportó que en Free Practice (sin duelo del menú) la explicación respetaba
+  // el tema pero los ejercicios "se escapaban" a verbos regulares comunes en vez de ceñirse
+  // exactamente al tema pedido (ej: pidió "to be presente vs pasado" y las preguntas usaban
+  // verbos como "play"/"work"). Causa: duelNote solo forzaba precisión cuando había un duelo real
+  // del menú (duel.focus); en Free Practice quedaba vacío, sin ninguna regla que impidiera a
+  // Claude generalizar. Fix: aplicar la misma exigencia de precisión también a Free Practice.
+  const duelNote=duel?`\n${duel.focus}\nThe topic "${topic}" is secondary — use it only for context/examples.`
+    :`\nCRITICAL: Every example and every quiz question must test EXACTLY the grammar point(s) named in the topic above — do not drift to a different, more general grammar point. If the topic names a specific verb (e.g., "to be"), every example and question must use ONLY that verb, never substitute other verbs (like "play", "work", "like"). If the topic names specific tenses or forms, every example and question must contrast exactly those forms.`;
   const unitCtx=getUnitContext();
   const unitNote=unitCtx?`\nCURRICULUM: This lesson is for "${unitCtx.unitName}" from ${unitCtx.bookName}. Ground all vocabulary and examples in the theme "${unitCtx.topic}".`:'';
   const prompt=`You are a fun English teacher for a ${age}-year-old child. Topic: "${topic}". Level: ${level}.${unitNote}${duelNote}
