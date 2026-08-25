@@ -746,7 +746,7 @@
           <div class="rqn-sub" style="color:rgba(255,255,255,.3)">Conversación en vivo</div>
           <div class="rqn-badge" style="background:rgba(255,255,255,.06);color:rgba(255,255,255,.35);border-color:rgba(255,255,255,.1)">🏆 First trophy</div>
         </button>
-        <button class="rqn-btn bookclub" onclick="openFernandoBookClub()">
+        <button class="rqn-btn bookclub" onclick="openModule('bookclub')">
           <div class="rqn-icon">📖</div>
           <div class="rqn-cat">READING</div>
           <div class="rqn-title">Book Club</div>
@@ -3885,78 +3885,12 @@ Be encouraging and clear. Speak directly to ${getStudentName()} at B1 level.`;
 }
 
 // ── Book Club Fernando ──
-function openFernandoBookClub(){
-  openModule('movers');
-  document.getElementById('mod-title').textContent='BOOK CLUB';
-  const area=document.getElementById('module-content-area');
-  const savedBook=localStorage.getItem('fer_current_book')||'The Lion, the Witch and the Wardrobe';
-  const savedCh=parseInt(localStorage.getItem('fer_current_chapter')||'1');
-  area.innerHTML=`<div style="max-width:680px;margin:0 auto">
-    <div style="background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.3);border-radius:14px;padding:16px 18px;margin-bottom:18px;display:flex;align-items:center;gap:14px">
-      <div style="font-size:26px">📖</div>
-      <div>
-        <div style="font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:#4ade80;letter-spacing:2px">BOOK CLUB</div>
-        <div style="font-size:14px;font-weight:700;color:var(--text);margin-top:2px">Practica inglés con tu lectura</div>
-        <div style="font-size:12px;color:var(--muted);margin-top:2px">Vocabulario · Comprensión · Discusión · Escritura</div>
-      </div>
-    </div>
-    <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:14px">
-      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px">📚 ¿Qué libro estás leyendo?</div>
-      <input id="bc-book" type="text" value="${savedBook}" style="width:100%;padding:11px 14px;background:var(--card2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;outline:none;margin-bottom:14px" placeholder="Título del libro">
-      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px">Capítulo</div>
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
-        <button onclick="bcCh(-1)" style="width:40px;height:40px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:20px;cursor:pointer">−</button>
-        <input id="bc-ch" type="number" value="${savedCh}" min="1" max="99" style="flex:1;padding:9px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:20px;font-weight:700;text-align:center;outline:none">
-        <button onclick="bcCh(1)" style="width:40px;height:40px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:20px;cursor:pointer">+</button>
-      </div>
-      <button id="bc-btn" onclick="startBookClubChapter()" style="width:100%;padding:13px;background:#4ade80;border:none;border-radius:10px;color:#0a0a1a;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:15px;letter-spacing:1px;cursor:pointer">📖 Start Chapter Discussion</button>
-    </div>
-    <div id="bc-result"></div>
-  </div>`;
-}
-
-function bcCh(d){const i=document.getElementById('bc-ch');if(i)i.value=Math.max(1,parseInt(i.value||1)+d);}
-
-// ── Book Club (Fernando, libro libre) — control de capítulo ──────────────────
-// Antes de mostrar la lección de Miss Kamil_IA, el alumno debe elegir cuál de 3 resúmenes
-// describe correctamente el capítulo (solo alguien que lo leyó de verdad acierta) — mismo
-// mecanismo que ya existía en el Book Club de catálogo fijo (checkBookChapter/renderBookChapter),
-// adaptado aquí para un libro/capítulo escritos a mano. Progreso guardado en localStorage,
-// clave "libro|capítulo" en minúscula. Si falla, se bloquea 2h antes de reintentar.
-function _bcKey(book,ch){return `${(book||'').trim().toLowerCase()}|${ch}`;}
-function getBCFreeProgress(){try{return JSON.parse(localStorage.getItem('fer_bc_free_progress')||'{}');}catch(e){return {};}}
-function saveBCFreeProgress(d){localStorage.setItem('fer_bc_free_progress',JSON.stringify(d));}
-
-async function startBookClubChapter(){
-  const book=document.getElementById('bc-book')?.value?.trim()||'Unknown book';
-  const ch=parseInt(document.getElementById('bc-ch')?.value)||1;
-  localStorage.setItem('fer_current_book',book);
-  localStorage.setItem('fer_current_chapter',String(ch));
-
-  const key=_bcKey(book,ch);
-  const progress=getBCFreeProgress();
-  const entry=progress[key];
-
-  if(entry?.blockedUntil && new Date()<new Date(entry.blockedUntil)){
-    const hrs=Math.ceil((new Date(entry.blockedUntil)-new Date())/3600000);
-    document.getElementById('bc-result').innerHTML=`<div style="text-align:center;padding:20px;color:var(--muted)">
-      ⏳ Re-read Chapter ${ch} and try again in ~${hrs}h.
-    </div>`;
-    return;
-  }
-
-  if(entry?.status==='done'){
-    bcGenerateLesson(book,ch); // ya demostró que leyó este capítulo — directo a la lección
-  } else {
-    bcGenerateGate(book,ch);
-  }
-}
-
-// Si Angel confirmó y cargó el texto real de este libro/capítulo en el servidor (ver server.js —
-// /api/book-chapter), lo usamos como base real en vez de "lo que la IA recuerda del libro". Nunca
-// se le muestra este texto al alumno (el gate solo muestra los 3 resúmenes) — es solo la fuente de
-// verdad interna para que la IA escriba el chequeo. Si no hay match (libro no cargado, o cargado con
-// otro título/capítulo), devuelve null y bcGenerateGate() sigue con el comportamiento de siempre.
+// 25 agosto: se eliminó el flujo "libro libre" (cualquier título/capítulo escrito a mano, sin
+// bloqueo secuencial) que vivía acá — Angel detectó que era una segunda puerta de entrada que
+// convivía, desordenada, con el Book Club de catálogo fijo de abajo (runBookClub/openBookChapter),
+// que sí tiene capítulos reales y bloqueo en orden. Se decidió dejar solo esa vía; el botón de
+// Fernando ahora abre openModule('bookclub') directo. fetchConfirmedChapter() se mantiene: la usan
+// tanto la nueva entrada de vocabulario (openBookChapterEntry) como el gate de resumen (más abajo).
 async function fetchConfirmedChapter(book,ch){
   try{
     const res=await fetch(`/api/book-chapter?book=${encodeURIComponent(book)}&chapter=${encodeURIComponent(ch)}`);
@@ -3964,174 +3898,6 @@ async function fetchConfirmedChapter(book,ch){
     const d=await res.json();
     return d.text?d:null;
   }catch(e){return null;}
-}
-
-async function bcGenerateGate(book,ch){
-  const btn=document.getElementById('bc-btn');
-  if(btn){btn.disabled=true;btn.textContent='Miss Kamil_IA is preparing...';}
-  document.getElementById('bc-result').innerHTML=`<div style="text-align:center;padding:24px;color:var(--muted)"><div style="font-size:26px;margin-bottom:10px">🔒</div><div>Preparing the chapter check for Chapter ${ch}...</div></div>`;
-  const confirmed=await fetchConfirmedChapter(book,ch);
-  const prompt=confirmed
-    ? `You are Miss Kamil_IA, a Cambridge B1 PET English teacher. A ${getAge()}-year-old student says they just read Chapter ${ch} of "${confirmed.title}".
-
-Below is the REAL text of that chapter. Use it as the ground truth for what actually happens — do not invent or guess.
-
-Create a comprehension check where the student must identify WHICH summary accurately describes what happens in that chapter. Only someone who actually read it carefully should be able to answer correctly.
-
-Rules:
-- Write THREE summaries in B1 English (3-5 sentences each), based strictly on the real chapter text below.
-- ONE summary is accurate and reflects what really happens in the text. The other TWO have subtle but important wrong details (wrong character, wrong outcome, wrong event) — plausible but incorrect, and clearly contradicted by the real text if you look closely.
-- Do not quote the chapter text directly in your summaries — write your own original sentences.
-
-REAL CHAPTER TEXT:
-"""
-${confirmed.text}
-"""
-
-Return ONLY this JSON (do not label them A/B/C yourself — just put the accurate one in "correctSummary" and the two inaccurate ones in "wrongSummaries"):
-{"correctSummary":"...","wrongSummaries":["...","..."]}`
-    : `You are Miss Kamil_IA, a Cambridge B1 PET English teacher. A ${getAge()}-year-old student says they just read Chapter ${ch} of "${book}".
-
-Create a comprehension check where the student must identify WHICH summary accurately describes what happens in that chapter. Only someone who actually read it carefully should be able to answer correctly.
-
-Rules:
-- Write THREE summaries in B1 English (3-5 sentences each), based on your best knowledge of this book and chapter.
-- ONE summary is accurate. The other TWO have subtle but important wrong details (wrong character, wrong outcome, wrong event) — plausible but incorrect.
-- If you are not fully certain of the real chapter content, still produce three clearly differentiated plausible summaries in the same spirit.
-
-Return ONLY this JSON (do not label them A/B/C yourself — just put the accurate one in "correctSummary" and the two inaccurate ones in "wrongSummaries"):
-{"correctSummary":"...","wrongSummaries":["...","..."]}`;
-  try{
-    const raw=await callClaude(prompt,900);
-    const d=parseJSON(raw);
-    if(btn){btn.disabled=false;btn.textContent='📖 Start Chapter Discussion';}
-    // Ojo: el modelo tiende a anclarse en el ejemplo del prompt y "elegir" siempre la misma
-    // posición como correcta (detectamos que daba "A" en casi todos los capítulos). Por eso acá
-    // NO confiamos en que el modelo elija la posición — barajamos nosotros mismos en el cliente
-    // con Math.random, así la posición correcta es realmente 1/3 cada vez.
-    const pool=[{text:d.correctSummary,correct:true},...(d.wrongSummaries||[]).map(t=>({text:t,correct:false}))];
-    for(let i=pool.length-1;i>0;i--){
-      const j=Math.floor(Math.random()*(i+1));
-      [pool[i],pool[j]]=[pool[j],pool[i]];
-    }
-    const letters=['A','B','C'];
-    const summaries={};
-    let correctLetter='A';
-    pool.forEach((item,i)=>{ summaries[letters[i]]=item.text; if(item.correct) correctLetter=letters[i]; });
-    window._bcGateAnswer=correctLetter;window._bcGateBook=book;window._bcGateCh=ch;
-    document.getElementById('bc-result').innerHTML=`<div style="background:var(--card);border:1px solid rgba(74,222,128,.25);border-radius:14px;padding:20px">
-      <div style="font-family:'Orbitron',monospace;font-size:10px;color:#4ade80;letter-spacing:2px;margin-bottom:12px">🔒 CHAPTER CHECK — CH. ${ch}</div>
-      <div style="font-size:13px;color:var(--muted);margin-bottom:14px">Read each summary carefully. Only one correctly describes what happens in this chapter. <strong style="color:#4ade80">Choose the accurate one to unlock the lesson.</strong></div>
-      <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:16px">
-        ${Object.entries(summaries).map(([letter,text])=>`
-          <label style="display:flex;align-items:flex-start;gap:12px;cursor:pointer;padding:14px 16px;border-radius:12px;border:2px solid var(--border);transition:border-color .2s" onmouseover="this.style.borderColor='#4ade80'" onmouseout="this.style.borderColor='var(--border)'">
-            <input type="radio" name="bc_gate_q" value="${letter}" style="accent-color:#4ade80;margin-top:3px;flex-shrink:0">
-            <div><strong style="color:#4ade80;font-family:'Orbitron',monospace;font-size:11px">Summary ${letter}</strong>
-            <div style="font-size:14px;line-height:1.75;margin-top:4px;color:var(--text)">${text}</div></div>
-          </label>`).join('')}
-      </div>
-      <button class="submit-btn" style="width:100%" onclick="bcCheckGate()">Submit answer ✓</button>
-      <div id="bc-gate-fb" style="margin-top:14px"></div>
-    </div>`;
-  }catch(e){
-    if(btn){btn.disabled=false;btn.textContent='📖 Start Chapter Discussion';}
-    document.getElementById('bc-result').innerHTML=`<div style="color:var(--red);padding:12px;background:rgba(239,68,68,.08);border-radius:8px">⚠️ ${e.message}</div>`;
-  }
-}
-
-function bcCheckGate(){
-  const book=window._bcGateBook,ch=window._bcGateCh,correct=window._bcGateAnswer;
-  const key=_bcKey(book,ch);
-  const fb=document.getElementById('bc-gate-fb');
-
-  // Defensa extra: si por cualquier motivo este gate ya quedó bloqueado (ej. el alumno alcanzó
-  // a enviar una respuesta antes y volvió a intentar en la misma pantalla), no evaluar de nuevo.
-  const existing=getBCFreeProgress()[key];
-  if(existing?.blockedUntil && new Date()<new Date(existing.blockedUntil)){
-    const hrs=Math.ceil((new Date(existing.blockedUntil)-new Date())/3600000);
-    fb.innerHTML=`<div style="color:var(--muted);font-size:13px">⏳ Try again in ~${hrs}h.</div>`;
-    _bcLockGateForm();
-    return;
-  }
-  if(existing?.status==='done'){
-    fb.innerHTML=`<div style="color:var(--muted);font-size:13px">This chapter is already unlocked.</div>`;
-    return;
-  }
-
-  const sel=document.querySelector('input[name="bc_gate_q"]:checked');
-  if(!sel){fb.innerHTML=`<div style="color:var(--muted);font-size:13px">Please select a summary first.</div>`;return;}
-  const progress=getBCFreeProgress();
-  const bookEsc=book.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-
-  // Una sola oportunidad de envío por gate: se bloquea el formulario apenas se contesta (bien o
-  // mal), para que no se pueda usar la respuesta correcta recién revelada para reintentar altiro.
-  _bcLockGateForm();
-
-  if(sel.value===correct){
-    progress[key]={status:'done'};
-    saveBCFreeProgress(progress);
-    addKm(50);
-    showToast(`📖 Chapter ${ch} unlocked! +50 km`);
-    fb.innerHTML=`<div class="result-box" style="border-color:#4ade80;background:rgba(34,197,94,.1)">
-      ✅ Correct! Chapter unlocked. +50 km
-      <br><button class="submit-btn" style="margin-top:10px;width:100%" onclick="bcGenerateLesson('${bookEsc}',${ch})">Continue to lesson →</button>
-    </div>`;
-  } else {
-    const unblockAt=new Date(Date.now()+2*60*60*1000).toISOString();
-    progress[key]={status:'blocked',blockedUntil:unblockAt};
-    saveBCFreeProgress(progress);
-    fb.innerHTML=`<div class="result-box" style="border-color:#f87171;background:rgba(239,68,68,.1)">
-      ❌ Not quite. The correct answer is <strong>Summary ${correct}</strong>.
-      <br><span style="color:#f87171;font-size:13px">Re-read the chapter and come back in 2 hours to try again.</span>
-    </div>`;
-  }
-}
-
-// Deshabilita las alternativas y el botón de envío del gate, para que una vez contestado
-// (bien o mal) no se pueda volver a intentar en la misma pantalla.
-function _bcLockGateForm(){
-  document.querySelectorAll('input[name="bc_gate_q"]').forEach(r=>r.disabled=true);
-  const btn=document.querySelector('button[onclick="bcCheckGate()"]');
-  if(btn){btn.disabled=true;btn.style.opacity='.5';btn.style.cursor='not-allowed';}
-}
-
-async function bcGenerateLesson(book,ch){
-  document.getElementById('bc-result').innerHTML=`<div style="text-align:center;padding:24px;color:var(--muted)"><div style="font-size:26px;margin-bottom:10px">📖</div><div>Preparing Chapter ${ch} of "${book}"...</div></div>`;
-  const prompt=`You are Miss Kamil_IA, a Cambridge B1 PET English teacher. Create Book Club content for a ${getAge()}-year-old student reading "${book}", Chapter ${ch}.
-
-Respond EXACTLY with this structure:
-
-📖 CHAPTER ${ch} — ${book.toUpperCase()}
-
-🎯 VOCABULARY SPOTLIGHT:
-[5 useful B1 words likely in this chapter: word — simple definition — example sentence]
-
-🤔 COMPREHENSION (answer in 1-2 sentences each):
-1. [question about what happens]
-2. [question about characters]
-3. [question about setting or events]
-
-💬 DISCUSSION (choose ONE):
-A. [opinion question about themes or characters]
-B. [personal connection question — relate to Fernando's own life]
-
-✍️ WRITING CHALLENGE:
-[Write 3-5 sentences task about a specific scene, character, or moment from the chapter]
-
-Make it engaging and appropriate for a ${getAge()}-year-old B1 student.`;
-  try{
-    const raw=await callClaude(prompt,1200);
-    document.getElementById('bc-result').innerHTML=`<div style="background:var(--card);border:1px solid rgba(74,222,128,.25);border-radius:14px;padding:20px">
-      <div style="font-size:13px;line-height:1.8;color:var(--text);white-space:pre-wrap">${raw.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
-      <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap">
-        <button onclick="bcCh(1);startBookClubChapter()" style="padding:10px 16px;background:rgba(74,222,128,.15);border:1px solid #4ade80;border-radius:10px;color:#4ade80;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;cursor:pointer">→ Next Chapter</button>
-        <button onclick="openFernandoBookClub()" style="padding:10px 16px;background:var(--card2);border:1px solid var(--border);border-radius:10px;color:var(--muted);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;cursor:pointer">← Change book</button>
-      </div>
-    </div>`;
-    addKm(50);
-  }catch(e){
-    document.getElementById('bc-result').innerHTML=`<div style="color:var(--red);padding:12px;background:rgba(239,68,68,.08);border-radius:8px">⚠️ ${e.message}</div>`;
-  }
 }
 function openPracticaLibre(){
   openModule('movers');
@@ -8361,7 +8127,7 @@ function runBookClub(){
       const blocked=bookProg[`ch${i+1}_blocked`];
 
       let statusIcon='🔒',statusColor='var(--muted)',clickable=false;
-      if(thisDone){statusIcon='✅';statusColor='#4ade80';}
+      if(thisDone){statusIcon='✅';statusColor='#4ade80';clickable=true;} // 25 agosto: se puede repasar (no re-rendir) un capítulo ya hecho
       else if(blocked){
         const unblockAt=new Date(blocked);
         const now=new Date();
@@ -8412,13 +8178,115 @@ function runBookClub(){
   </div>`;
 }
 
-async function openBookChapter(bookId,chNum){
+// 25 agosto: openBookChapter() ahora es un router — decide si el alumno tiene que pasar primero
+// por la entrada (vocabulario + preguntas típicas del capítulo) o si ya puede ir directo al gate
+// del resumen, según lo que ya haya completado. Orden pedido por Angel: entrada → gate del resumen
+// (que desbloquea el siguiente capítulo) → nunca saltar capítulos hacia adelante, pero sí volver
+// atrás a repasar uno ya hecho (en ese caso se reabre la entrada, en modo repaso, sin gate).
+function openBookChapter(bookId,chNum){
+  const book=BOOK_CLUB_BOOKS.find(b=>b.id===bookId);
+  const ch=book?.chapters[chNum-1];
+  if(!book||!ch)return;
+  const progress=getBookClubProgress();
+  const bookProg=progress[bookId]||{};
+  const alreadyDone=bookProg[`ch${chNum}`]==='done';
+  const entryDone=bookProg[`ch${chNum}_entry`]==='done';
+  if(alreadyDone) return openBookChapterEntry(bookId,chNum,true); // repaso: solo lectura, sin gate
+  if(entryDone) return openBookChapterGate(bookId,chNum); // ya hizo la entrada (quedó bloqueado en el gate) — directo ahí
+  return openBookChapterEntry(bookId,chNum,false);
+}
+
+// Paso 1 — Entrada al capítulo: vocabulario (con foco en palabras poco comunes/mitológicas que un
+// niño probablemente no conoce, ej. "faun") + preguntas típicas de comprensión para leer con eso en
+// mente. Pedido explícito de Angel: esto va ANTES del gate del resumen, no después. No se califica
+// (como las preguntas de discusión que ya existían) — es apoyo de lectura, no un examen.
+async function openBookChapterEntry(bookId,chNum,reviewMode){
+  const book=BOOK_CLUB_BOOKS.find(b=>b.id===bookId);
+  const ch=book?.chapters[chNum-1];
+  if(!book||!ch)return;
+  showLoading(`Preparando el Capítulo ${chNum}...`);
+  const confirmed=await fetchConfirmedChapter(book.title,chNum);
+  const prompt=confirmed
+    ? `You are Miss Kamil_IA, preparing a ${getAge()}-year-old Chilean B1 student to read Chapter ${chNum}: "${ch.title}" of "${confirmed.title}" by ${confirmed.author||'C.S. Lewis'}.
+
+Below is the REAL text of that chapter. Use it as ground truth.
+
+Create reading-support material:
+1. A vocabulary list of 10-14 words/phrases from this chapter that a ${getAge()}-year-old is likely NOT to know — prioritize genuinely uncommon, archaic, mythological, or literary words (e.g. proper nouns for mythical creatures, old-fashioned expressions), not just easy words. For each: the word, its Spanish translation, and a simple English definition (max 12 words).
+2. 4-5 short comprehension questions in English that guide what to pay attention to while reading this chapter (not testing memory of a chapter not yet read — phrase them as "things to look out for", e.g. "Notice how X reacts when...").
+
+REAL CHAPTER TEXT:
+"""
+${confirmed.text}
+"""
+
+Return ONLY this JSON:
+{"vocab":[{"word":"...","es":"...","def":"..."}, ...],"questions":["...","...","..."]}`
+    : `You are Miss Kamil_IA, preparing a ${getAge()}-year-old Chilean B1 student to read Chapter ${chNum}: "${ch.title}" of "${book.title}" by C.S. Lewis.
+
+Create reading-support material:
+1. A vocabulary list of 10-14 words/phrases likely to appear in this chapter that a ${getAge()}-year-old is likely NOT to know — prioritize genuinely uncommon, archaic, mythological, or literary words (this book has creatures like fauns, dryads, and naiads — include ones relevant to this chapter if applicable), not just easy words. For each: the word, its Spanish translation, and a simple English definition (max 12 words).
+2. 4-5 short comprehension questions in English that guide what to pay attention to while reading this chapter (phrase them as "things to look out for").
+
+Return ONLY this JSON:
+{"vocab":[{"word":"...","es":"...","def":"..."}, ...],"questions":["...","...","..."]}`;
+  try{
+    const raw=await callClaude(prompt,1400);
+    const d=parseJSON(raw);
+    renderBookChapterEntry(book,chNum,ch,d,reviewMode);
+  }catch(e){showError('No se pudo preparar el capítulo. '+e.message);}
+}
+
+function renderBookChapterEntry(book,chNum,ch,d,reviewMode){
+  const area=document.getElementById('module-content-area');
+  const vocabHTML=(d.vocab||[]).map(v=>`
+    <div style="display:flex;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)">
+      <div style="min-width:110px;font-weight:700;color:var(--green);font-size:14px">${v.word||''}</div>
+      <div style="min-width:100px;color:var(--muted);font-size:13px;font-style:italic">${v.es||''}</div>
+      <div style="flex:1;font-size:13px;color:var(--text)">${v.def||''}</div>
+    </div>`).join('');
+  const questionsHTML=(d.questions||[]).map((q,i)=>`
+    <div style="padding:8px 0;font-size:14px;color:var(--text)"><strong style="color:var(--green)">${i+1}.</strong> ${q}</div>`).join('');
+  const continueBtn=reviewMode
+    ? `<button class="pron-hint-btn" style="width:100%;margin-top:16px" onclick="runBookClub()">← Volver a capítulos</button>`
+    : `<button class="submit-btn" style="width:100%;margin-top:16px" onclick="markEntryDoneAndContinue('${book.id}',${chNum})">Ya leí el capítulo → Ir al resumen</button>`;
+  area.innerHTML=`<div style="max-width:660px;margin:0 auto">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      <button class="pron-hint-btn" onclick="runBookClub()">← Back</button>
+      <span style="font-family:'Orbitron',monospace;font-size:11px;color:var(--green);letter-spacing:2px">${book.icon} CH. ${chNum} — ${ch.title.toUpperCase()}${reviewMode?' (REPASO)':''}</span>
+    </div>
+    <div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.25);border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:var(--muted)">
+      📖 ${reviewMode?'Repasando el vocabulario y las preguntas de este capítulo (ya completado).':'Antes de leer, revisa este vocabulario y estas preguntas — te van a ayudar a entender el capítulo.'}
+    </div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:16px">
+      <div style="font-family:'Orbitron',monospace;font-size:10px;color:var(--blue);letter-spacing:2px;margin-bottom:10px">VOCABULARIO</div>
+      ${vocabHTML}
+    </div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:16px">
+      <div style="font-family:'Orbitron',monospace;font-size:10px;color:var(--green);letter-spacing:2px;margin-bottom:10px">MIENTRAS LEES, FÍJATE EN...</div>
+      ${questionsHTML}
+    </div>
+    ${continueBtn}
+  </div>`;
+}
+
+function markEntryDoneAndContinue(bookId,chNum){
+  const progress=getBookClubProgress();
+  if(!progress[bookId])progress[bookId]={};
+  progress[bookId][`ch${chNum}_entry`]='done';
+  saveBookClubProgress(progress);
+  openBookChapterGate(bookId,chNum);
+}
+
+// Paso 2 — el gate original: elegir cuál de 3 resúmenes describe bien el capítulo. Pasar esto
+// desbloquea el siguiente capítulo.
+async function openBookChapterGate(bookId,chNum){
   const book=BOOK_CLUB_BOOKS.find(b=>b.id===bookId);
   const ch=book?.chapters[chNum-1];
   if(!book||!ch)return;
   showLoading(`Loading Chapter ${chNum}...`);
 
-  // Misma lógica que bcGenerateGate(): si Angel cargó el texto real de este libro/capítulo en el
+  // Misma lógica que antes: si Angel cargó el texto real de este libro/capítulo en el
   // servidor, lo usamos como base — la IA nunca inventa de memoria si hay contenido confirmado.
   const confirmed=await fetchConfirmedChapter(book.title,chNum);
   const prompt=confirmed
@@ -8478,7 +8346,7 @@ function renderBookChapter(book,chNum,ch,d){
   const area=document.getElementById('module-content-area');
   // El modelo tiende a anclarse en el ejemplo del prompt y "elegir" siempre la misma posición
   // como correcta — por eso barajamos nosotros mismos acá (Math.random) en vez de confiar en
-  // que el modelo elija una posición al azar. Ver mismo fix en bcGenerateGate().
+  // que el modelo elija una posición al azar.
   const pool=[{text:d.correctSummary,correct:true},...(d.wrongSummaries||[]).map(t=>({text:t,correct:false}))];
   for(let i=pool.length-1;i>0;i--){
     const j=Math.floor(Math.random()*(i+1));
