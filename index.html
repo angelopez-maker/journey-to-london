@@ -907,7 +907,7 @@
       <div class="module-header-title" id="mod-title"></div>
       <div class="module-header-sub" id="mod-sub"></div>
     </div>
-    <button class="btn-back" onclick="showScreen('screen-dashboard')">← Back</button>
+    <button class="btn-back" onclick="moduleBack()">← Back</button>
   </div>
   <div class="module-content-area" id="module-content-area"></div>
 </div>
@@ -4182,6 +4182,9 @@ function confirmFreeTopicHub(){
 
 // Shared module hub — shown after selecting a unit from any entry point
 function renderModuleHub(icon,title,color,backFn,inPlace=false){
+  // 25 agosto: guarda el contexto del hub actual para que "← Back" desde una actividad
+  // vuelva aquí (con el tema cargado) en vez de saltar directo al menú principal.
+  window._currentHubCtx={icon,title,color};
   const modules=[
     {id:'learning', icon:'📚',label:'Learning',   km:'100 km'},
     {id:'reading',  icon:'📖',label:'Reading',    km:'100 km'},
@@ -4194,7 +4197,7 @@ function renderModuleHub(icon,title,color,backFn,inPlace=false){
     {id:'singing',  icon:'🎵',label:'Singing',    km:'Explora y disfruta'},
     {id:'watching', icon:'🎬',label:'Watching',   km:'Explora y disfruta'},
   ];
-  const modsHTML=modules.map(m=>`<button class="module-btn" style="--mc:${color};text-align:left;padding:14px" onclick="openModule('${m.id}')">
+  const modsHTML=modules.map(m=>`<button class="module-btn" style="--mc:${color};text-align:left;padding:14px" onclick="launchFromHub('${m.id}')">
     <div style="font-size:22px;margin-bottom:4px">${m.icon}</div>
     <div style="font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;color:${color}">${m.label}</div>
     <div style="font-size:10px;color:var(--muted);margin-top:2px">${m.km}</div>
@@ -4576,7 +4579,27 @@ function showError(msg){
 }
 
 // ══ OPEN MODULE ══
+function launchFromHub(modId){
+  // 25 agosto: recuerda desde qué hub se lanzó la actividad, para que "← Back" vuelva
+  // ahí (con el tema cargado) en vez de saltar al menú principal (pedido de Free Practice).
+  const ctx=window._currentHubCtx;
+  openModule(modId);
+  window._hubReturn=ctx;
+}
+function moduleBack(){
+  const h=window._hubReturn;
+  window._hubReturn=null;
+  if(h){
+    document.getElementById('mod-icon').textContent=h.icon;
+    document.getElementById('mod-title').textContent='PRACTICANDO';
+    document.getElementById('mod-sub').textContent=h.title;
+    renderModuleHub(h.icon,h.title,h.color,null,false);
+    return;
+  }
+  showScreen('screen-dashboard');
+}
 function openModule(mod){
+  window._hubReturn=null; // se reactiva justo después si vino de launchFromHub()
   state.currentModule=mod; // 23 agosto: para que logActivity() sepa qué módulo se está completando
   const m=MODULES[mod];
   document.getElementById('mod-icon').textContent=m.icon;
