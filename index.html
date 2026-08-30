@@ -1846,6 +1846,11 @@ const MOVERS_CONFIRMED_MATERIAL={
     source:'Lesson plan oficial "A1 Movers Reading and Writing Part 5" (Cambridge) — confirmado por Angel contra lo que Rodrigo ve en clases esta semana.',
     summary:`A girl named Daisy travels with her mother and father from the city to the countryside to visit her grandma and grandad. On the way there is rain and different weather. At grandma's farm, Daisy sees the farmhouse and things around it (the story mentions trucks, even though a picture in the original shows chickens — a detail worth keeping in mind if adapting). By the end of the day Daisy feels happy but tired. Key vocabulary: countryside, city, mother, father, parents, rain, house, farm, grandma, grandad, inside, outside, happy, tired.`
   },
+  rw3:{
+    confirmedOn:'2026-08-30',
+    source:'Lesson plan oficial "A1 Movers Reading and Writing Part 3" (Cambridge) \u2014 confirmado por Angel/Rodrigo contra la lecci\u00f3n 3 que est\u00e1n viendo en el colegio esta semana.',
+    summary:`Two classmates, Jane and Paul, are looking for pictures of animals in their school library. Their teacher tells the class to look on a website she mentioned the day before, and to talk about their different ideas with a partner before choosing. Paul suggests a bear catching fish in a river, and then a lion \u2014 he likes seeing its big teeth, and says people are frightened of lions. Jane suggests kangaroos instead: their tails are longer and stronger than a bear's or a lion's, which makes them really good at hopping, and their back legs are the strongest of all. Paul agrees and tells Jane she is the cleverest girl in the class. The five words the real task tests in the gaps are: website, ideas, frightened, hopping, cleverest \u2014 with "library" given as the worked example. The three distractors that fit no gap are: address, surprised, bounce ("bounce" is tempting because the gap needs an -ing form). The correct title is "A lesson about animals"; the two wrong titles point at details that do appear in the story but are not what it is about.`
+  },
   rw4:{
     confirmedOn:'2026-08-08',
     source:'Lesson plan oficial "A1 Movers Reading and Writing Part 4" (Cambridge) — confirmado por Angel/Rodrigo contra el Mini Mock que están viendo en el colegio esta semana ("de los delfines").',
@@ -6225,15 +6230,28 @@ function checkMoversRW2(){
 
 async function runMoversRW3(){
   showLoading('Preparing Part 3...');
-  const topicHint=`Topic: ${moversRandomTopic()}.`;
+  const confirmed=moversConfirmedMaterial('rw3');
+  // Mismo patron que runMoversRW4/RW5: si Angel confirmo que este material es exactamente lo que
+  // Rodrigo ve en el colegio esta semana, se usa como ancla obligatoria (personajes/vocabulario
+  // reales) en vez del tema al azar, pero pidiendo una redaccion NUEVA cada vez y nunca una copia
+  // palabra por palabra (derechos de autor + evitar que se la aprenda de memoria si repite).
+  const topicHint=confirmed
+    ? `CONFIRMED CLASSROOM MATERIAL \u2014 this is what the student is actually studying in school this week (${confirmed.source}). Base your story on this exact content: ${confirmed.summary}
+IMPORTANT: write an ORIGINAL retelling in your own words each time \u2014 same characters, setting and vocabulary, but fresh sentences, never a word-for-word copy. Keep the same five gap answers, the same worked example and the same three distractors.`
+    : `Topic: ${moversRandomTopic()}.`;
   const prompt=`You are a Cambridge A1 Movers Reading & Writing Part 3 generator.
-Write a short factual or story paragraph (55-75 words, A1 Movers level) with exactly 8 numbered gaps __(1)__ to __(8)__. Provide a word box of exactly 10 words: the 8 correct answers plus 2 distractors that are plausible but wrong in context. Each word in the word box is used at most once.
+Follow the REAL exam format exactly:
+- A short story of 60-80 words at A1 Movers level.
+- The FIRST sentence contains a worked example gap written as __(0)__. The student is shown its answer.
+- After that, exactly FIVE numbered gaps written as __(1)__ to __(5)__.
+- A word box of exactly 9 words: the example answer, the 5 correct answers, and 3 distractors that are plausible but fit no gap. Each word is used at most once.
+- A final question asking the student to choose the best name for the story, with exactly 3 options, only one correct.
 ${topicHint}
-Rules: A1 Movers vocabulary only. Gaps should test a variety of word types (nouns, verbs, adjectives, prepositions). The 2 distractor words must belong to the same topic and feel natural but not fit any gap.
+Rules: A1 Movers vocabulary only. Vary the word types tested across the five gaps (noun, verb, adjective, superlative, -ing form). At least one distractor should be tempting for a grammatical reason (for example a base verb where the gap needs an -ing form). The two wrong titles must name details that really appear in the story but are not what the whole story is about.
 Return ONLY valid JSON:
-{"topic":"Dolphins","paragraph":"Dolphins are very __(1)__ animals. They __(2)__ in the __(3)__ and can swim very __(4)__. Dolphins eat __(5)__ and they __(6)__ together in big groups. They are very __(7)__ and sometimes help people who are in __(8)__ in the water.","wordbox":["clever","live","sea","fast","fish","play","friendly","danger","swim","kind"],"gaps":[{"n":1,"answer":"clever"},{"n":2,"answer":"live"},{"n":3,"answer":"sea"},{"n":4,"answer":"fast"},{"n":5,"answer":"fish"},{"n":6,"answer":"play"},{"n":7,"answer":"friendly"},{"n":8,"answer":"danger"}]}`;
+{"topic":"A lesson about animals","paragraph":"Jane loves reading about animals in her school __(0)__. Her teacher said: 'Look on the __(1)__ I showed you. Talk about your __(2)__ with a friend first.' Paul wanted a lion, because people are __(3)__ of them. Jane chose kangaroos: their long tails make them good at __(4)__. 'You are the __(5)__ girl in the class!' said Paul.","example":{"n":0,"answer":"library"},"wordbox":["library","website","ideas","frightened","hopping","cleverest","address","surprised","bounce"],"gaps":[{"n":1,"answer":"website"},{"n":2,"answer":"ideas"},{"n":3,"answer":"frightened"},{"n":4,"answer":"hopping"},{"n":5,"answer":"cleverest"}],"title":{"options":["Paul's favourite bear","Jane's new teacher","A lesson about animals"],"answer":"A lesson about animals"}}`;
   try{
-    const raw=await callClaude(prompt,1000);
+    const raw=await callClaude(prompt,1100);
     const d=parseJSON(raw);
     renderMoversRW3(d);
   }catch(e){showError(e.message);}
@@ -6242,24 +6260,40 @@ Return ONLY valid JSON:
 function renderMoversRW3(d){
   const area=document.getElementById('module-content-area');
   window._moversRW3Data=d;
-  const shuffled=[...d.wordbox].sort(()=>Math.random()-0.5);
-  let displayText=d.paragraph;
-  d.gaps.forEach(g=>{
+  // Fisher-Yates, no .sort(()=>Math.random()-0.5): ese truco es un shuffle sesgado conocido
+  // (Principio 9). Aplica igual a la caja de palabras y a las 3 opciones de titulo.
+  const fy=arr=>{const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+  const shuffled=fy(d.wordbox||[]);
+  let displayText=d.paragraph||'';
+  // El ejemplo va resuelto a la vista, como en el examen real.
+  if(d.example&&d.example.answer){
+    displayText=displayText.replace('__(0)__',
+      `<span style="color:#4ade80;font-weight:700;border-bottom:2px solid #4ade80;padding:0 4px">${d.example.answer}</span> <span style="font-size:11px;color:var(--muted)">(example)</span>`);
+  }
+  (d.gaps||[]).forEach(g=>{
     displayText=displayText.replace(`__(${g.n})__`,
       `<select id="rw3_sel${g.n}" style="padding:3px 8px;background:var(--card);border:1px solid var(--blue);border-radius:6px;color:var(--text);font-size:13px"><option value="">__(${g.n})__</option>${shuffled.map(w=>`<option value="${w}">${w}</option>`).join('')}</select>`);
   });
   const wordBoxHTML=shuffled.map(w=>`<span style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:13px;color:var(--text)">${w}</span>`).join('');
+  // Pregunta 6 del examen real: elegir el mejor nombre para la historia.
+  const t=d.title&&Array.isArray(d.title.options)?d.title:null;
+  window._moversRW3Titles=t?fy(t.options):null;
+  const titleHTML=t?`<div style="background:var(--card2);border-radius:12px;padding:16px;margin-top:16px">
+      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px">(6) Now choose the best name for the story.</div>
+      ${window._moversRW3Titles.map((o,i)=>`<label style="display:flex;align-items:center;gap:9px;padding:7px 4px;cursor:pointer;font-size:13px;color:var(--text)"><input type="radio" name="rw3_title" value="${o.replace(/"/g,'&quot;')}"> ${o}</label>`).join('')}
+    </div>`:'';
   area.innerHTML=`<div style="max-width:680px;margin:0 auto">
-    <div style="font-family:'Orbitron',monospace;font-size:12px;color:#a78bfa;margin-bottom:4px;font-weight:700">📝 R&W PART 3 — WORD BOX</div>
+    <div style="font-family:'Orbitron',monospace;font-size:12px;color:#a78bfa;margin-bottom:4px;font-weight:700">\ud83d\udcdd R&W PART 3 \u2014 WORD BOX</div>
     <div style="font-size:12px;color:var(--muted);margin-bottom:16px">Topic: ${d.topic||''}</div>
     <div style="background:var(--card2);border-radius:12px;padding:14px;margin-bottom:16px">
-      <div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:10px;letter-spacing:1px">WORD BOX — choose from these words:</div>
+      <div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:10px;letter-spacing:1px">WORD BOX \u2014 choose from these words:</div>
       <div style="display:flex;flex-wrap:wrap;gap:8px">${wordBoxHTML}</div>
     </div>
-    <p style="color:var(--muted);font-size:13px;margin-bottom:12px">Choose the best word from the word box for each gap. ✏️</p>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:12px">Read the story. Choose a word from the box for numbers 1\u20135. There is one example. \u270f\ufe0f</p>
     <div style="background:var(--card2);border-radius:12px;padding:20px;font-size:14px;line-height:2.6;color:var(--text)">${displayText}</div>
+    ${titleHTML}
     <div id="rw3_fbs" style="margin-top:10px"></div>
-    <button class="submit-btn" style="margin-top:16px" onclick="checkMoversRW3()">Check answers ✓</button>
+    <button class="submit-btn" style="margin-top:16px" onclick="checkMoversRW3()">Check answers \u2713</button>
     <div id="rw3_result" style="margin-top:16px"></div>
   </div>`;
 }
@@ -6267,19 +6301,28 @@ function renderMoversRW3(d){
 function checkMoversRW3(){
   const d=window._moversRW3Data;if(!d)return;
   let correct=0;
-  const fbLines=d.gaps.map(g=>{
+  const fbLines=(d.gaps||[]).map(g=>{
     const sel=document.getElementById('rw3_sel'+g.n);
     const ok=sel&&sel.value===g.answer;
     if(ok)correct++;
     if(sel)sel.style.borderColor=ok?'#4ade80':'#f87171';
-    return `<div style="font-size:12px;margin:3px 0">${ok?'✅':'❌'} Gap (${g.n}): <b>${g.answer}</b>${ok?'':' — you chose: "'+(sel?.value||'nothing')+'"'}</div>`;
+    return `<div style="font-size:12px;margin:3px 0">${ok?'\u2705':'\u274c'} Gap (${g.n}): <b>${g.answer}</b>${ok?'':' \u2014 you chose: "'+(sel?.value||'nothing')+'"'}</div>`;
   });
+  // La pregunta del titulo vale un punto, igual que cada gap (el examen real son 6 puntos).
+  let total=(d.gaps||[]).length;
+  if(d.title&&d.title.answer){
+    total++;
+    const pick=document.querySelector('input[name="rw3_title"]:checked');
+    const okT=pick&&pick.value===d.title.answer;
+    if(okT)correct++;
+    fbLines.push(`<div style="font-size:12px;margin:3px 0">${okT?'\u2705':'\u274c'} (6) Best name: <b>${d.title.answer}</b>${okT?'':' \u2014 you chose: "'+(pick?pick.value:'nothing')+'"'}</div>`);
+  }
   document.getElementById('rw3_fbs').innerHTML=fbLines.join('');
-  const total=d.gaps.length,pct=correct/total,km=Math.round(30+(pct*20));
+  const pct=total?correct/total:0,km=Math.round(30+(pct*20));
   addKm(km);
   const res=document.getElementById('rw3_result');
-  if(res)res.innerHTML=`<div class="result-box" style="border-color:${pct===1?'#4ade80':pct>=.6?'var(--gold2)':'var(--red)'}">${pct===1?'🏆 Perfect!':pct>=.6?'⭐ Good!':'💪 Keep going!'} ${correct}/${total} — +${km} km!</div><button class="submit-btn" style="margin-top:10px;width:100%" onclick="runMoversRW3()">New exercise 🔄</button>`;
-  showToast(`R&W Part 3: ${correct}/${total} — +${km} km!`);
+  if(res)res.innerHTML=`<div class="result-box" style="border-color:${pct===1?'#4ade80':pct>=.6?'var(--gold2)':'var(--red)'}">${pct===1?'\ud83c\udfc6 Perfect!':pct>=.6?'\u2b50 Good!':'\ud83d\udcaa Keep going!'} ${correct}/${total} \u2014 +${km} km!</div><button class="submit-btn" style="margin-top:10px;width:100%" onclick="runMoversRW3()">New exercise \ud83d\udd04</button>`;
+  showToast(`R&W Part 3: ${correct}/${total} \u2014 +${km} km!`);
 }
 
 async function runMoversRW4(){
@@ -8212,7 +8255,7 @@ async function openBookChapterEntry(bookId,chNum,reviewMode){
 Below is the REAL text of that chapter. Use it as ground truth.
 
 Create reading-support material:
-1. A vocabulary list of 10-14 words/phrases from this chapter that a ${getAge()}-year-old is likely NOT to know — prioritize genuinely uncommon, archaic, mythological, or literary words (e.g. proper nouns for mythical creatures, old-fashioned expressions), not just easy words. For each: the word, its Spanish translation, and a simple English definition (max 12 words).
+1. A vocabulary list of 20-25 words/phrases from this chapter that a ${getAge()}-year-old is likely NOT to know — prioritize genuinely uncommon, archaic, mythological, or literary words (e.g. proper nouns for mythical creatures, old-fashioned expressions), not just easy words. If this chapter genuinely does not contain 20 words a reader that age would struggle with, return FEWER good ones rather than padding the list with easy words. For each: the word, its Spanish translation, and a simple English definition (max 12 words).
 2. 4-5 short comprehension questions in English that guide what to pay attention to while reading this chapter (not testing memory of a chapter not yet read — phrase them as "things to look out for", e.g. "Notice how X reacts when...").
 
 REAL CHAPTER TEXT:
@@ -8225,13 +8268,13 @@ Return ONLY this JSON:
     : `You are Miss Kamil_IA, preparing a ${getAge()}-year-old Chilean B1 student to read Chapter ${chNum}: "${ch.title}" of "${book.title}" by C.S. Lewis.
 
 Create reading-support material:
-1. A vocabulary list of 10-14 words/phrases likely to appear in this chapter that a ${getAge()}-year-old is likely NOT to know — prioritize genuinely uncommon, archaic, mythological, or literary words (this book has creatures like fauns, dryads, and naiads — include ones relevant to this chapter if applicable), not just easy words. For each: the word, its Spanish translation, and a simple English definition (max 12 words).
+1. A vocabulary list of 20-25 words/phrases likely to appear in this chapter that a ${getAge()}-year-old is likely NOT to know — prioritize genuinely uncommon, archaic, mythological, or literary words (this book has creatures like fauns, dryads, and naiads — include ones relevant to this chapter if applicable), not just easy words. If this chapter genuinely does not contain 20 words a reader that age would struggle with, return FEWER good ones rather than padding the list with easy words. For each: the word, its Spanish translation, and a simple English definition (max 12 words).
 2. 4-5 short comprehension questions in English that guide what to pay attention to while reading this chapter (phrase them as "things to look out for").
 
 Return ONLY this JSON:
 {"vocab":[{"word":"...","es":"...","def":"..."}, ...],"questions":["...","...","..."]}`;
   try{
-    const raw=await callClaude(prompt,1400);
+    const raw=await callClaude(prompt,1900);
     const d=parseJSON(raw);
     renderBookChapterEntry(book,chNum,ch,d,reviewMode);
   }catch(e){showError('No se pudo preparar el capítulo. '+e.message);}
