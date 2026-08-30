@@ -6240,8 +6240,9 @@ async function runMoversRW3(){
 IMPORTANT: write an ORIGINAL retelling in your own words each time \u2014 same characters, setting and vocabulary, but fresh sentences, never a word-for-word copy. Keep the same five gap answers, the same worked example and the same three distractors.`
     : `Topic: ${moversRandomTopic()}.`;
   const prompt=`You are a Cambridge A1 Movers Reading & Writing Part 3 generator.
-Follow the REAL exam format exactly:
-- A short story of 60-80 words at A1 Movers level.
+Follow the REAL exam format exactly. The official Cambridge task is about 150 words long and is mostly DIALOGUE between two classmates deciding something together, not a short description. Match that length and that rhythm:
+- A story of 130-160 words at A1 Movers level, in 4-5 short paragraphs.
+- Most of it is direct speech between two classmates (plus one instruction from their teacher), with quotation marks, first names and exclamations, the way children actually talk.
 - The FIRST sentence contains a worked example gap written as __(0)__. The student is shown its answer.
 - After that, exactly FIVE numbered gaps written as __(1)__ to __(5)__.
 - A word box of exactly 9 words: the example answer, the 5 correct answers, and 3 distractors that are plausible but fit no gap. Each word is used at most once.
@@ -6249,9 +6250,9 @@ Follow the REAL exam format exactly:
 ${topicHint}
 Rules: A1 Movers vocabulary only. Vary the word types tested across the five gaps (noun, verb, adjective, superlative, -ing form). At least one distractor should be tempting for a grammatical reason (for example a base verb where the gap needs an -ing form). The two wrong titles must name details that really appear in the story but are not what the whole story is about.
 Return ONLY valid JSON:
-{"topic":"A lesson about animals","paragraph":"Jane loves reading about animals in her school __(0)__. Her teacher said: 'Look on the __(1)__ I showed you. Talk about your __(2)__ with a friend first.' Paul wanted a lion, because people are __(3)__ of them. Jane chose kangaroos: their long tails make them good at __(4)__. 'You are the __(5)__ girl in the class!' said Paul.","example":{"n":0,"answer":"library"},"wordbox":["library","website","ideas","frightened","hopping","cleverest","address","surprised","bounce"],"gaps":[{"n":1,"answer":"website"},{"n":2,"answer":"ideas"},{"n":3,"answer":"frightened"},{"n":4,"answer":"hopping"},{"n":5,"answer":"cleverest"}],"title":{"options":["Paul's favourite bear","Jane's new teacher","A lesson about animals"],"answer":"A lesson about animals"}}`;
+{"topic":"A lesson about animals","paragraph":"Jane loves reading about different animals in her school __(0)__. Last Monday, Jane's teacher told the class to find pictures of animals. 'Look on the __(1)__ I told you about yesterday,' she said. 'Work with a friend, and talk about your different __(2)__ first.'\n\nJane worked with Paul. 'Bears are great,' Paul said. 'Let's find a bear in a river. They are really good at catching fish! Or a lion? People are __(3)__ of those, and I like seeing its big teeth.'\n\n'What about kangaroos?' Jane said. 'Their tails are longer and stronger than a bear's. That is what makes them really good at __(4)__! Their back legs are the strongest, too.'\n\nPaul looked at Jane. 'OK! You are right again!' he said. 'You are the __(5)__ girl in the class!'","example":{"n":0,"answer":"library"},"wordbox":["library","website","ideas","frightened","hopping","cleverest","address","surprised","bounce"],"gaps":[{"n":1,"answer":"website"},{"n":2,"answer":"ideas"},{"n":3,"answer":"frightened"},{"n":4,"answer":"hopping"},{"n":5,"answer":"cleverest"}],"title":{"options":["Paul's favourite bear","Jane's new teacher","A lesson about animals"],"answer":"A lesson about animals"}}`;
   try{
-    const raw=await callClaude(prompt,1100);
+    const raw=await callClaude(prompt,1400);
     const d=parseJSON(raw);
     renderMoversRW3(d);
   }catch(e){showError(e.message);}
@@ -6264,7 +6265,9 @@ function renderMoversRW3(d){
   // (Principio 9). Aplica igual a la caja de palabras y a las 3 opciones de titulo.
   const fy=arr=>{const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
   const shuffled=fy(d.wordbox||[]);
-  let displayText=d.paragraph||'';
+  // El texto viene en parrafos (el original de Cambridge son 5). En HTML los saltos de linea
+  // se colapsan, asi que hay que convertirlos antes de inyectarlo.
+  let displayText=(d.paragraph||'').replace(/\r/g,'').replace(/\n{2,}/g,'<br><br>').replace(/\n/g,'<br>');
   // El ejemplo va resuelto a la vista, como en el examen real.
   if(d.example&&d.example.answer){
     displayText=displayText.replace('__(0)__',
