@@ -287,6 +287,22 @@
 </head>
 <body>
 
+<!-- TEMA ACTIVO — declarado acá arriba (no más abajo, en el script grande) porque Portada 2
+     necesita saber el tema ANTES de pintarse — es HTML estático, no algo que arme el JS grande
+     que corre después. Activación 100% manual (Angel cambia el string y vuelve a subir el
+     archivo) — mismo criterio ya usado para RK_YOUTUBE_IDS. 20 de agosto: Angel confirmó que
+     Portada 2 (el "London poster wall") se REEMPLAZA por la versión temática, no se agrega
+     como pantalla nueva — así se siente orgánico dentro de la misma secuencia. -->
+<script>
+  const RK_ACTIVE_THEME = 'fiestas_patrias';
+  const RK_PORTADA2_IMAGES = {
+    neutral: 'rubberneckin-assets/covers/portada2.jpg',
+    fiestas_patrias: 'rubberneckin-assets/covers/Portada_RN_Rodri.jpg',
+    halloween: 'rubberneckin-assets/covers/Portada_RN_Fer.jpg',
+    full: 'rubberneckin-assets/covers/portada2.jpg',
+  };
+</script>
+
 <!-- Portada 1 — pared con título, tap para empezar (dispara fullscreen + audio de
      bienvenida, y se queda en esta misma imagen ya expandida unos segundos — efecto
      "IMAX" — antes de avanzar a Portada 2. Un segundo tap salta de inmediato.) -->
@@ -295,10 +311,12 @@
   <div class="rk-cover-hint" id="rk-cover1-hint">Tap to begin</div>
 </div>
 
-<!-- Portada 2 — pared de posters, auto-avanza o tap para saltar -->
+<!-- Portada 2 — pared de posters, auto-avanza o tap para saltar. src por defecto = neutral
+     (funciona aunque el script de abajo no corra); se pisa con la versión del tema activo. -->
 <div id="screen-cover2" class="screen rk-cover" onclick="rkAdvanceToCover3()">
-  <img src="rubberneckin-assets/covers/portada2.jpg" alt="London poster wall">
+  <img id="rk-cover2-img" src="rubberneckin-assets/covers/portada2.jpg" alt="London poster wall">
 </div>
+<script>document.getElementById('rk-cover2-img').src = RK_PORTADA2_IMAGES[RK_ACTIVE_THEME] || RK_PORTADA2_IMAGES.neutral;</script>
 
 <!-- Portada 3 — mapa del Tube gris, atmósfera de llegada, auto-avanza o tap -->
 <div id="screen-cover3" class="screen rk-cover" onclick="rkEnterMenu()">
@@ -421,7 +439,20 @@ const RK_STATIONS = [
 // Nunca se aloja el audio — se referencia un video de YouTube (el audio lo sirve YouTube,
 // no la app), invisible, sin controles. Angel: pega acá el ID del video de "Rubberneckin'"
 // (Elvis Presley) que quieras usar — con esto vacío, el módulo funciona igual, solo sin música.
-const RK_YOUTUBE_ID = 'RG8OgltHB_4';
+// 20 de agosto: theme-aware — un ID distinto por tema (RK_ACTIVE_THEME, definido más abajo).
+// Fiestas Patrias abre con "La Consentida" (himno del 18); Halloween abre con el remix
+// "Undead Tombstone" de "Spooky, Scary Skeletons" (Angel: "están buenos de entrada"). Full
+// usa la misma de Neutral (Rubberneckin', identidad del módulo todo el año) hasta que se
+// decida otra cosa. rkCurrentYoutubeId() resuelve cuál usar en cada momento.
+const RK_YOUTUBE_IDS = {
+  neutral: 'RG8OgltHB_4',          // Rubberneckin' — Elvis Presley
+  fiestas_patrias: 'Wy9MSfHQT8A',  // La Consentida
+  halloween: '2mKN6PDZTmc',        // Spooky, Scary Skeletons (Undead Tombstone Remix)
+  full: 'RG8OgltHB_4',
+};
+function rkCurrentYoutubeId(){
+  return RK_YOUTUBE_IDS[RK_ACTIVE_THEME] || RK_YOUTUBE_IDS.neutral;
+}
 let _rkPlayer = null;       // instancia de YT.Player una vez creada
 let _rkYTApiReady = false;  // true cuando el script externo de YouTube ya cargó
 
@@ -445,7 +476,7 @@ function rkLoadYouTubeApi(onReady){
   }
 }
 function rkPlayWelcomeAudio(){
-  if(!RK_YOUTUBE_ID || _rkPlayer) return;
+  if(!rkCurrentYoutubeId() || _rkPlayer) return;
   const holder = document.createElement('div');
   holder.id = 'rk-yt-holder';
   holder.style.cssText = 'position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;';
@@ -453,7 +484,7 @@ function rkPlayWelcomeAudio(){
   rkLoadYouTubeApi(() => {
     try{
       _rkPlayer = new YT.Player('rk-yt-holder', {
-        videoId: RK_YOUTUBE_ID,
+        videoId: rkCurrentYoutubeId(),
         playerVars:{autoplay:1, mute:1, controls:0, modestbranding:1, playsinline:1, rel:0},
         events:{
           onReady: e => {
@@ -6395,7 +6426,9 @@ function rkBackToMap(){
 // Cada estación cae de vuelta a 'neutral' automáticamente si el tema activo no tiene contenido
 // propio todavía (ver el patrón "content[RK_ACTIVE_THEME] || content.neutral" abajo) — así nunca
 // se puede romper por activar un tema a medio construir.
-const RK_ACTIVE_THEME = 'neutral';
+// 20 de agosto: la declaración de RK_ACTIVE_THEME se movió arriba del todo, justo después de
+// <body>, porque Portada 2 (HTML estático) la necesita antes de que este script grande corra.
+// Para cambiar el tema activo, edita esa constante allá arriba — sigue siendo un solo lugar.
 
 // ══════════════════════════════════════════════════════════════════════════
 // MATCH DAY (Reading) — 18 agosto, primera de las 5 estaciones nuevas de la Fase 1
@@ -6494,6 +6527,7 @@ const RK_MATCHDAY_SPECIAL = {
     {q:"Where was the match played?", options:['Wembley Stadium, London','Old Trafford, Manchester','Anfield, Liverpool'], answer:0},
     {q:"This match was a warm-up before a big tournament. Which one?", options:['The 1998 World Cup in France','The 2002 World Cup in Japan and Korea','Euro 1996'], answer:0},
     {q:"An 18-year-old English striker made his very first appearance for England in this match. Who was he?", options:['Michael Owen','Wayne Rooney','Harry Kane'], answer:0},
+    {q:"This match was played at the OLD Wembley Stadium, famous for its Twin Towers. What happened to that stadium later?", options:["It was demolished and rebuilt as the new Wembley (2000s)","It's still standing exactly the same today","It was moved to a different city"], answer:0},
   ]},
 };
 function _rkMatchAllCategories(){
@@ -6999,44 +7033,99 @@ function rkHuntAskOliverFinal(){
 // mismo criterio de Match Day/Scavenger Hunt (Oliver siempre acierta, sin conversación real,
 // solo un botón con una frase fija — no rompe la regla "Oliver = solo Survival Kit habla").
 // Piloto de 4 misterios para validar el flujo antes de escalar (mismo patrón de siempre).
-const RK_MYSTERY_BANK = [
-  {answer:'Big Ben', accept:['big ben'], clues:[
-    'I am found in a capital city.',
-    'I am very old — more than 160 years old.',
-    'I am famous for my sound, which rings out every hour.',
-    'I stand right beside a river.',
-    'Tourists love taking photos of me from Westminster Bridge.',
-    "I am actually the nickname of a huge bell inside a clock tower — most people use my name for the whole tower!",
-    'I am one of the most famous clock towers in the world, right next to the Houses of Parliament in London.',
-  ]},
-  {answer:'The Loch Ness Monster', accept:['the loch ness monster','loch ness monster','nessie'], clues:[
-    'I live in the water.',
-    'I am famous in Scotland.',
-    'Many people say they have seen me, but no one has ever proven I am real.',
-    'I supposedly live in a very deep, dark loch (a Scottish word for lake).',
-    'People sometimes call me by a nickname that sounds like a girl\'s name.',
-    'My home is Loch Ness, in the Scottish Highlands.',
-    'I am often described as a huge creature with a long neck, like a dinosaur living underwater!',
-  ]},
-  {answer:'Winston Churchill', accept:['winston churchill','churchill'], clues:[
-    'I am a real person from history.',
-    'I lived in the 20th century.',
-    'I led my country during a very difficult time.',
-    'I am famous for giving powerful speeches.',
-    'I led the United Kingdom during World War II.',
-    "I am often shown smoking a big cigar and making a 'V' sign with my fingers.",
-    'I was the Prime Minister of the United Kingdom, famous for saying "We shall never surrender."',
-  ]},
-  {answer:'Wimbledon', accept:['wimbledon'], clues:[
-    'I happen every year, usually in the summer.',
-    'I take place in London.',
-    'I am connected to a sport.',
-    'Players wear white clothes during me, by tradition.',
-    'People eat strawberries and cream while watching me.',
-    'I am the oldest tournament of my kind in the world.',
-    'I am the most famous tennis championship in the world, played on grass courts in London.',
-  ]},
-];
+// 20 de agosto: Angel pidió una versión especial de Halloween — "Scooby Doo, la Mystery
+// Machine, Dracula, algunos monstruos clásicos". Mismo criterio theme-aware ya usado en
+// Mind the Gap/Match Day: RK_MYSTERY_BANKS[RK_ACTIVE_THEME] || RK_MYSTERY_BANKS.neutral.
+const RK_MYSTERY_BANKS = {
+  neutral: [
+    {answer:'Big Ben', accept:['big ben'], clues:[
+      'I am found in a capital city.',
+      'I am very old — more than 160 years old.',
+      'I am famous for my sound, which rings out every hour.',
+      'I stand right beside a river.',
+      'Tourists love taking photos of me from Westminster Bridge.',
+      "I am actually the nickname of a huge bell inside a clock tower — most people use my name for the whole tower!",
+      'I am one of the most famous clock towers in the world, right next to the Houses of Parliament in London.',
+    ]},
+    {answer:'The Loch Ness Monster', accept:['the loch ness monster','loch ness monster','nessie'], clues:[
+      'I live in the water.',
+      'I am famous in Scotland.',
+      'Many people say they have seen me, but no one has ever proven I am real.',
+      'I supposedly live in a very deep, dark loch (a Scottish word for lake).',
+      'People sometimes call me by a nickname that sounds like a girl\'s name.',
+      'My home is Loch Ness, in the Scottish Highlands.',
+      'I am often described as a huge creature with a long neck, like a dinosaur living underwater!',
+    ]},
+    {answer:'Winston Churchill', accept:['winston churchill','churchill'], clues:[
+      'I am a real person from history.',
+      'I lived in the 20th century.',
+      'I led my country during a very difficult time.',
+      'I am famous for giving powerful speeches.',
+      'I led the United Kingdom during World War II.',
+      "I am often shown smoking a big cigar and making a 'V' sign with my fingers.",
+      'I was the Prime Minister of the United Kingdom, famous for saying "We shall never surrender."',
+    ]},
+    {answer:'Wimbledon', accept:['wimbledon'], clues:[
+      'I happen every year, usually in the summer.',
+      'I take place in London.',
+      'I am connected to a sport.',
+      'Players wear white clothes during me, by tradition.',
+      'People eat strawberries and cream while watching me.',
+      'I am the oldest tournament of my kind in the world.',
+      'I am the most famous tennis championship in the world, played on grass courts in London.',
+    ]},
+  ],
+  halloween: [
+    {answer:'Scooby-Doo', accept:['scooby-doo','scooby doo','scooby'], clues:[
+      'I am a cartoon character, not a real animal.',
+      'I love to eat — especially giant sandwiches and snacks.',
+      'I get scared very easily, even though I love solving mysteries.',
+      'I travel around with a group of teenage friends.',
+      "My best friend is a guy named Shaggy, and we're both always hungry.",
+      'I am a talking Great Dane dog with a very famous laugh.',
+      "My name became famous worldwide thanks to a cartoon show about solving spooky mysteries — 'Scooby-Doo, Where Are You!'",
+    ]},
+    {answer:'The Mystery Machine', accept:['the mystery machine','mystery machine'], clues:[
+      'I am not alive, but I go on every adventure.',
+      'I am painted with bright, groovy colors — mostly green, blue, and orange flowers.',
+      'Five friends and a dog travel inside me all the time.',
+      'I am a van, not a car.',
+      "My name has the word 'Mystery' in it.",
+      'I belong to Scooby-Doo and his friends.',
+      'I am the famous van that drives the Scooby-Doo gang from one spooky mystery to the next!',
+    ]},
+    {answer:'Dracula', accept:['dracula','count dracula'], clues:[
+      'I only come out at night.',
+      'I have very sharp, pointy teeth.',
+      'I wear a long black cape.',
+      'I sleep in a coffin during the day.',
+      'I drink blood, and I can turn into a bat.',
+      'I am a count who lives in a castle in Transylvania.',
+      'I am the most famous vampire in the world, created by writer Bram Stoker.',
+    ]},
+    {answer:"Frankenstein's Monster", accept:['frankenstein','frankensteins monster',"frankenstein's monster",'the monster'], clues:[
+      'I am not naturally born — I was created.',
+      'I am very tall and strong, with green skin in most pictures.',
+      'I have bolts sticking out of my neck.',
+      'A scientist built me out of different body parts.',
+      'People often say my name wrong — that\'s actually my creator\'s name, not mine!',
+      'My creator was Dr. Victor Frankenstein.',
+      "I am the famous monster from Mary Shelley's classic novel 'Frankenstein.'",
+    ]},
+    {answer:'A Witch', accept:['a witch','witch'], clues:[
+      'I can be good or bad in stories.',
+      'I wear a tall, pointy black hat.',
+      'I fly using a special object, not a broom at first — can you guess what it is?',
+      'I often have a black cat as my pet.',
+      'I fly on a broomstick and stir a bubbling cauldron.',
+      'I sometimes cast spells using a magic wand.',
+      'I am a classic Halloween character, often shown with green skin and a cackling laugh.',
+    ]},
+  ],
+};
+function rkCurrentMysteryBank(){
+  return RK_MYSTERY_BANKS[RK_ACTIVE_THEME] || RK_MYSTERY_BANKS.neutral;
+}
 let _rkMysteryState = null;
 function rkRenderMysteryBox(){
   _rkMysteryState = null;
@@ -7049,7 +7138,7 @@ function rkRenderMysteryBox(){
     <div class="rk-sk-actions"><button class="rk-sk-primary-btn" onclick="rkStartMystery()">🔍 Start</button></div>`;
 }
 function rkStartMystery(){
-  const m = rkShuffle(RK_MYSTERY_BANK)[0]; // aleatoriedad controlada (Fisher-Yates)
+  const m = rkShuffle(rkCurrentMysteryBank())[0]; // aleatoriedad controlada (Fisher-Yates)
   _rkMysteryState = {mystery:m, clueIdx:0, oliverUsed:false};
   rkRenderMysteryStep();
 }
@@ -7434,6 +7523,73 @@ const RK_SK_SCENARIOS = [
       target:"Yes, it's my first time here."},
   ]},
 ];
+
+// ADMIN ABUSE — 20 de agosto, plan de Chatty + Angel: no "preguntas de cumpleaños" sueltas,
+// sino mini situaciones reales de una fiesta de cumpleaños, con el mismo framing "Oliver se
+// tomó la fiesta, ayúdame a arreglarla" en vez de un menú de trivia. Mismo motor de Survival
+// Kit (mic, TTS, rkCallClaude con el mismo criterio de evaluación — comunicación por sobre
+// perfección), solo que el pool de misiones cambia según el tema activo, no agrega uno nuevo
+// por encima de "London Survival" — reemplaza, mismo criterio ya usado en Portada 2. Cada
+// misión trae 1 variante por ahora (contenido de estreno, piloto) — se puede ampliar a más
+// variantes después con el mismo patrón que ya usan las 5 de Neutral.
+const RK_SK_ADMIN_ABUSE = {
+  fiestas_patrias: [
+    {id:'birthday_cake', icon:'🎂', label:'The birthday cake', variants:[
+      {context:"The cake has arrived! Ask someone what kind of cake it is, and say what you think about it.",
+        target:"What kind of cake is it? It looks delicious!"},
+    ]},
+    {id:'pinata', icon:'🪅', label:'The piñata', variants:[
+      {context:"You're explaining a Chilean birthday tradition to a friend from the UK. What is a piñata, and how does it work?",
+        target:"A piñata is a paper shape filled with candy — you hit it with a stick until it breaks, and everyone gets the sweets inside!"},
+    ]},
+    {id:'present', icon:'🎁', label:'The present', variants:[
+      {context:"Someone gives you a birthday present. What do you say? You really like it — tell them why.",
+        target:"Thank you so much! I love it, it's exactly what I wanted!"},
+    ]},
+    {id:'party_invitation', icon:'💌', label:'The party invitation', variants:[
+      {context:"You want to invite a friend to your birthday party. Tell them when and where it is.",
+        target:"Do you want to come to my birthday party? It's on Saturday, at my house, at 4 o'clock!"},
+    ]},
+    {id:'september_birthday', icon:'🇨🇱', label:'The September birthday', variants:[
+      {context:"Your British friend asks why everyone in Chile is celebrating on your birthday. Explain what happens in September.",
+        target:"It's Fiestas Patrias — Chile's independence celebrations! Everyone celebrates with flags, empanadas, and cueca dancing."},
+    ]},
+    {id:'cake_problem', icon:'🕯️', label:'The birthday cake problem', variants:[
+      {context:"Oh no! There are no candles on the cake. Ask someone where the candles are, and explain what you need them for.",
+        target:"Excuse me, do you know where the candles are? We need them for the birthday cake!"},
+    ]},
+  ],
+  halloween: [
+    {id:'halloween_party', icon:'🎃', label:'The Halloween party', variants:[
+      {context:"You're inviting a friend to your Halloween birthday party. Tell them when, where, and what to bring.",
+        target:"Do you want to come to my Halloween party? It's on Friday, at my house — bring a costume!"},
+    ]},
+    {id:'trick_or_treat', icon:'🍬', label:'Trick or treat?', variants:[
+      {context:"A friend from the UK asks you how Halloween works in Chile. Explain what children do.",
+        target:"Kids dress up in costumes and go from house to house saying 'trick or treat' to get candy!"},
+    ]},
+    {id:'costume', icon:'👻', label:'The costume', variants:[
+      {context:"Your friend asks what you are wearing for Halloween. Describe your costume, and ask about theirs.",
+        target:"I'm going as a skeleton! What are you wearing?"},
+    ]},
+    {id:'halloween_present', icon:'🎁', label:'The birthday present', variants:[
+      {context:"Your friend gives you a present. Thank them and tell them what you think it is.",
+        target:"Thank you! Hmm... I think it might be a book!"},
+    ]},
+    {id:'party_game', icon:'🎮', label:'The party game', variants:[
+      {context:"Your friends are bored at the party. Suggest a game you can all play.",
+        target:"Let's play musical chairs! It's really fun and easy to set up."},
+    ]},
+  ],
+};
+// 20 de agosto (corrección de Angel): el espíritu de Admin Abuse es que esas misiones son
+// PROPIAS de Fiestas Patrias/Halloween, no de Full — Full crece con más contenido del pool
+// general (RK_SK_SCENARIOS), sin tocar las especiales de temporada. Por eso 'full' no tiene
+// entrada acá y cae directo al fallback de abajo, igual que 'neutral'.
+function rkCurrentSkScenarios(){
+  return RK_SK_ADMIN_ABUSE[RK_ACTIVE_THEME] || RK_SK_SCENARIOS;
+}
+
 let _rkSkOrder = [];
 let _rkSkVariant = {};
 let _rkSkIndex = 0;
@@ -7460,27 +7616,36 @@ function rkShuffle(arr){
 // postal se saltó sola a los 5 segundos).
 function rkSkShowIntro(){
   const wrap = document.getElementById('rk-sk-wrap');
+  const count = rkCurrentSkScenarios().length;
+  // Framing de Chatty: en Admin Abuse esto no se siente como Survival Kit temático, se siente
+  // como "Oliver se tomó la fiesta, ayúdame a arreglarla" — un problema real por misión.
+  const introMsgs = {
+    fiestas_patrias: "Something's gone wrong at the birthday party — I might have taken over a few things. Help me fix it, one situation at a time!",
+    halloween: "Something's gone wrong at the Halloween party — I might have taken over a few things. Help me fix it, one situation at a time!",
+  };
+  const msg = introMsgs[RK_ACTIVE_THEME] || `Ready for ${count} quick missions around London? Let's see what you've got!`;
   wrap.innerHTML = `
     <div class="rk-sk-oliver">
       <img src="Avatar/oliver-blackwood.png" alt="Oliver Blackwood">
-      <div><div class="rk-sk-oliver-name">Oliver Blackwood</div><div class="rk-sk-oliver-text">Ready for 5 quick missions around London? Let's see what you've got!</div></div>
+      <div><div class="rk-sk-oliver-name">Oliver Blackwood</div><div class="rk-sk-oliver-text">${rkEscapeHtml(msg)}</div></div>
     </div>
     <button class="rk-sk-primary-btn rk-sk-start-btn" onclick="rkSkStartCycle()">🎒 Start Survival Kit</button>`;
 }
 
 function rkSkStartCycle(){
-  _rkSkOrder = rkShuffle(RK_SK_SCENARIOS.map(s => s.id));
+  const scenarios = rkCurrentSkScenarios();
+  _rkSkOrder = rkShuffle(scenarios.map(s => s.id));
   // Un variant por misión, sorteado una vez por ciclo (no en cada render) — así "Try again"
   // dentro del mismo intento no cambia el escenario a mitad de camino (ver nota arriba, punto 4).
   _rkSkVariant = {};
-  RK_SK_SCENARIOS.forEach(s => { _rkSkVariant[s.id] = Math.floor(Math.random() * s.variants.length); });
+  scenarios.forEach(s => { _rkSkVariant[s.id] = Math.floor(Math.random() * s.variants.length); });
   _rkSkIndex = 0;
   rkSkRenderMission();
 }
 
 function rkSkRenderMission(){
   if(rkMicIsRecording()) rkMicReset();
-  const _scenario = RK_SK_SCENARIOS.find(s => s.id === _rkSkOrder[_rkSkIndex]);
+  const _scenario = rkCurrentSkScenarios().find(s => s.id === _rkSkOrder[_rkSkIndex]);
   const _variant = _scenario.variants[_rkSkVariant[_scenario.id] || 0];
   _rkSkCurrent = {..._scenario, ..._variant};
   _rkSkTranscript = '';
@@ -7614,7 +7779,7 @@ function rkSkNext(){
 
 function rkSkCycleComplete(){
   if(rkMicIsRecording()) rkMicReset();
-  const msg = "Brilliant! You made it through all 5 missions. Want to play another round, or head back to the map?";
+  const msg = `Brilliant! You made it through all ${_rkSkOrder.length} missions. Want to play another round, or head back to the map?`;
   _rkSkLastSpoken = msg;
   const wrap = document.getElementById('rk-sk-wrap');
   wrap.innerHTML = `
