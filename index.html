@@ -3762,6 +3762,28 @@ function setFernandoTopic(el,customTopic){
 }
 
 // ── Test the Test ──
+// Temario de referencia. Criterio acordado el 1 de septiembre de 2026:
+//   PISO  = nivel A2, que se asume para todo 7mo basico.
+//   TECHO = el libro del colegio (New Close Up B1), unidades 1 a 6 este anio.
+// Para actualizar semana a semana basta cambiar TTT_UNIDAD_ACTUAL.
+const TTT_UNIDAD_ACTUAL = 4;
+const TTT_PISO_A2 = 'verb to be (present and past) \u00b7 present simple \u00b7 present continuous \u00b7 past simple with regular and common irregular verbs \u00b7 Wh- questions in present and past \u00b7 plural nouns \u00b7 articles a/an/the \u00b7 basic prepositions of time and place \u00b7 basic connectors (and, but, because, so, then, first, after that, finally)';
+const TTT_UNIDADES = [
+  [1,'present simple vs present continuous; stative verbs; countable and uncountable nouns; quantifiers'],
+  [2,'past simple vs past continuous; used to and would; be used to and get used to'],
+  [3,'present perfect simple vs present perfect continuous; articles'],
+  [4,'relative clauses; clauses with time expressions'],
+  [5,'will vs be going to; future plans, events and predictions'],
+  [6,'zero and first conditional; unless; second conditional']
+];
+const TTT_MAS_ADELANTE = 'question tags; subject and object questions; past perfect simple and continuous; modals and semi-modals; the passive; reported speech; the causative; -ing forms and infinitives; so and such; comparison of adjectives and adverbs';
+function tttTemario(){
+  return TTT_UNIDADES.map(function(u){
+    var marca = u[0]===TTT_UNIDAD_ACTUAL ? '   <== THE UNIT THEY ARE STUDYING RIGHT NOW'
+              : (u[0]<TTT_UNIDAD_ACTUAL ? '   (already covered)' : '');
+    return '  Unit ' + u[0] + ': ' + u[1] + marca;
+  }).join('\n');
+}
 function openTestTheTest(){
   window._tttFile=null;
   openModule('movers');
@@ -3821,17 +3843,30 @@ async function analyzeTestTheTest(){
 
   const systemPrompt=`You are Miss Kamil_IA, a Cambridge B1 PET English teacher. A student submitted their test/quiz for review.
 
-CLASS CONTEXT — grammar topics covered:
-- Present Simple vs Continuous (stative verbs: know/understand/think/sound/seem/believe/love/hate/want/need NEVER take -ing)
-- Past Simple vs Past Continuous (when/while signals)
-- Present Perfect vs Present Perfect Continuous (for/since/just/already/ever)
-- Will vs Going To
-- Comparatives (-er/more+than) and Superlatives (the -est/the most)
-- Zero and First Conditionals
+STUDENT PROFILE
+${getStudentName()} is in Year 7 of a bilingual school in Chile. His first language is Spanish.
+His working level is A2 and the course is taking him towards B1. He is NOT a B1 student yet.
+
+THE A2 FLOOR — what he must already control:
+${TTT_PISO_A2}
+
+THE COURSE — New Close Up B1, units 1 to 6 this year:
+${tttTemario()}
+
+NOT THIS YEAR — units 7 to 12:
+${TTT_MAS_ADELANTE}
+
+HOW TO USE THIS
+1. Correct EVERY mistake you find, whatever level it belongs to. Never ignore a mistake because its topic is above his level.
+2. Tag every mistake with its layer: [BASE] for the A2 floor, [UNIT n] for a course unit, [AHEAD] for anything in the units 7-12 list.
+3. A [BASE] mistake is the most important thing you can find in a test: it means a drawer he should already own is not there. Say so plainly.
+4. In THEORY TO REVIEW put your effort on [BASE] first, then on the current and earlier units. Give each [AHEAD] mistake one line only, and tell him it is normal not to know that yet.
 
 Analyze the test and respond with EXACTLY this structure:
 
 📊 SCORE ESTIMATE: [X / XX] — [percentage]%
+[Only if the test contains [AHEAD] items, add a second line:]
+🎯 ON WHAT HE SHOULD ALREADY CONTROL: [X / XX] — [percentage]% (counting only [BASE] and [UNIT] items)
 
 ✅ STRENGTHS:
 [2-3 specific things done well, with examples from the test]
@@ -3845,7 +3880,7 @@ Analyze the test and respond with EXACTLY this structure:
 💪 NEXT STEP:
 [1-2 specific Versus Mode duels to practice the weak points]
 
-Be encouraging and clear. Speak directly to ${getStudentName()} at B1 level.`;
+Be encouraging and clear. Write to ${getStudentName()} in simple English at A2 level, aiming at B1: short sentences, common words, one idea per sentence. You may add a short clarification in Spanish in brackets when a rule is hard, but never write a whole paragraph in Spanish.`;
 
   try{
     let messages;
