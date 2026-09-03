@@ -6,7 +6,7 @@ const app = express();
 app.use(express.json({ limit: '12mb' }));
 
 // ── Block sensitive server-side files ─────────────────────────────────────────
-const BLOCKED = ['/server.js', '/package.json', '/package-lock.json', '/scores.json', '/books.json', '/gate4-data.json', '/ket-diagnostics.json', '/repaso-plan.json', '/ket-session.json', '/pet-session.json', '/activity-log.json'];
+const BLOCKED = ['/server.js', '/package.json', '/package-lock.json', '/scores.json', '/passport.json', '/books.json', '/gate4-data.json', '/ket-diagnostics.json', '/repaso-plan.json', '/ket-session.json', '/pet-session.json', '/activity-log.json'];
 app.use((req, res, next) => {
   if (BLOCKED.some(p => req.path === p)) return res.status(404).end();
   next();
@@ -654,6 +654,184 @@ app.post('/api/tts', rateLimit(60), async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: { message: err.message } });
   }
+});
+
+// ── Passport API — Rubberneckin' Shillings + Passport Stamps ───────────────────
+// Diseño completo en "Rubberneckin' - Shillings y Passport Stamps (mecanica).md".
+// A diferencia del resto de los endpoints, este NO lleva :profile: el pasaporte es
+// uno solo, compartido entre Rodrigo y Fernando ("dos viajeros, un mismo viaje").
+//
+// Dos reglas que viven acá y no en el cliente, a propósito:
+//  1. El servidor decide cuándo se gana un sello y qué destino toca. El cliente no
+//     tiene forma de pedir un sello, así que no hay forma de inventar uno.
+//  2. El servidor aplica la regla de repetición (medio pago con tope), porque él es
+//     quien sabe qué se jugó antes.
+const PASSPORT_FILE = path.join(DATA_DIR, 'passport.json');
+
+const RK_PASSPORT_N = 15;   // Shillings por estación para completar una vuelta.
+
+// Las seis del circuito. Abbey Road y Electric Cinema pagan al bolsillo pero no
+// tienen casillero: son exploración cultural, no el motor de práctica.
+const RK_CIRCUIT = ['scavenger_hunt','survival_kit','mystery_picture',
+                    'mind_the_gap','stop_look_and_listen','match_day'];
+const RK_CULTURAL = ['abbey_road','electric_cinema'];
+
+// Tope al repetir una actividad ya jugada: la mitad de la media de esa estación.
+// Sin el tope, repetir Mystery Picture pagaba 7 (se resuelve con una pista porque ya
+// se sabe la respuesta) contra 5,3 de media de una ronda fresca — 32% más por hacer
+// lo fácil. Ver sección 3 del documento de mecánica.
+const RK_REPEAT_CAP = {
+  survival_kit: 5, scavenger_hunt: 4, stop_look_and_listen: 4,
+  match_day: 3, mystery_picture: 3, mind_the_gap: 3,
+  abbey_road: 2, electric_cinema: 2,
+};
+
+const RK_MAX_EARN = 20;     // cota de sanidad; el máximo real es 15 (Survival Kit).
+
+// 22 destinos iniciales. Es `place` y no `city` a propósito: Giant's Causeway no es
+// una ciudad, y con el campo genérico la lista crece sin tocar lógica (Stonehenge,
+// Snowdonia, Loch Ness...). No hay techo: cuando se agote se amplía.
+const RK_DESTINATIONS = [
+  { place: 'London',            nation: 'England' },
+  { place: 'Liverpool',         nation: 'England' },
+  { place: 'Manchester',        nation: 'England' },
+  { place: 'York',              nation: 'England' },
+  { place: 'Bath',              nation: 'England' },
+  { place: 'Oxford',            nation: 'England' },
+  { place: 'Cambridge',         nation: 'England' },
+  { place: 'Brighton',          nation: 'England' },
+  { place: 'Bristol',           nation: 'England' },
+  { place: 'Newcastle',         nation: 'England' },
+  { place: 'Edinburgh',         nation: 'Scotland' },
+  { place: 'Glasgow',           nation: 'Scotland' },
+  { place: 'Inverness',         nation: 'Scotland' },
+  { place: 'Aberdeen',          nation: 'Scotland' },
+  { place: 'St Andrews',        nation: 'Scotland' },
+  { place: 'Cardiff',           nation: 'Wales' },
+  { place: 'Swansea',           nation: 'Wales' },
+  { place: 'Conwy',             nation: 'Wales' },
+  { place: 'Caernarfon',        nation: 'Wales' },
+  { place: 'Belfast',           nation: 'Northern Ireland' },
+  { place: 'Derry/Londonderry', nation: 'Northern Ireland' },
+  { place: "Giant's Causeway",  nation: 'Northern Ireland' },
+];
+
+function emptyPassport() {
+  const zeros = {}, seen = {};
+  RK_CIRCUIT.concat(RK_CULTURAL).forEach(id => { zeros[id] = 0; seen[id] = []; });
+  return { shillings: 0, stations: zeros, stamps: [], seen };
+}
+
+function readPassport() {
+  try {
+    if (fs.existsSync(PASSPORT_FILE)) {
+      const p = JSON.parse(fs.readFileSync(PASSPORT_FILE, 'utf8'));
+      const base = emptyPassport();
+      // Merge defensivo: una estación agregada después no debe romper un archivo viejo.
+      return {
+        shillings: p.shillings || 0,
+        stations: Object.assign(base.stations, p.stations || {}),
+        stamps: Array.isArray(p.stamps) ? p.stamps : [],
+        seen: Object.assign(base.seen, p.seen || {}),
+      };
+    }
+  } catch (e) { console.error('[passport] read failed', e); }
+  return emptyPassport();
+}
+
+function writePassport(data) {
+  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+  fs.writeFileSync(PASSPORT_FILE, JSON.stringify(data, null, 2));
+}
+
+// Vueltas completas según los contadores. NO es la cantidad de sellos —esa es
+// stamps.length— sino la condición para otorgar uno nuevo. Si N cambiara, derivar
+// los sellos de acá contradiría el álbum: el registro manda, la fórmula solo decide.
+function passportLapsEarned(pass) {
+  return Math.min(...RK_CIRCUIT.map(id => Math.floor((pass.stations[id] || 0) / RK_PASSPORT_N)));
+}
+
+// Rotación por nación: se descartan los destinos ya otorgados y se prefiere la nación
+// con menos sellos en el álbum, al azar dentro de ella. Sin cuotas rígidas, y garantiza
+// que las cuatro aparezcan temprano en vez de London → London → London.
+function pickDestination(pass) {
+  const used = new Set(pass.stamps.map(s => s.place));
+  const pool = RK_DESTINATIONS.filter(d => !used.has(d.place));
+  if (!pool.length) return null;
+  const perNation = {};
+  pass.stamps.forEach(s => { perNation[s.nation] = (perNation[s.nation] || 0) + 1; });
+  const nations = [...new Set(pool.map(d => d.nation))];
+  const fewest = Math.min(...nations.map(n => perNation[n] || 0));
+  const candidates = pool.filter(d => (perNation[d.nation] || 0) === fewest);
+  return candidates[Math.floor(Math.random() * candidates.length)];
+}
+
+// while y no if: un pago grande en la estación más atrasada puede cruzar dos umbrales
+// de una vez, y se perdería un sello.
+function grantPendingStamps(pass) {
+  const granted = [];
+  let guard = 0;
+  while (passportLapsEarned(pass) > pass.stamps.length && guard++ < 50) {
+    const d = pickDestination(pass);
+    if (!d) break;   // pool agotado: se amplía la lista, no se rompe nada
+    const stamp = { place: d.place, nation: d.nation, date: new Date().toISOString().slice(0, 10) };
+    pass.stamps.push(stamp);
+    granted.push(stamp);
+  }
+  return granted;
+}
+
+// Vista derivada para el cliente. El clamp evita barras negativas si N sube después
+// de haber otorgado sellos (N=20, 5 sellos, estación en 75 → 75-100 = -25).
+function passportView(pass) {
+  const bars = {};
+  RK_CIRCUIT.forEach(id => {
+    const raw = (pass.stations[id] || 0) - pass.stamps.length * RK_PASSPORT_N;
+    bars[id] = Math.max(0, Math.min(raw, RK_PASSPORT_N));
+  });
+  return {
+    shillings: pass.shillings,
+    stamps: pass.stamps,
+    stations: pass.stations,
+    bars, n: RK_PASSPORT_N,
+    stampCount: pass.stamps.length,
+    destinationsLeft: RK_DESTINATIONS.length - pass.stamps.length,
+  };
+}
+
+app.get('/api/passport', (req, res) => {
+  res.json(passportView(readPassport()));
+});
+
+// { station, earned, itemId } → el servidor decide cuánto se paga de verdad y si
+// corresponde un sello. `earned` es lo que sacó en la ronda, en bruto.
+app.post('/api/passport/earn', rateLimit(120), (req, res) => {
+  const { station, earned, itemId } = req.body || {};
+  const isCircuit = RK_CIRCUIT.includes(station);
+  if (!isCircuit && !RK_CULTURAL.includes(station))
+    return res.status(400).json({ error: 'Unknown station' });
+
+  const raw = Math.floor(Number(earned));
+  if (!Number.isFinite(raw) || raw < 0 || raw > RK_MAX_EARN)
+    return res.status(400).json({ error: 'Invalid amount' });
+
+  const pass = readPassport();
+
+  // Regla de repetición: si esta actividad ya se jugó, medio pago con tope.
+  const id = itemId ? String(itemId).slice(0, 120) : null;
+  const alreadySeen = !!id && pass.seen[station].includes(id);
+  const paid = alreadySeen
+    ? Math.min(Math.ceil(raw / 2), RK_REPEAT_CAP[station] || 2)
+    : raw;
+  if (id && !alreadySeen) pass.seen[station].push(id);
+
+  pass.shillings += paid;
+  if (isCircuit) pass.stations[station] = (pass.stations[station] || 0) + paid;
+
+  const newStamps = grantPendingStamps(pass);
+  writePassport(pass);
+
+  res.json({ ok: true, paid, repeat: alreadySeen, newStamps, passport: passportView(pass) });
 });
 
 // ── Fallback: serve index.html ─────────────────────────────────────────────────

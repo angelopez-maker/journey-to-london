@@ -7990,5 +7990,104 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 </script>
+<script>
+// ══════════════════════════════════════════════════════════════════════════
+// PASAPORTE — capa de estado (Shillings + Passport Stamps)
+// Diseño completo en deploy/"Rubberneckin' - Shillings y Passport Stamps (mecanica).md".
+//
+// Esta es la PRIMERA persistencia real del módulo: hasta ahora Rubberneckin' solo
+// usaba sessionStorage para dos flags de intro, que se pierden al cerrar la pestaña.
+//
+// Es deliberadamente delgada. Toda la lógica vive en el servidor:
+//   · cuánto se paga de verdad (regla de repetición con tope)
+//   · si corresponde un sello y qué destino toca
+// El cliente informa lo que pasó y pinta lo que le devuelven. No decide nada, así que
+// tampoco puede equivocarse ni inventar un sello.
+//
+// Va en su propio <script> a propósito: no comparte scope con el script grande, así
+// que no puede romper nada de lo que ya funciona. Se comunica por funciones globales.
+// ══════════════════════════════════════════════════════════════════════════
+
+// Cache local de la última vista devuelta por el servidor. Solo para pintar.
+// La fuente de verdad es passport.json, siempre.
+let RK_PASSPORT = null;
+
+// Precios por estación, de la tabla final (sección 9 del documento de mecánica).
+// Están acá como referencia para quien enganche las estaciones (paso 3): el máximo
+// que puede entregar cada ronda. Lo que se manda al servidor es lo obtenido de verdad.
+const RK_PRICE_MAX = {
+  survival_kit: 15,        // 5 misiones x 3 (perfecta) / 1 (se comunicó) / 0
+  mystery_picture: 14,     // 16 - 2 x pistas usadas
+  scavenger_hunt: 12,      // 3 (Rodrigo) + 3 (Fernando) + 6 (concepto), piso 1
+  mind_the_gap: 9,         // 3 palabras x 3
+  stop_look_and_listen: 8, // 4 conceptos x 2
+  match_day: 7,            // 7 preguntas x 1
+};
+
+async function rkPassportLoad(){
+  try {
+    const r = await fetch('/api/passport');
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    RK_PASSPORT = await r.json();
+  } catch(e){
+    console.warn('[passport] no se pudo cargar:', e.message);
+    RK_PASSPORT = null;   // el juego sigue funcionando sin pasaporte
+  }
+  return RK_PASSPORT;
+}
+
+// Se llama al terminar una ronda. `earned` es lo que sacó en bruto según la tabla;
+// `itemId` es el id estable de la actividad jugada (ver documento de plantillas) y es
+// lo que permite al servidor aplicar el medio pago si ya la había jugado.
+//
+// Devuelve { paid, repeat, newStamps } o null si no se pudo guardar. Un fallo de red
+// NUNCA interrumpe el juego: se pierden esos shillings y se vuelven a ganar jugando.
+// Los sellos, que son lo único irrecuperable, no dependen de esta llamada — los otorga
+// el servidor con el estado que ya tiene grabado.
+async function rkEarnShillings(station, earned, itemId){
+  try {
+    const r = await fetch('/api/passport/earn', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ station, earned, itemId: itemId || null })
+    });
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    const data = await r.json();
+    RK_PASSPORT = data.passport;
+    if(data.newStamps && data.newStamps.length) rkOnStampsEarned(data.newStamps);
+    return data;
+  } catch(e){
+    console.warn('[passport] no se pudo registrar la actividad:', e.message);
+    return null;
+  }
+}
+
+// Hook del momento del sello. El diseño pide que aparezca INMEDIATAMENTE, encima de la
+// actividad que lo gatilló y no al volver al mapa — es el momento raro y memorable del
+// sistema. La pantalla se construye en el paso 5; por ahora deja el registro.
+function rkOnStampsEarned(stamps){
+  stamps.forEach(s => console.log(`[passport] PASSPORT STAMP EARNED — ${s.place}, ${s.nation}`));
+}
+
+// ── Lecturas para la UI del Underground (paso 4) ───────────────────────────
+function rkPassportShillings(){ return RK_PASSPORT ? RK_PASSPORT.shillings : 0; }
+function rkPassportStamps(){    return RK_PASSPORT ? RK_PASSPORT.stamps : []; }
+function rkPassportN(){         return RK_PASSPORT ? RK_PASSPORT.n : 15; }
+
+// Progreso de la vuelta en curso, ya acotado por el servidor a [0, N].
+// Devuelve { scavenger_hunt: 12, ... } o {} si el pasaporte no cargó.
+function rkPassportBars(){ return RK_PASSPORT ? RK_PASSPORT.bars : {}; }
+
+// Fracción 0..1 de una estación, para el anillo del mapa. Abbey Road y Electric
+// Cinema devuelven null: no tienen casillero, y esa ausencia es intencional —
+// comunica que son parte del viaje pero no del circuito, sin explicárselo a nadie.
+function rkPassportProgress(stationId){
+  const bars = rkPassportBars();
+  if(!(stationId in bars)) return null;
+  return bars[stationId] / rkPassportN();
+}
+
+document.addEventListener('DOMContentLoaded', rkPassportLoad);
+</script>
 </body>
 </html>
