@@ -4959,7 +4959,7 @@ const SONG_PLAYLISTS=[null,
   {lbl:'Nivel 3',col:'#f97316',dsc:'Ritmo moderado · Pop/Rock adulto',s:[
     ["Don't Stop Me Now",'Queen'],['The Show Must Go On','Queen'],
     ['Comfortably Numb','Pink Floyd'],['Another Brick in the Wall','Pink Floyd'],
-    ['House of the Rising Sun','The Animals'],['Creep','Radiohead'],
+    ['Losing My Religion','R.E.M.'],['Creep','Radiohead'],
     ['November Rain',"Guns N' Roses"],["Don't Cry","Guns N' Roses"],
     ['Patience',"Guns N' Roses"],["I Don't Want to Miss a Thing",'Aerosmith'],
     ['Dream On','Aerosmith'],['Hotel California','Eagles'],['Take It Easy','Eagles'],
@@ -4982,11 +4982,11 @@ const SONG_PLAYLISTS=[null,
     ['Whole Lotta Love','Led Zeppelin'],['Rock and Roll','Led Zeppelin'],
     ['Highway to Hell','AC/DC'],['Back in Black','AC/DC'],['Thunderstruck','AC/DC'],
     ['Paint It Black','Rolling Stones'],['Sympathy for the Devil','Rolling Stones'],
-    ['Satisfaction','Rolling Stones'],['Smells Like Teen Spirit','Nirvana'],
+    ["Jumpin' Jack Flash",'Rolling Stones'],['Smells Like Teen Spirit','Nirvana'],
     ['Come As You Are','Nirvana'],['Under the Bridge','Red Hot Chili Peppers'],
     ['Californication','Red Hot Chili Peppers'],["Baba O'Riley",'The Who'],
     ["Won't Get Fooled Again",'The Who'],['Bohemian Rhapsody','Queen'],
-    ['Born to Run','Bruce Springsteen'],['Born in the USA','Bruce Springsteen'],
+    ['Born to Run','Bruce Springsteen'],['Dancing in the Dark','Bruce Springsteen'],
     ['Purple Haze','Jimi Hendrix'],['All Along the Watchtower','Jimi Hendrix'],
     ['Jump','Van Halen'],['Eye of the Tiger','Survivor'],
     ['Seven Nation Army','The White Stripes'],['Are You Gonna Go My Way','Lenny Kravitz'],
@@ -5061,7 +5061,7 @@ const SONG_BUFFER=[null,
   // L3
   [['Go Your Own Way','Fleetwood Mac'],['Dreams','Fleetwood Mac'],['The Chain','Fleetwood Mac'],['Little Lies','Fleetwood Mac'],
    ['Romeo and Juliet','Dire Straits'],['Sultans of Swing','Dire Straits'],
-   ['Losing My Religion','R.E.M.'],['Personal Jesus','Depeche Mode'],['Enjoy the Silence','Depeche Mode'],["Friday I'm in Love",'The Cure'],
+   ['Man on the Moon','R.E.M.'],['Personal Jesus','Depeche Mode'],['Enjoy the Silence','Depeche Mode'],["Friday I'm in Love",'The Cure'],
    ['The Look','Roxette'],['Joyride','Roxette'],['Material Girl','Madonna'],['Like a Prayer','Madonna'],["Papa Don't Preach",'Madonna'],
    ['Smooth','Santana'],['Englishman in New York','Sting'],['Shape of My Heart','Sting'],
    ['Fast Car','Tracy Chapman'],['Billie Jean','Michael Jackson'],
@@ -5085,7 +5085,12 @@ const SONG_BUFFER=[null,
 ];
 
 // ── Funciones sistema de cola por usuario ──
-function _queueKey(lvl){return `jtl_sw_done_${state.profile||'fer'}_L${lvl}`;}
+// Clave de una canción: título|artista en minúsculas. Antes se guardaba la POSICIÓN en la
+// lista, lo que obligaba a no borrar nunca una canción (borrar corría todas las siguientes y
+// las marcas apuntaban a otra cosa). Guardando el nombre, editar las listas deja de importar.
+// Sufijo _v2 en la clave de storage: lo guardado con el formato viejo (números) se ignora solo.
+function _songKey(t,a){return `${t}|${a}`.toLowerCase();}
+function _queueKey(lvl){return `jtl_sw_done_${state.profile||'fer'}_L${lvl}_v2`;}
 function _getDone(lvl){return JSON.parse(localStorage.getItem(_queueKey(lvl))||'[]');}
 function _saveDone(lvl,arr){localStorage.setItem(_queueKey(lvl),JSON.stringify(arr));}
 function _getBufPos(lvl){return parseInt(localStorage.getItem(_queueKey(lvl)+'_buf')||'0');}
@@ -5093,25 +5098,25 @@ function _saveBufPos(lvl,pos){localStorage.setItem(_queueKey(lvl)+'_buf',pos);}
 
 function markSongDone(idx){
   const lvl=window._swLvl;
+  const [t,a]=_getAllSongs(lvl)[idx]||[];
+  if(!t)return;
+  const k=_songKey(t,a);
   const done=_getDone(lvl);
-  if(!done.includes(idx)){done.push(idx);_saveDone(lvl,done);}
-  // promote next from buffer
+  if(!done.includes(k)){done.push(k);_saveDone(lvl,done);}
+  // Se promueve una del buffer avanzando el contador. No se guarda la canción en ninguna
+  // parte: _getAllSongs la deduce del contador, así que sobrevive a cerrar la app. Antes se
+  // apuntaba en memoria de la sesión y se perdía al recargar, mientras el contador seguía
+  // avanzado — el resultado era que esas canciones se consumían del buffer sin aparecer nunca.
   const buf=SONG_BUFFER[lvl]||[];
-  let pos=_getBufPos(lvl);
-  if(pos<buf.length){
-    // buf song is temporary: add to level playlist in memory for this session
-    if(!window._swBufAdded)window._swBufAdded={};
-    if(!window._swBufAdded[lvl])window._swBufAdded[lvl]=[];
-    window._swBufAdded[lvl].push(buf[pos]);
-    _saveBufPos(lvl,pos+1);
-  }
+  const pos=_getBufPos(lvl);
+  if(pos<buf.length)_saveBufPos(lvl,pos+1);
   showSongList(lvl);
 }
 
 function _getAllSongs(lvl){
   const base=SONG_PLAYLISTS[lvl].s;
-  const added=(window._swBufAdded&&window._swBufAdded[lvl])||[];
-  return [...base,...added];
+  const buf=SONG_BUFFER[lvl]||[];
+  return [...base,...buf.slice(0,_getBufPos(lvl))];
 }
 
 const MOVIE_LISTS=[null,
@@ -5210,15 +5215,15 @@ function showSongList(lvl){
   window._swLvl=lvl;
   const done=_getDone(lvl);
   const all=_getAllSongs(lvl);
-  const active=all.filter((_,i)=>!done.includes(i));
-  const doneItems=all.filter((_,i)=>done.includes(i));
+  const active=all.filter(([t,a])=>!done.includes(_songKey(t,a)));
+  const doneItems=all.filter(([t,a])=>done.includes(_songKey(t,a)));
   const buf=SONG_BUFFER[lvl]||[];
   const bufPos=_getBufPos(lvl);
   const bufLeft=buf.length-bufPos;
 
   let activeSongs='';
   all.forEach(([t,a],i)=>{
-    if(done.includes(i))return;
+    if(done.includes(_songKey(t,a)))return;
     activeSongs+=`<button class="song-item" onclick="showSongScreen(${i})">
       <div class="song-item-num">${String(i+1).padStart(2,'0')}</div>
       <div style="flex:1"><div class="song-item-title">${t}</div><div class="song-item-artist">${a}</div></div>
@@ -5228,7 +5233,7 @@ function showSongList(lvl){
 
   let doneSongs='';
   all.forEach(([t,a],i)=>{
-    if(!done.includes(i))return;
+    if(!done.includes(_songKey(t,a)))return;
     doneSongs+=`<button class="song-item" style="opacity:.5" onclick="showSongScreen(${i})">
       <div class="song-item-num" style="color:var(--green)">✓</div>
       <div style="flex:1"><div class="song-item-title">${t}</div><div class="song-item-artist">${a}</div></div>
@@ -5274,7 +5279,7 @@ async function showSongScreen(idx){
   const all=_getAllSongs(lvl);
   const [t,a]=all[idx];
   const done=_getDone(lvl);
-  const isDone=done.includes(idx);
+  const isDone=done.includes(_songKey(t,a));
   // 13 agosto: link a music.youtube.com en vez de youtube.com — con la extensión Better Lyrics
   // (ya instalada en los equipos de los niños) muestra letra sincronizada + traducción al
   // español en línea. Mismo patrón validado primero en Abbey Road/Rubberneckin'. Se saca
