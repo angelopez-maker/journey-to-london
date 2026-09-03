@@ -4954,6 +4954,7 @@ const SONG_PLAYLISTS=[null,
     ['La La La','Shakira'],["Don't Bother",'Shakira'],
     ['Dai Dai','Shakira'],["If You Don't Know Me by Now",'Simply Red'],
     ['Always','Bon Jovi'],
+    ['When I Was Your Man','Bruno Mars'],
   ]},
   {lbl:'Nivel 3',col:'#f97316',dsc:'Ritmo moderado · Pop/Rock adulto',s:[
     ["Don't Stop Me Now",'Queen'],['The Show Must Go On','Queen'],
@@ -5312,13 +5313,28 @@ async function showSongScreen(idx){
   _loadTrivia(t,a);
 }
 
+// ── Datos curiosos curados ──
+// Se consultan ANTES de la cache y antes de pedirle uno a la IA.
+// Criterio para agregar: solo hechos verificados en una fuente real, nunca de memoria.
+// Clave: `artista|titulo` en minusculas. Texto en ingles simple (A2-B1), maximo 2 frases.
+const SONG_TRIVIA = {
+  'bruno mars|when i was your man':
+    "Listen carefully to the chorus: Bruno Mars sings <b>should've gave</b>, but the correct form is <b>should have given</b>. Even native singers break the rules \u2014 can you hear it?",
+};
+
+function _triviaHTML(txt){
+  return `<div style="font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;color:var(--muted);margin-bottom:6px">💡 DATO CURIOSO</div><div style="color:var(--text);line-height:1.5;text-align:left">${txt}</div>`;
+}
+
 async function _loadTrivia(t,a){
   const key=`jtl_trivia|${a}|${t}`.toLowerCase();
   const el=document.getElementById('ss-trivia');
   if(!el)return;
+  const curado=SONG_TRIVIA[`${a}|${t}`.toLowerCase()];
+  if(curado){ el.innerHTML=_triviaHTML(curado); return; }
   const cached=localStorage.getItem(key);
   if(cached){
-    el.innerHTML=`<div style="font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;color:var(--muted);margin-bottom:6px">💡 DATO CURIOSO</div><div style="color:var(--text);line-height:1.5;text-align:left">${cached}</div>`;
+    el.innerHTML=_triviaHTML(cached);
     return;
   }
   try{
@@ -5326,7 +5342,7 @@ async function _loadTrivia(t,a){
     const fact=await callClaude(prompt,150);
     if(fact&&el){
       localStorage.setItem(key,fact);
-      el.innerHTML=`<div style="font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;color:var(--muted);margin-bottom:6px">💡 DATO CURIOSO</div><div style="color:var(--text);line-height:1.5;text-align:left">${fact}</div>`;
+      el.innerHTML=_triviaHTML(fact);
     }
   }catch(e){
     if(el)el.style.display='none';
