@@ -4558,21 +4558,52 @@ function showSpellingWord(){
   document.getElementById('spell-input').focus();
 }
 
+// Instrucciones propias del Spelling. El acento va escrito acá y no depende de qué voces tenga
+// instalado el equipo: _ttsInstr() lo pasa a americano cuando el perfil es Rodrigo (reemplaza
+// "British" y antepone la instrucción de acento), y lo deja en británico para Fernando.
+// La lentitud se pide por instrucción, no bajando playbackRate — bajar la velocidad del audio
+// lo distorsiona; pedirle al modelo que hable lento suena natural.
+const SPELLING_TTS_INSTRUCTIONS='Speak with a clear British accent. Speak slowly and very clearly, articulating every single sound of the word so a young learner can hear exactly how it is spelled. Warm, patient and encouraging, like a teacher helping a child write a new word. Never rush.';
+
+// 9 septiembre 2026: este módulo era el ÚNICO de la app cuyo camino normal usaba la voz del
+// sistema operativo (window.speechSynthesis) en vez del TTS real — se quedó atrás en la
+// migración de agosto porque se lee como "spelling" y no como "listening". Rodrigo reportó que
+// el acento le costaba para deletrear; cambiarle el idioma a la voz nativa no bastó, porque ese
+// Windows no tiene voz en-US instalada. Ahora pasa por ttsSpeak, igual que todo el resto:
+// palabra → pausa → frase, encadenadas con onEnd. Se conserva el camino nativo íntegro como
+// fallback, así que si se cae la red el ejercicio sigue funcionando como antes.
 function speakSpellingWord(){
   const w=(window._spellingWords||[])[window._spellingIdx||0];
   if(!w)return;
-  window.speechSynthesis.cancel();
+  ttsStop();
   const sentence=w.sentence.replace('___',w.word);
-  const v=_ttsVoz();
-  const LG=_ttsLang('en-GB');
-  const u1=new SpeechSynthesisUtterance(w.word);u1.lang=LG;u1.rate=0.8;if(v)u1.voice=v;
-  const uPause=new SpeechSynthesisUtterance('...');uPause.lang=LG;uPause.rate=0.1;uPause.volume=0;
-  const u2=new SpeechSynthesisUtterance(sentence);u2.lang=LG;u2.rate=0.9;if(v)u2.voice=v;
   const btn=document.getElementById('spell-play-btn');
-  if(btn){btn.textContent='🔊 Listening...';u2.onend=()=>{if(btn)btn.textContent='🔊 Hear again';};}
-  window.speechSynthesis.speak(u1);
-  window.speechSynthesis.speak(uPause);
-  window.speechSynthesis.speak(u2);
+  const listo=()=>{if(btn)btn.textContent='🔊 Hear again';};
+  if(btn)btn.textContent='🔊 Listening...';
+
+  // Fallback: exactamente el comportamiento anterior, por si el TTS real falla o no hay red.
+  const nativo=()=>{
+    if(!window.speechSynthesis){listo();return;}
+    window.speechSynthesis.cancel();
+    const v=_ttsVoz();
+    const LG=_ttsLang('en-GB');
+    const u1=new SpeechSynthesisUtterance(w.word);u1.lang=LG;u1.rate=0.8;if(v)u1.voice=v;
+    const uPause=new SpeechSynthesisUtterance('...');uPause.lang=LG;uPause.rate=0.1;uPause.volume=0;
+    const u2=new SpeechSynthesisUtterance(sentence);u2.lang=LG;u2.rate=0.9;if(v)u2.voice=v;
+    u2.onend=listo;
+    window.speechSynthesis.speak(u1);
+    window.speechSynthesis.speak(uPause);
+    window.speechSynthesis.speak(u2);
+  };
+
+  const decirFrase=()=>ttsSpeak(sentence,{
+    rate:0.95, instructions:SPELLING_TTS_INSTRUCTIONS, onEnd:listo, fallback:listo
+  });
+  ttsSpeak(w.word,{
+    rate:0.9, instructions:SPELLING_TTS_INSTRUCTIONS,
+    onEnd:()=>setTimeout(decirFrase,700),
+    fallback:nativo
+  });
 }
 
 function checkSpelling(){
