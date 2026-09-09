@@ -1542,6 +1542,32 @@ document.addEventListener('click',function _voiceInit(){
 // formal". El parámetro "instructions" es la palanca real para esto en gpt-4o-mini-tts (no el
 // voice preset), así que se cambia solo el texto, sin tocar nada de la arquitectura de audio.
 const OLIVER_TTS_INSTRUCTIONS='Speak as an upbeat, enthusiastic British teenager, around 16-18 years old — energetic and playful, like a fun older brother or camp counsellor, not a formal adult. Fast, natural, conversational pace with expressive intonation, never flat or robotic. Clear pronunciation for a young English learner, genuinely excited and fun.';
+// ── Acento por perfil (9 septiembre 2026) ────────────────────────────────────
+// Rodrigo rinde Movers y el colegio le habla en británico, pero el acento británico le está
+// costando para el spelling: no logra mapear lo que oye a cómo se escribe. Angel pidió que
+// TODO lo que Rodrigo escucha en la app suene en americano neutro, para que pueda practicar
+// el deletreo con un acento más transparente y de paso oiga la diferencia entre los dos.
+// Solo afecta al perfil de Rodrigo; Fernando sigue en británico, que es lo que le sirve
+// para el KET/PET. Se aplica en el punto de paso (ttsSpeak) y en los fallbacks nativos,
+// para que no dependa de recordar cambiarlo en cada módulo nuevo.
+const RODRIGO_ACENTO='Speak with a clear, neutral American accent (General American) — NOT British. ';
+function _ttsEsRodrigo(){try{return (state&&state.profile||'')==='rodrigo';}catch(e){return false;}}
+function _ttsInstr(instr){
+  if(!_ttsEsRodrigo())return instr;
+  return RODRIGO_ACENTO + String(instr||'').replace(/\bBritish\b/g,'American').replace(/\bBritain\b/g,'the United States');
+}
+function _ttsLang(lang){return _ttsEsRodrigo()?'en-US':(lang||'en-GB');}
+// Voz nativa (solo se usa si el TTS real falla): para Rodrigo se busca una en-US explícita
+// en vez de la preferencia en-GB de getBestVoice(), sin tocar su caché.
+function _ttsVoz(){
+  if(!_ttsEsRodrigo())return getBestVoice();
+  const vv=(window.speechSynthesis&&window.speechSynthesis.getVoices())||[];
+  return vv.find(v=>v.lang==='en-US'&&v.localService===false)
+      || vv.find(v=>v.lang==='en-US')
+      || vv.find(v=>String(v.lang).startsWith('en-US'))
+      || getBestVoice();
+}
+
 const TTS_TIMEOUT_MS=6000;
 let _ttsAudio=null; // <audio> actualmente sonando, si estamos usando OpenAI TTS
 
@@ -1568,7 +1594,7 @@ async function ttsSpeak(text,opts={}){
     const r=await fetch('/api/tts',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({text,instructions,voice}),
+      body:JSON.stringify({text,instructions:_ttsInstr(instructions),voice}),
       signal:ctrl.signal
     });
     clearTimeout(timer);
@@ -1591,9 +1617,9 @@ function speak(text,rate=0.9,lang='en-GB',onEnd){
     rate,onEnd,
     fallback:()=>{
       const u=new SpeechSynthesisUtterance(text);
-      u.lang=lang;u.rate=rate;
+      u.lang=_ttsLang(lang);u.rate=rate;
       if(onEnd)u.onend=onEnd;
-      const doSpeak=()=>{const v=getBestVoice();if(v)u.voice=v;window.speechSynthesis.speak(u);};
+      const doSpeak=()=>{const v=_ttsVoz();if(v)u.voice=v;window.speechSynthesis.speak(u);};
       if(window.speechSynthesis.getVoices().length>0){doSpeak();}
       else{
         const h=()=>{window.speechSynthesis.removeEventListener('voiceschanged',h);doSpeak();};
@@ -2750,8 +2776,8 @@ function oliverSpeak(text){
     fallback:()=>{
       if(!window.speechSynthesis)return;
       const u=new SpeechSynthesisUtterance(text);
-      u.lang='en-GB';u.rate=0.92;u.pitch=1.0;
-      const loadVoice=()=>{const v=getBestMaleVoice(true);if(v)u.voice=v;window.speechSynthesis.speak(u);};
+      u.lang=_ttsLang('en-GB');u.rate=0.92;u.pitch=1.0;
+      const loadVoice=()=>{const v=getBestMaleVoice(!_ttsEsRodrigo());if(v)u.voice=v;window.speechSynthesis.speak(u);};
       if(window.speechSynthesis.getVoices().length)loadVoice();
       else{window.speechSynthesis.onvoiceschanged=loadVoice;}
     }
@@ -3261,8 +3287,8 @@ function _longAudioFallback(text,ctrlId){
   }
   if(status)status.textContent='Reproduciendo (modo básico, sin barra de avance)...';
   const u=new SpeechSynthesisUtterance(text);
-  u.lang='en-GB';u.rate=0.85;
-  const v=getBestMaleVoice(true);if(v)u.voice=v;
+  u.lang=_ttsLang('en-GB');u.rate=0.85;
+  const v=getBestMaleVoice(!_ttsEsRodrigo());if(v)u.voice=v;
   if(btn){
     btn.disabled=false;btn.textContent='⏸ Pause';
     btn.onclick=()=>{
@@ -3337,8 +3363,8 @@ async function _ketPlayItemAudio(i){
       fallback:()=>{
         if(!window.speechSynthesis){playNext();return;}
         const u=new SpeechSynthesisUtterance(t.line);
-        u.lang='en-GB';u.rate=0.9;
-        const vo=v==='onyx'?getBestMaleVoice(true):getBestVoice();
+        u.lang=_ttsLang('en-GB');u.rate=0.9;
+        const vo=v==='onyx'?getBestMaleVoice(!_ttsEsRodrigo()):getBestVoice();
         if(vo)u.voice=vo;
         u.onend=playNext;
         window.speechSynthesis.speak(u);
@@ -4537,10 +4563,11 @@ function speakSpellingWord(){
   if(!w)return;
   window.speechSynthesis.cancel();
   const sentence=w.sentence.replace('___',w.word);
-  const v=getBestVoice();
-  const u1=new SpeechSynthesisUtterance(w.word);u1.lang='en-GB';u1.rate=0.8;if(v)u1.voice=v;
-  const uPause=new SpeechSynthesisUtterance('...');uPause.lang='en-GB';uPause.rate=0.1;uPause.volume=0;
-  const u2=new SpeechSynthesisUtterance(sentence);u2.lang='en-GB';u2.rate=0.9;if(v)u2.voice=v;
+  const v=_ttsVoz();
+  const LG=_ttsLang('en-GB');
+  const u1=new SpeechSynthesisUtterance(w.word);u1.lang=LG;u1.rate=0.8;if(v)u1.voice=v;
+  const uPause=new SpeechSynthesisUtterance('...');uPause.lang=LG;uPause.rate=0.1;uPause.volume=0;
+  const u2=new SpeechSynthesisUtterance(sentence);u2.lang=LG;u2.rate=0.9;if(v)u2.voice=v;
   const btn=document.getElementById('spell-play-btn');
   if(btn){btn.textContent='🔊 Listening...';u2.onend=()=>{if(btn)btn.textContent='🔊 Hear again';};}
   window.speechSynthesis.speak(u1);
@@ -6947,8 +6974,8 @@ function petPlayRecording(i){
       fallback:()=>{
         if(!window.speechSynthesis){playNext();return;}
         const u=new SpeechSynthesisUtterance(t.line);
-        u.lang='en-GB';u.rate=0.82;
-        const vo=v==='onyx'?getBestMaleVoice(true):getBestVoice();
+        u.lang=_ttsLang('en-GB');u.rate=0.82;
+        const vo=v==='onyx'?getBestMaleVoice(!_ttsEsRodrigo()):getBestVoice();
         if(vo)u.voice=vo;
         u.onend=playNext;
         window.speechSynthesis.speak(u);
@@ -8896,10 +8923,10 @@ function speakTutor(text,onDone){
     rate:0.9,onEnd:finish,
     fallback:()=>{
       const u=new SpeechSynthesisUtterance(text);
-      u.lang='en-GB';u.rate=0.9;u.pitch=0.9;
+      u.lang=_ttsLang('en-GB');u.rate=0.9;u.pitch=0.9;
       u.onend=finish;
       u.onerror=finish;
-      const loadVoice=()=>{const v=getBestMaleVoice(true);if(v)u.voice=v;window.speechSynthesis.speak(u);};
+      const loadVoice=()=>{const v=getBestMaleVoice(!_ttsEsRodrigo());if(v)u.voice=v;window.speechSynthesis.speak(u);};
       if(window.speechSynthesis.getVoices().length)loadVoice();
       else{window.speechSynthesis.onvoiceschanged=loadVoice;}
     }
