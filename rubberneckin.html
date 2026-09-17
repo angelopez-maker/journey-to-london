@@ -6560,7 +6560,7 @@ const RK_MATCHDAY_QUIZ_LENGTH = 5;
 function rkStartMatchQuiz(catId){
   const cat = _rkMatchAllCategories().find(c => c.id === catId);
   if(!cat) return;
-  const pool = rkShuffle(cat.questions).slice(0, Math.min(RK_MATCHDAY_QUIZ_LENGTH, cat.questions.length));
+  const pool = rkShuffle(cat.questions).slice(0, Math.min(RK_MATCHDAY_QUIZ_LENGTH, cat.questions.length)).map(rkShuffleMCOptions);
   _rkMatchState = {catId, pool, qIdx:0, score:0, answered:false, used5050:false, usedOliver:false, eliminated:null};
   rkRenderMatchQuiz();
 }
@@ -7039,6 +7039,463 @@ function rkHuntAskOliverFinal(){
 // Machine, Dracula, algunos monstruos clásicos". Mismo criterio theme-aware ya usado en
 // Mind the Gap/Match Day: RK_MYSTERY_BANKS[RK_ACTIVE_THEME] || RK_MYSTERY_BANKS.neutral.
 const RK_MYSTERY_BANKS = {
+  // ── FULL / Summer Mode ──────────────────────────────────────────────────
+  // 52 entradas propias + las 4 de neutral, cargadas el 6 de septiembre de 2026.
+  // Producidas con Gemini bajo el Master Prompt, coladas con check_mystery.js y
+  // curadas por Angel. Método completo en "JTL - Metodo de revision de contenido.md".
+  // Los ids son estables: nombran la respuesta y NO se renombran nunca (ver plantillas).
+  full: [
+    {id:'myst_paddington', answer:'Paddington', accept:['paddington'], clues:[
+      'I travelled a very long way from South America to reach Britain.',
+      'My journey ended at a busy railway station in central London.',
+      'A kind family found me sitting on my suitcase and took me home.',
+      'I wear a bright red hat and a blue duffle coat every day.',
+      'I have a small tag around my neck asking people to look after me.',
+      'I love marmalade sandwiches more than any other food.',
+      'I am a polite little brown bear who lives with the Brown family.']},
+    {id:'myst_matilda', answer:'Matilda', accept:['matilda'], clues:[
+      'This story was written by a famous British author named Roald Dahl.',
+      'It is about a very clever little girl who loves reading library books.',
+      'Her parents do not appreciate her talents and treat her poorly.',
+      'She meets a kind teacher named Miss Honey at her primary school.',
+      'The headmistress of her school, Miss Trunchbull, is scary and cruel.',
+      'The young girl discovers she has secret powers to move objects with her mind.',
+      'This famous book became a hit film and a popular West End musical.']},
+    {id:'myst_sherlock', answer:'Sherlock', accept:['sherlock', 'sherlock holmes'], clues:[
+      'This famous character lived at 221B Baker Street in London.',
+      'He solved mysteries in Victorian London alongside his trusted friend, Dr Watson.',
+      'He noticed tiny details on pavements and clothes that everyone else missed.',
+      'He often wore a tweed cap and used a magnifying glass to inspect clues.',
+      'His main enemy was a clever mastermind named Moriarty.',
+      'He used pure logic and science to solve the most difficult crimes.',
+      'He is the most famous fictional private detective in British literature.']},
+    {id:'myst_stonehenge', answer:'Stonehenge', accept:['stonehenge'], clues:[
+      'I am located in the quiet countryside of southern England.',
+      'I was built by ancient people thousands of years ago.',
+      'Nobody knows exactly how people moved my heavy materials without modern machines.',
+      'I am made of giant standing stones arranged in a special circle.',
+      'People visit me during the longest and shortest days of the year to watch the sunrise.',
+      'Scientists believe I was used as an ancient calendar to track the sun and stars.',
+      'I am Britain\'s most famous pre-historic monument made of massive standing rocks.']},
+    {id:'myst_isaac_newton', answer:'Isaac Newton', accept:['isaac newton', 'newton'], clues:[
+      'I was a famous scientist born in Lincolnshire, England long ago.',
+      'I spent many years studying math, light and how things move.',
+      'I studied at Cambridge University and became one of the greatest minds in history.',
+      'I explained the physical laws that keep our feet on the ground and planets in space.',
+      'My work on light showed that white light is made of all the colours of the rainbow.',
+      'A famous story says I thought about gravity after watching an apple fall from a tree.',
+      'I am the historic English scientist who discovered the laws of motion and gravity.']},
+    {id:'myst_robin_hood', answer:'Robin Hood', accept:['robin hood'], clues:[
+      'I am a famous character from ancient English legends.',
+      'I lived outdoors in a huge green forest with my group of loyal friends.',
+      'My best friends were a giant man called Little John and a cheerful monk.',
+      'I was an expert with a bow and arrow and wore green clothes.',
+      'My main enemy was the greedy Sheriff of Nottingham.',
+      'I took gold from rich people and gave it to poor families.',
+      'I am the legendary hero of Sherwood Forest who wore green.']},
+    {id:'myst_mary_poppins', answer:'Mary Poppins', accept:['mary poppins'], clues:[
+      'This famous story takes place in a grand house in London.',
+      'A mysterious woman arrives to take care of two young children named Jane and Michael.',
+      'She carries a carpet bag that holds far more things than should fit inside.',
+      'She opens a dark umbrella with a talking bird handle to fly through the air.',
+      'She floats over the rooftops of London alongside a friendly chimney sweep.',
+      'She sings a famous song with a super long word that is fun to say.',
+      'She is the magical nanny who uses her umbrella to fly over London.']},
+    {id:'myst_william_shakespeare', answer:'William Shakespeare', accept:['william shakespeare', 'shakespeare'], clues:[
+      'I was born in a quiet town called Stratford-upon-Avon long ago.',
+      'I moved to London to work as an actor and write for the stage.',
+      'I wrote dozens of famous plays and over a hundred poems.',
+      'My theatre in London was called The Globe and had no roof over the middle.',
+      'I wrote a famous play about two young lovers from Verona named Romeo and Juliet.',
+      'Many English words and phrases we use today were invented in my writing.',
+      'I am considered the greatest playwright and writer in the English language.']},
+    {id:'myst_james_bond', answer:'James Bond', accept:['james bond', '007'], clues:[
+      'I am a fictional secret agent who works for the British government.',
+      'My secret code number has two zeros and a seven.',
+      'I wear elegant suits and drive fast sports cars filled with hidden gadgets.',
+      'A clever inventor named Q builds special tools to help me on dangerous missions.',
+      'I travel all over the world to save the day from clever villains.',
+      'I introduce myself by saying my last name first, then my full name.',
+      'I am Britain\'s most famous fictional spy, also known as agent 007.']},
+    {id:'myst_peter_pan', answer:'Peter Pan', accept:['peter pan'], clues:[
+      'This famous character visits a house in London to find his lost shadow.',
+      'He teaches three children named Wendy, John and Michael how to fly.',
+      'All you need to fly with him is happy thoughts and a little fairy dust.',
+      'He takes the children away to a magical island called Neverland.',
+      'His best friend is a tiny, sassy fairy who glows in the dark.',
+      'His main enemy is a pirate captain with an iron hook for a hand.',
+      'He is the famous fictional boy who refused to ever grow up.']},
+    {id:'myst_charles_darwin', answer:'Charles Darwin', accept:['charles darwin', 'darwin'], clues:[
+      'I was an English scientist who loved collecting plants, rocks and insects.',
+      'I went on a famous five-year ocean voyage around the world on a ship called the HMS Beagle.',
+      'I spent time studying giant tortoises and unusual birds on distant islands.',
+      'I noticed that animals adapted to their environments over very long periods.',
+      'I wrote a world-changing book about how living things evolve over time.',
+      'My ideas about natural selection explained how different species developed.',
+      'I am the famous British naturalist who explained the theory of evolution.']},
+    {id:'myst_yellow_submarine', answer:'Yellow Submarine', accept:['yellow submarine'], clues:[
+      'This creative work was created by four famous musicians from Liverpool.',
+      'It tells a cheerful story about sailing through colorful seas to a magical land.',
+      'The main vehicle in the story is an underwater boat painted a bright sunny colour.',
+      'The inhabitants of the magical world are saved from group of music-hating creatures.',
+      'The catchy title song was sung by Ringo Starr and enjoyed by children worldwide.',
+      'It became both a hit pop song and a famous animated cartoon film.',
+      'It is the famous Beatles song and film about a colourful underwater boat.']},
+    {id:'myst_highland_games', answer:'Highland Games', accept:['highland games'], clues:[
+      'I am an outdoor cultural event held across Scotland every summer.',
+      'Musicians play bagpipes and dancers perform traditional dances on stage.',
+      'Athletes demonstrate their strength in unique traditional physical tests.',
+      'Competitors throw huge wooden tree trunks called cabers through the air.',
+      'Men and women wear traditional tartan clothing while competing.',
+      'Members of the Royal Family often attend my main event at Braemar.',
+      'I am the famous Scottish tradition of outdoor sports, bagpipes and heavy throwing contests.']},
+    {id:'myst_oliver_twist', answer:'Oliver Twist', accept:['oliver twist'], clues:[
+      'This famous story takes place in Victorian London.',
+      'It follows a young orphan boy who grows up in a poor workhouse.',
+      'He famously holds out his empty wooden bowl and asks for more food.',
+      'He travels to London and meets a clever young pickpocket called the Artful Dodger.',
+      'He gets taken in by an old man named Fagin who runs a group of young thieves.',
+      'The story was written by the famous English author Charles Dickens.',
+      'It is the famous book about a poor orphan boy who famously asks, "Please, sir, I want some more."']},
+    {id:'myst_kilt', answer:'Kilt', accept:['kilt'], clues:[
+      'I am a traditional item of clothing connected to Scotland.',
+      'I am made from heavy woven wool cloth with colourful criss-cross patterns.',
+      'My criss-cross pattern is called tartan, and different families have different patterns.',
+      'I am worn around the waist like a pleated skirt, usually by men.',
+      'People wear a small leather pouch called a sporran in front of me.',
+      'I am worn with pride during Scottish weddings, dances and grand celebrations.',
+      'I am the famous traditional Scottish woollen garment worn around the waist.']},
+    {id:'myst_beatrix_potter', answer:'Beatrix Potter', accept:['beatrix potter'], clues:[
+      'I was a British author and illustrator who loved animals and nature.',
+      'I grew up in London but loved spending holidays in the Lake District.',
+      'I painted beautiful watercolour pictures of small woodland creatures.',
+      'My most famous character is a naughty rabbit who sneaks into a garden.',
+      'I wrote charming small books about Peter Rabbit and Benjamin Bunny.',
+      'I used the money from my books to buy farms and preserve the English countryside.',
+      'I am the famous British children\'s author who created Peter Rabbit.']},
+    {id:'myst_victoria', answer:'Victoria', accept:['victoria'], clues:[
+      'I was born in Kensington Palace in London a long time ago.',
+      'I became monarch at just 18 years old and ruled for more than 63 years.',
+      'I was the very first monarch to live in Buckingham Palace.',
+      'An entire historic era of British history was named after me.',
+      'During my reign, railways, steamships and industrial factories changed Britain.',
+      'My husband was Prince Albert, and a famous London museum bears our names.',
+      'I am the famous 19th-century female monarch who gave her name to a great historic era.']},
+    {id:'myst_arthur', answer:'Arthur', accept:['arthur'], clues:[
+      'I am a legendary British leader from ancient Celtic stories.',
+      'I became leader after pulling a magical sword out of a solid stone.',
+      'My magical sword was given to me by a mysterious lady in a lake.',
+      'My brave knights sat together at a huge round table so everyone was equal.',
+      'My legendary castle and court was called Camelot.',
+      'A powerful wizard named Merlin acted as my trusted advisor.',
+      'I am the legendary hero of the Knights of the Round Table.']},
+    {id:'myst_belfast', answer:'Belfast', accept:['belfast'], clues:[
+      'I am a major port city located on the eastern coast of an island.',
+      'My historic shipyards were once among the largest and busiest in the world.',
+      'The world\'s most famous passenger liner was built in my docks in 1911.',
+      'I am surrounded by green hills and sit right beside a large bay.',
+      'A famous modern museum shaped like four ship hulls stands in my docklands.',
+      'I am the vibrant capital city of Northern Ireland.',
+      'I am the Northern Irish capital city where the Titanic was built.']},
+    {id:'myst_ben_nevis', answer:'Ben Nevis', accept:['ben nevis'], clues:[
+      'I am located in the wild Highlands of western Scotland.',
+      'Ancient forces formed my steep rocky slopes millions of years ago.',
+      'My peak is often hidden inside thick white clouds and cold mist.',
+      'Snow remains on my upper ledges even during the summer months.',
+      'Walkers and climbers travel from everywhere to reach my high summit.',
+      'My summit stands at more than 1,300 metres above sea level.',
+      'I am the highest outdoor peak in the entire United Kingdom.']},
+    {id:'myst_snowdonia', answer:'Snowdonia', accept:['snowdonia'], clues:[
+      'I am a large protected region of wild nature in northern Wales.',
+      'My landscape features clear lakes, deep valleys and high rocky peaks.',
+      'A famous mountain railway carries visitors all the way up to my highest summit.',
+      'Ancient Welsh legends say giants once lived among my high hills.',
+      'Hikers love exploring my scenic paths and stone castles.',
+      'My highest mountain peak is called Yr Wyddfa in the Welsh language.',
+      'I am the famous national park that contains the highest mountains in Wales.']},
+    {id:'myst_loch_lomond', answer:'Loch Lomond', accept:['loch lomond'], clues:[
+      'I am a large body of clear freshwater in southern Scotland.',
+      'Green hills and ancient oak woodlands surround my peaceful shores.',
+      'More than thirty small islands are scattered across my calm waters.',
+      'A famous traditional folk song was written about my bonnie banks.',
+      'People love sailing boats and kayaking across my wide surface.',
+      'I am the largest inland body of water by surface area in Great Britain.',
+      'I am Scotland\'s most famous southern lake, celebrated in a famous traditional song.']},
+    {id:'myst_piccadilly', answer:'Piccadilly', accept:['piccadilly'], clues:[
+      'I am a famous public space located in the West End of London.',
+      'Giant illuminated advertising screens have brightened my buildings for decades.',
+      'A famous bronze statue of an archer stands above a fountain in my centre.',
+      'Street performers and musicians entertain crowds of tourists here every day.',
+      'Busy streets filled with shops and theatres meet at my round junction.',
+      'People love sitting around my central fountain to meet up with friends.',
+      'I am the famous London plaza known worldwide for its giant glowing advertisement screens.']},
+    {id:'myst_florence_nightingale', answer:'Florence Nightingale', accept:['florence nightingale', 'nightingale'], clues:[
+      'I was a famous British woman who lived during the Victorian era.',
+      'I travelled abroad to help sick and injured soldiers during a war.',
+      'I carried a small oil lamp at night while checking on patients in hospital wards.',
+      'I improved hospital cleanliness and saved thousands of lives through care.',
+      'I opened the very first professional training school for hospital nurses in London.',
+      'People affectionately called me The Lady with the Lamp.',
+      'I am the historic British founder of modern professional nursing.']},
+    {id:'myst_jane_austen', answer:'Jane Austen', accept:['jane austen', 'austen'], clues:[
+      'I was a famous English author who lived in the countryside long ago.',
+      'I wrote clever stories about family life, romance and social manners.',
+      'My books were published anonymously during my lifetime without my real name.',
+      'I created famous characters like Elizabeth Bennet and Mr Darcy.',
+      'My novel Pride and Prejudice became one of the most loved books in history.',
+      'My portrait appears on the British ten-pound banknote.',
+      'I am the classic English female author who wrote Pride and Prejudice.']},
+    {id:'myst_roald_dahl', answer:'Roald Dahl', accept:['roald dahl', 'dahl'], clues:[
+      'I was a famous British author who wrote amazing children\'s books.',
+      'I served as a fighter pilot during the Second World War before writing stories.',
+      'I invented funny made-up words like snozzcumbers and frobscottle.',
+      'I created a boy who travelled inside a giant peach, and a chocolate maker whose factory nobody could enter.',
+      'My stories were illustrated by my talented friend Quentin Blake.',
+      'I wrote my famous books inside a small wooden shed at the end of my garden.',
+      'I am the beloved British author who wrote Charlie and the Chocolate Factory.']},
+    {id:'myst_ada_lovelace', answer:'Ada Lovelace', accept:['ada lovelace', 'lovelace'], clues:[
+      'I was a brilliant English mathematician born in London in 1815.',
+      'My father was the famous Romantic poet Lord Byron.',
+      'I worked alongside a clever inventor named Charles Babbage on a mechanical computer.',
+      'I realised that calculating machines could process symbols and music as well as numbers.',
+      'I wrote a detailed set of instructions for a mechanical calculating machine.',
+      'Historians consider my instruction set to be the first computer program ever written.',
+      'I am celebrated in history as the world\'s very first computer programmer.']},
+    {id:'myst_gulliver', answer:'Gulliver', accept:['gulliver'], clues:[
+      'I am a fictional ship\'s doctor who sets sail on long ocean voyages.',
+      'A stormy sea wrecks my ship and washes me ashore on an unknown island.',
+      'I wake up tied to the ground by hundreds of tiny threads.',
+      'The inhabitants of the island are tiny people only six inches tall.',
+      'I later travel to another island where the residents are giant human beings.',
+      'My famous travel adventures were written by Jonathan Swift.',
+      'I am the fictional traveller who woke up tied down on the island of Lilliput.']},
+    {id:'myst_mr_bean', answer:'Mr Bean', accept:['mr bean'], clues:[
+      'I am a famous comedic character who lives in a small flat in London.',
+      'I drive a bright lime-green mini car with a padlock on the door.',
+      'I rarely speak words out loud and communicate through funny noises and gestures.',
+      'My best friend in the world is a small brown knitted teddy bear.',
+      'I wear a tweed jacket and a red tie while getting into silly everyday troubles.',
+      'I was created and played by the talented British actor Rowan Atkinson.',
+      'I am the hilarious silent British comedy character who loves his teddy bear.']},
+    {id:'myst_excalibur', answer:'Excalibur', accept:['excalibur'], clues:[
+      'I am a legendary object from ancient British myths and folklore.',
+      'I was forged by magical realm skilled craftsmen long ago.',
+      'A mysterious woman living beneath calm waters offered me to a great leader.',
+      'My scabbard possessed magical powers that protected its owner from harm.',
+      'I shone so brightly in battle that enemies were blinded by my gleam.',
+      'When my owner died, a loyal knight threw me back into the deep lake.',
+      'I am the legendary sword of the king who led the Knights of the Round Table.']},
+    {id:'myst_bilbo', answer:'Bilbo', accept:['bilbo', 'bilbo baggins'], clues:[
+      'I am a fictional character who lives in a comfortable underground home with a round door.',
+      'I belong to a peaceful race of small people with hairy feet who love eating meals.',
+      'A wise wizard with a pointed hat visits my home and invites me on an adventure.',
+      'I travel across wild lands with thirteen dwarves to reclaim a lost treasure.',
+      'I find a magical gold ring in a dark cave that makes its wearer invisible.',
+      'My creator was the Oxford professor and author J.R.R. Tolkien.',
+      'I am the small adventurer from a comfortable home who travelled to the Lonely Mountain with thirteen dwarves.']},
+    {id:'myst_dr_watson', answer:'Dr Watson', accept:['dr watson', 'watson'], clues:[
+      'I am a fictional doctor who served as an army officer before returning to London.',
+      'I moved into a flat at 221B Baker Street to share living expenses.',
+      'I accompanied my brilliant room-mate on mysteries across Victorian England.',
+      'I wrote down all of our exciting criminal investigations in notebooks.',
+      'I published our adventures so the public could read about my friend\'s genius.',
+      'Doctors like me were trained to observe carefully, which is exactly what made me useful to my friend.',
+      'I am the loyal friend and biographer of the world\'s greatest detective.']},
+    {id:'myst_macbeth', answer:'Macbeth', accept:['macbeth'], clues:[
+      'This famous literary work takes place in medieval Scotland.',
+      'It tells the story of a brave general who receives a mysterious prophecy.',
+      'Three weird witches on a dark heath predict that he will become a leader.',
+      'His ambitious wife encourages him to do a terrible deed to take power.',
+      'He meets his dramatic end at a historic fortress called Dunsinane Castle.',
+      'The tragic play was written by William Shakespeare around 1606.',
+      'It is Shakespeare\'s famous Scottish tragedy about an ambitious general and three witches.']},
+    {id:'myst_harry_potter', answer:'Harry Potter', accept:['harry potter'], clues:[
+      'I grew up living in a small cupboard under the stairs in Surrey.',
+      'I received a secret letter delivered by an owl on my eleventh birthday.',
+      'I caught a special train from Platform 9 3/4 at King\'s Cross Station.',
+      'I wear round glasses and have a thin lightning-shaped mark on my forehead.',
+      'My best friends at magical school are Ron and Hermione.',
+      'I play a fast flying sport on broomsticks called Quidditch.',
+      'I am the famous fictional boy wizard who survived the dark lord.']},
+    {id:'myst_braveheart', answer:'Braveheart', accept:['braveheart'], clues:[
+      'This famous creative work tells the story of medieval Scottish history.',
+      'It follows a brave warrior who leads his people in a fight for freedom.',
+      'The hero paints his face blue with woad dye before heading into battle.',
+      'The main battle in the story takes place at a historic bridge near Stirling.',
+      'The hero\'s real historic name was Sir William Wallace.',
+      'The film won five Academy Awards including Best Picture in 1996.',
+      'It is the famous epic film about the Scottish hero William Wallace.']},
+    {id:'myst_fish_and_chips', answer:'Fish and Chips', accept:['fish and chips', 'fish n chips', 'fish & chips'], clues:[
+      'I am a world-famous traditional hot meal originating in Britain.',
+      'My two main ingredients are cooked in bubbling hot oil until crispy.',
+      'One part is made from white Atlantic fillets dipped in light batter.',
+      'The other part is made from fresh potatoes cut into thick warm batons.',
+      'People love sprinkling salt and malt vinegar over me at seaside towns.',
+      'I am traditionally wrapped in paper and eaten outdoors on coastal benches.',
+      'I am the classic British takeaway meal of battered white fillets and thick potato slices.']},
+    {id:'myst_haggis', answer:'Haggis', accept:['haggis'], clues:[
+      'I am a famous savoury dish connected to Scottish culinary culture.',
+      'I am made by mixing minced meats with oatmeal, onions and warm spices.',
+      'I am traditionally cooked inside a casing and served steaming hot.',
+      'My traditional side dishes are mashed turnips and creamy potatoes.',
+      'A piper plays bagpipes while I am carried into the room during celebrations.',
+      'A famous Scottish poet wrote an entire poem in my honour, and it is read aloud before I am eaten.',
+      'I am the traditional Scottish dish of minced meat and oats served with neeps and tatties.']},
+    {id:'myst_eisteddfod', answer:'Eisteddfod', accept:['eisteddfod'], clues:[
+      'I am a historic festival of music, literature and performance held in Wales.',
+      'My origins go all the way back to the twelfth century in Welsh castles.',
+      'Performers compete in singing, harp playing and poetry readings on stage.',
+      'The crowning of the best poet is my most dramatic and honoured ceremony.',
+      'All official events and performances are conducted in the Welsh language.',
+      'I am held in a different town in Wales every summer.',
+      'I am the famous Welsh national festival of music, poetry and performing arts.']},
+    {id:'myst_cricket', answer:'Cricket', accept:['cricket'], clues:[
+      'I am a traditional summer sport that originated in England centuries ago.',
+      'Matches are played outdoors on a green grass field with a central pitch.',
+      'Players wear white trousers and shirts while competing under the sun.',
+      'A wooden bat with a flat front is used to hit a hard leather ball.',
+      'Two wooden structures with three vertical stumps stand at each end of the pitch.',
+      'Matches can last for several hours or even over multiple days.',
+      'I am the classic British summer sport played with wooden bats and wickets.']},
+    {id:'myst_porridge', answer:'Porridge', accept:['porridge'], clues:[
+      'I am a traditional warm dish eaten for breakfast across Great Britain.',
+      'I am made by simmering crushed oat grains in hot milk or water.',
+      'I have been a staple food in Scotland and Northern England for centuries.',
+      'People love topping me with fresh berries, golden honey or a pinch of salt.',
+      'In a famous children\'s fairytale, a young girl tries three bowls of me in a bear house.',
+      'I am served hot in a bowl to provide long-lasting morning energy.',
+      'I am the classic British breakfast dish made from cooked oat grains and milk.']},
+    {id:'myst_freddie_mercury', answer:'Freddie Mercury', accept:['freddie mercury'], clues:[
+      'I am a legendary performer who filled stadiums all over the world with energy and power.',
+      'I took my stage name from the smallest planet in the solar system.',
+      'Millions of fans used to stamp their feet and clap their hands to my famous rhythm.',
+      'My yellow jacket and dark moustache became famous on every continent.',
+      'I sang about champions and breaking free with my incredible rock band.',
+      'My band was named after a royal title, and I played the piano while hitting notes few singers could reach.',
+      'I was the lead singer of Queen who commanded the crowd at Live Aid in 1985.']},
+    {id:'myst_harry_kane', answer:'Harry Kane', accept:['harry kane'], clues:[
+      'I am a professional athlete who plays at the highest level of European football.',
+      'I am known for shooting accurately with both feet and scoring goals from far away.',
+      'I spent many years playing for a famous team in North London before moving to Germany.',
+      'I wear the captain\'s armband when my country plays in the World Cup.',
+      'Football fans know me as one of the most reliable penalty takers in the game.',
+      'I led the attack for my country in two European finals without ever lifting the trophy.',
+      'I am the all-time top goalscorer for the England national team and striker for Bayern Munich.']},
+    {id:'myst_kitkat', answer:'KitKat', accept:['kitkat'], clues:[
+      'I am a sweet treat sold in shops, supermarkets and kiosks across the world.',
+      'I came out of a chocolate factory in Yorkshire almost a hundred years ago.',
+      'I come wrapped in a bright red package that you split open to share.',
+      'My famous motto tells people to have a break whenever they eat me.',
+      'Inside my chocolate coating you will find light, crispy wafer fingers.',
+      'People love to snap my four long bars apart with their fingers before eating.',
+      'I am the four-fingered chocolate wafer snack made by Nestle with a red wrapper.']},
+    {id:'myst_mini', answer:'Mini', accept:['mini'], clues:[
+      'I am a famous motor car known for being small, stylish and easy to park.',
+      'A clever engineer designed me so four adults could fit inside a very short body.',
+      'Drivers loved my small wheels because I felt like driving a go-kart on city streets.',
+      'A famous British comedy character drove a lime-green version of me, padlock and all.',
+      'My roof is often painted in a different colour from the rest of my body.',
+      'Racing drivers won the famous Monte Carlo Rally driving tuned versions of my small frame.',
+      'I am the classic two-door British compact car originally built by the British Motor Corporation.']},
+    {id:'myst_adele', answer:'Adele', accept:['adele'], clues:[
+      'I am an internationally famous singer who started writing songs as a teenager in London.',
+      'My soulful voice and emotional ballads have won dozens of global music awards.',
+      'I named my most famous albums after the ages I was when I wrote them, like 19, 21 and 25.',
+      'Millions of people sang along to my hit song about rolling in the deep.',
+      'I sang the theme song for a spy film set in the Scottish Highlands, and it won an Oscar.',
+      'My music video opens with me making a phone call and saying hello from the other side.',
+      'I am the British superstar who sang Skyfall and Someone Like You.']},
+    {id:'myst_aston_martin', answer:'Aston Martin', accept:['aston martin'], clues:[
+      'I am a high-performance sports car built for extreme speed and luxury.',
+      'Mechanical engineers craft my powerful engines by hand near Birmingham.',
+      'Formula One fans watch my dark green race cars compete on tracks around the world.',
+      'Britain\'s most famous fictional spy has driven my silver models in cinema chases for decades.',
+      'My silver wings logo sits on the bonnet of some of the most expensive cars in Britain.',
+      'My most famous road model is the DB5, fitted with special gadgets on screen.',
+      'I am the luxury British car maker whose silver DB5 became the most famous car in film history.']},
+    {id:'myst_fall_guys', answer:'Fall Guys', accept:['fall guys'], clues:[
+      'I am a video game where colourful bean-shaped figures run through chaotic obstacle courses.',
+      'Players compete online in rounds until only one survivor claims the golden crown.',
+      'My developers created me in game studios based in London and Brighton.',
+      'Gamers love dressing their jellybean characters in silly costumes like hot dogs and dinosaurs.',
+      'You have to dodge giant swinging hammers, rolling logs and slippery slime without falling off.',
+      'Hundreds of stream hosts and YouTubers made my colourful knockout rounds go viral.',
+      'I am the multiplayer battle royale game filled with tumbling jellybeans created by Mediatonic.']},
+    {id:'myst_ed_sheeran', answer:'Ed Sheeran', accept:['ed sheeran'], clues:[
+      'I am a musician who started playing guitar on city streets with just a microphone and a loop pedal.',
+      'My bright red hair and acoustic guitar make me easy to spot on any stage.',
+      'I write global pop hits using mathematical symbols like Plus, Multiply and Divide for album titles.',
+      'Radios everywhere played my hit track about being in love with the shape of you.',
+      'I sang a romantic ballad called Thinking Out Loud that played at thousands of weddings.',
+      'I filled Wembley Stadium for three nights in a row playing all the music by myself.',
+      'I am the British singer-songwriter with red hair who sang Shape of You and Perfect.']},
+    {id:'myst_voldemort', answer:'Voldemort', accept:['voldemort'], clues:[
+      'I am a dark wizard who tried to conquer the magical world through fear and power.',
+      'People were so terrified of me that they refused to speak my actual name out loud.',
+      'My pale face, red eyes and flat nose make me look like a dangerous snake.',
+      'I split my soul into seven hidden objects so that no spell could destroy me easily.',
+      'I carried a wand made of yew wood with a feather from a phoenix at its core.',
+      'My loyal followers wear dark cloaks and call me the Dark Lord.',
+      'I am the wizard whose name most people are too frightened to say out loud.']},
+    {id:'myst_gorillaz', answer:'Gorillaz', accept:['gorillaz'], clues:[
+      'We are a famous virtual band made up of four animated cartoon members.',
+      'A musician and an illustrator created us in a London studio at the end of the nineties.',
+      'Our animated band members are named 2D, Murdoc, Noodle and Russel.',
+      'Fans watch our wild animated adventures in music videos instead of seeing real people.',
+      'Our giant hit song features a laughing chorus and a bassline about feeling good.',
+      'We mix hip hop, rock and pop music behind the faces of drawing-style musicians.',
+      'We are the virtual cartoon band created by Damon Albarn and Jamie Hewlett who sang Feel Good Inc.']},
+    {id:'myst_wonka', answer:'Wonka', accept:['wonka'], clues:[
+      'I am an eccentric inventor who created the most extraordinary sweet shop in fictional history.',
+      'I built a giant factory hidden behind massive gates that remained locked for years.',
+      'Inside my factory stands a chocolate river driven by a roaring waterfall.',
+      'Small workers called Oompa Loompas help me mix delicious treats and sing warning songs.',
+      'I hid five golden tickets inside ordinary chocolate bars for lucky children to find.',
+      'A young boy named Charlie Bucket inherited my entire business because of his kind heart.',
+      'I am the eccentric chocolatier who created Everlasting Gobstoppers and fizzy lifting drinks.']},
+    {id:'myst_tom_holland', answer:'Tom Holland', accept:['tom holland', 'holland'], clues:[
+      'I am an actor who trained as a dancer long before I ever appeared in a film.',
+      'I grew up in south-west London and studied at a school for performing arts.',
+      'My first big role was on a West End stage, playing a boy who dances instead of boxing.',
+      'I perform many of my own stunts thanks to years of gymnastics and acrobatics.',
+      'Millions of people have watched me swinging between skyscrapers in a red and blue suit.',
+      'Most people are surprised the first time they hear me speak, because on screen I sound American.',
+      'I am the English actor who plays the wall-crawling Marvel superhero.']},
+    // Las 4 que ya venían en el banco neutral. Se repiten acá porque el motor de temas
+    // resuelve con banks[tema] || banks.neutral: si full existe, neutral no se usa.
+    {id:'myst_big_ben', answer:'Big Ben', accept:['big ben'], clues:[
+      'I am found in a capital city.',
+      'I am very old — more than 160 years old.',
+      'I am famous for my sound, which rings out every hour.',
+      'I stand right beside a river.',
+      'Tourists love taking photos of me from Westminster Bridge.',
+      'I am actually the nickname of a huge bell inside a clock tower — most people use my name for the whole tower!',
+      'I am one of the most famous clock towers in the world, right next to the Houses of Parliament in London.']},
+    {id:'myst_the_loch_ness_monster', answer:'The Loch Ness Monster', accept:['the loch ness monster', 'loch ness monster', 'nessie'], clues:[
+      'I live in the water.',
+      'I am famous in Scotland.',
+      'Many people say they have seen me, but no one has ever proven I am real.',
+      'I supposedly live in a very deep, dark loch (a Scottish word for lake).',
+      'People sometimes call me by a nickname that sounds like a girl\'s name.',
+      'My home is Loch Ness, in the Scottish Highlands.',
+      'I am often described as a huge creature with a long neck, like a dinosaur living underwater!']},
+    {id:'myst_winston_churchill', answer:'Winston Churchill', accept:['winston churchill', 'churchill'], clues:[
+      'I am a real person from history.',
+      'I lived in the 20th century.',
+      'I led my country during a very difficult time.',
+      'I am famous for giving powerful speeches.',
+      'I led the United Kingdom during World War II.',
+      'I am often shown smoking a big cigar and making a \'V\' sign with my fingers.',
+      'I was the Prime Minister of the United Kingdom, famous for saying "We shall never surrender."']},
+    {id:'myst_wimbledon', answer:'Wimbledon', accept:['wimbledon'], clues:[
+      'I happen every year, usually in the summer.',
+      'I take place in London.',
+      'I am connected to a sport.',
+      'Players wear white clothes during me, by tradition.',
+      'People eat strawberries and cream while watching me.',
+      'I am the oldest tournament of my kind in the world.',
+      'I am the most famous tennis championship in the world, played on grass courts in London.']},
+  ],
   neutral: [
     {answer:'Big Ben', accept:['big ben'], clues:[
       'I am found in a capital city.',
@@ -7307,7 +7764,7 @@ const RK_SLL_QUIZ_LENGTH = 4; // piloto: pool chico (4 por categoría), se juega
 function rkStartSLLQuiz(catId){
   const cat = _rkSLLAllCategories().find(c => c.id === catId);
   if(!cat) return;
-  const pool = rkShuffle(cat.items).slice(0, Math.min(RK_SLL_QUIZ_LENGTH, cat.items.length));
+  const pool = rkShuffle(cat.items).slice(0, Math.min(RK_SLL_QUIZ_LENGTH, cat.items.length)).map(rkShuffleMCOptions);
   _rkSLLState = {catId, pool, qIdx:0, score:0, answered:false, used5050:false, usedOliver:false, eliminated:null, playing:false};
   rkRenderSLLQuiz();
 }
@@ -7608,6 +8065,22 @@ function rkShuffle(arr){
     [a[i], a[j]] = [a[j], a[i]];
   }
   return a;
+}
+
+// 17 de septiembre: mismo bug que ya se había visto en JTL (index.html, shuffleMCOptions) —
+// Angel y los niños lo encontraron jugando Match Day en vivo: el contenido generado tiende a
+// poner la respuesta correcta casi siempre en options[0] (102 de 103 preguntas del archivo
+// tenían answer:0). Se baraja acá, después de cargar las preguntas, para que la posición de la
+// respuesta correcta sea 1/n real en cada partida — no se toca el dato original, solo la copia
+// que se juega. Usado por Match Day y Stop, Look & Listen (mismo formato options[]+answer:número).
+function rkShuffleMCOptions(item){
+  if(!Array.isArray(item.options) || item.options.length < 2 || typeof item.answer !== 'number') return item;
+  const pairs = item.options.map((text, i) => ({text, correct: i === item.answer}));
+  for(let i = pairs.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [pairs[i], pairs[j]] = [pairs[j], pairs[i]];
+  }
+  return {...item, options: pairs.map(p => p.text), answer: pairs.findIndex(p => p.correct)};
 }
 
 // Pantalla de arranque con botón real (9 de agosto, a pedido de Angel: "un botón que sea
