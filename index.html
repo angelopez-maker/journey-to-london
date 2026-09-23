@@ -1818,7 +1818,7 @@ const MINI_MOCK_CALENDAR=[
 
 const MOCK_PART_INFO={
   rw1:{label:'R&W Part 1',desc:'Match descriptions to people (A–H)',icon:'🔗'},
-  rw2:{label:'R&W Part 2',desc:'Dialogue gap-fill — best reply',icon:'💬'},
+  rw2:{label:'R&W Part 2',desc:'Conversación — elige la mejor respuesta',icon:'💬'},
   rw3:{label:'R&W Part 3',desc:'Word box — fill the gaps',icon:'📦'},
   rw4:{label:'R&W Part 4',desc:'Multiple choice cloze (A/B/C)',icon:'🎯'},
   rw5:{label:'R&W Part 5',desc:'Read story, complete sentences',icon:'✏️'},
@@ -1871,6 +1871,11 @@ const MOVERS_CONFIRMED_MATERIAL={
     confirmedOn:'2026-08-06',
     source:'Lesson plan oficial "A1 Movers Reading and Writing Part 5" (Cambridge) — confirmado por Angel contra lo que Rodrigo ve en clases esta semana.',
     summary:`A girl named Daisy travels with her mother and father from the city to the countryside to visit her grandma and grandad. On the way there is rain and different weather. At grandma's farm, Daisy sees the farmhouse and things around it (the story mentions trucks, even though a picture in the original shows chickens — a detail worth keeping in mind if adapting). By the end of the day Daisy feels happy but tired. Key vocabulary: countryside, city, mother, father, parents, rain, house, farm, grandma, grandad, inside, outside, happy, tired.`
+  },
+  rw2:{
+    confirmedOn:'2026-09-23',
+    source:'Lesson plan oficial "A1 Movers Reading and Writing Part 2" (Cambridge) \u2014 confirmado por Angel/Rodrigo contra lo que entra en la prueba del colegio de ma\u00f1ana.',
+    summary:`Two school friends, a boy and a girl, walk to school together and talk about television and films \u2014 especially a film about pirates they watched, and going to the cinema. The boy leads: he asks what she did last night, whether she saw the pirate film, which pirate she liked best, and whether that pirate was the one with long curly hair. Then he stops asking and starts sharing: he says he likes films which are funny, suggests going to see a funny film at the cinema, and finally suggests asking a friend called Fred to come along. She replies to each one. What the real task tests is choosing the reply that FITS \u2014 the right tense for a past question, the right short answer for "Was he...?", a name when asked "which one", agreement ("Me too.") for a statement rather than a question, enthusiasm ("What a good idea!") for a suggestion, and a practical answer ("OK, we can phone him.") for a plan. The wrong options are always correct English; they fail because each one answers a slightly different question.`
   },
   rw3:{
     confirmedOn:'2026-08-30',
@@ -6265,29 +6270,51 @@ function checkMoversRW1(){
 
 async function runMoversRW2(){
   showLoading('Preparing Part 2...');
-  const topicHint=`Topic: ${moversRandomTopic()}.`;
+  const confirmed=moversConfirmedMaterial('rw2');
+  // 23 septiembre 2026: el generador anterior no calzaba con el examen real en tres cosas —
+  // pedia 5 huecos en vez de 6, no tenia ejemplo resuelto, y sobre todo sus distractores eran
+  // absurdos ("El perro esta debajo de la silla") cuando en Cambridge SIEMPRE son ingles
+  // correcto que falla solo por no encajar con lo que se acaba de decir. Ahi vive toda la
+  // dificultad de esta parte, asi que va explicado en el prompt Y demostrado en el JSON de
+  // ejemplo (que es lo que el modelo de verdad copia).
+  const topicHint=confirmed
+    ? `CONFIRMED CLASSROOM MATERIAL - this is what the student is actually studying in school this week (${confirmed.source}). Base the conversation on this exact content: ${confirmed.summary}
+IMPORTANT: write an ORIGINAL version in your own words each time - same two children, same subject, same kinds of exchange, but fresh wording, never a word-for-word copy. Keep the same six question types and the same reason each wrong option is wrong.`
+    : `Topic: ${moversRandomTopic()}.`;
   const prompt=`You are a Cambridge A1 Movers Reading & Writing Part 2 generator.
-Create a short conversation between two children (give them names). One child (B) has 5 lines that are blank — the student must choose the correct response for each from 3 options. The options must be natural English at A1 Movers level; the two wrong options must be clearly wrong in context but grammatically plausible.
+Follow the REAL exam format exactly:
+- Two children talking to each other. One of them leads; the other replies.
+- ONE worked example first, which the student sees already answered.
+- Then EXACTLY SIX numbered questions.
+- For each one the replying child has exactly THREE options and only ONE is correct.
+
+THE HARD PART, AND THE WHOLE POINT OF THIS TASK: the two wrong options must be perfectly good English that a child could really say. They are wrong ONLY because they do not fit what was just said. NEVER make a wrong option silly, off-topic or obviously unrelated - that turns a reasoning task into a spotting-the-weird-one task. Each wrong option should be the correct reply to a slightly DIFFERENT question. Spread these failure modes across the six items:
+- wrong tense (a present reply to a past question)
+- wrong short answer or wrong auxiliary (answering "Was he...?" with "No, he hasn't.")
+- wrong person or pronoun (replying about "she" when the question was about "he")
+- answering a different question word (a name when the question asked how many)
+- a polite formula used in the wrong situation ("Fine, thank you." to a suggestion)
+- agreeing with the wrong form ("So do I." after a past statement)
+
+Also vary what the leading child does: NOT every line is a question. At least two of the six must be statements or suggestions, where the other child has to react rather than answer.
 ${topicHint}
-Rules: A1 Movers vocabulary. The dialogue must sound natural and flow logically. 5 gaps total for speaker B, with 4-5 non-gap lines for speaker A interspersed.
+Rules: A1 Movers vocabulary only. The replies are SHORT - most are two to six words, the way children really answer.
 Return ONLY valid JSON:
-{"topic":"Favourite TV shows","speakerA":"Alice","speakerB":"Ben",
-"dialogue":[
-  {"speaker":"A","text":"Do you like watching TV, Ben?","gap":false},
-  {"speaker":"B","text":"","gap":true,"n":1,"options":["Yes, I love it!","No, I hate reading.","I can swim very fast."],"answer":"Yes, I love it!"},
-  {"speaker":"A","text":"What is your favourite programme?","gap":false},
-  {"speaker":"B","text":"","gap":true,"n":2,"options":["I am eight years old.","My favourite is a cartoon about animals.","She likes football a lot."],"answer":"My favourite is a cartoon about animals."},
-  {"speaker":"A","text":"When do you watch it?","gap":false},
-  {"speaker":"B","text":"","gap":true,"n":3,"options":["Every evening after dinner.","My mum is very tall.","He has a red bicycle."],"answer":"Every evening after dinner."},
-  {"speaker":"A","text":"Do you watch it with your family?","gap":false},
-  {"speaker":"B","text":"","gap":true,"n":4,"options":["Yes, with my dad and my sister.","The park is near my house.","I like eating apples."],"answer":"Yes, with my dad and my sister."},
-  {"speaker":"A","text":"Which programme does your sister like?","gap":false},
-  {"speaker":"B","text":"","gap":true,"n":5,"options":["She loves cooking shows.","It is very sunny today.","The dog is under the chair."],"answer":"She loves cooking shows."}
+{"topic":"Films and the cinema","speakerA":"Paul","speakerB":"Daisy",
+"scene":"Two school friends are walking to school and talking.",
+"example":{"prompt":"What did you do last night, Daisy?","options":["I watched a film.","I am watching a film.","I do not watch films."],"answer":"I watched a film."},
+"questions":[
+ {"n":1,"prompt":"Did you like the film about the pirates?","options":["Yes, so do I.","Yes, it was great.","Yes, that is him."],"answer":"Yes, it was great."},
+ {"n":2,"prompt":"Which pirate did you like best?","options":["I liked it best.","She was a pirate.","The one with the parrot."],"answer":"The one with the parrot."},
+ {"n":3,"prompt":"Was he the one with the long beard?","options":["No, he hasn't.","Yes, that's right.","He's got one."],"answer":"Yes, that's right."},
+ {"n":4,"prompt":"I like films which are funny.","options":["Me too.","It's all right.","Do they?"],"answer":"Me too."},
+ {"n":5,"prompt":"How about going to the cinema on Saturday?","options":["It's nice.","What a good idea!","Fine, thank you."],"answer":"What a good idea!"},
+ {"n":6,"prompt":"Let's ask my brother to come with us.","options":["OK, we can phone him.","OK, that's my brother's.","OK, he can ask us."],"answer":"OK, we can phone him."}
 ]}`;
   try{
-    const raw=await callClaude(prompt,1100);
+    const raw=await callClaude(prompt,1400);
     const d=parseJSON(raw);
-    if(Array.isArray(d.dialogue))d.dialogue=d.dialogue.map(line=>line.gap?shuffleWordOptions(line):line);
+    if(Array.isArray(d.questions))d.questions=d.questions.map(q=>shuffleWordOptions(q));
     renderMoversRW2(d);
   }catch(e){showError(e.message);}
 }
@@ -6295,51 +6322,56 @@ Return ONLY valid JSON:
 function renderMoversRW2(d){
   const area=document.getElementById('module-content-area');
   window._moversRW2Data=d;
-  const spA=d.speakerA||'A', spB=d.speakerB||'B';
-  const lineHTML=d.dialogue.map(line=>{
-    const isA=line.speaker==='A';
-    if(!line.gap){
-      return `<div style="display:flex;gap:12px;margin-bottom:10px;${isA?'':'flex-direction:row-reverse'}">
-        <div style="font-family:'Rajdhani',sans-serif;font-weight:700;font-size:12px;color:${isA?'#60a5fa':'#a78bfa'};min-width:56px;padding-top:10px;${isA?'text-align:left':'text-align:right'}">${isA?spA:spB}:</div>
-        <div style="background:${isA?'var(--card2)':'var(--card)'};border-radius:12px;padding:12px 16px;font-size:13px;color:var(--text);max-width:72%">${line.text}</div>
-      </div>`;
-    } else {
-      const opts=line.options.map((op,j)=>`<label style="display:block;cursor:pointer;font-size:13px;padding:8px 12px;margin:5px 0;background:var(--card2);border-radius:8px;border:1px solid var(--border);transition:border-color .2s"><input type="radio" name="rw2_g${line.n}" value="${op}" style="accent-color:#a78bfa;margin-right:8px">${String.fromCharCode(65+j)}) ${op}</label>`).join('');
-      return `<div style="display:flex;gap:12px;margin-bottom:10px;flex-direction:row-reverse">
-        <div style="font-family:'Rajdhani',sans-serif;font-weight:700;font-size:12px;color:#a78bfa;min-width:56px;padding-top:10px;text-align:right">${spB}:</div>
-        <div style="background:var(--card);border:1px dashed var(--blue);border-radius:12px;padding:12px 16px;max-width:72%">
-          <div style="font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:700">GAP ${line.n} — choose the best answer:</div>
-          ${opts}
-          <div id="rw2_fb${line.n}" style="font-size:12px;margin-top:4px"></div>
-        </div>
-      </div>`;
-    }
-  }).join('');
+  const spA=d.speakerA||'Paul', spB=d.speakerB||'Daisy';
+  const fila=(q,resuelta)=>{
+    const opts=(q.options||[]).map((op,j)=>{
+      const letra=String.fromCharCode(65+j);
+      if(resuelta){
+        const ok=op===q.answer;
+        return `<div style="padding:6px 12px;margin:4px 0;border-radius:8px;font-size:13px;${ok?'background:rgba(74,222,128,.12);border:1px solid #4ade80;color:#4ade80;font-weight:700':'color:var(--muted)'}">${letra}) ${op}${ok?' &nbsp;\u2713':''}</div>`;
+      }
+      return `<label style="display:block;cursor:pointer;font-size:13px;padding:8px 12px;margin:5px 0;background:var(--card2);border-radius:8px;border:1px solid var(--border)"><input type="radio" name="rw2_q${q.n}" value="${String(op).replace(/"/g,'&quot;')}" style="accent-color:#a78bfa;margin-right:8px">${letra}) ${op}</label>`;
+    }).join('');
+    return `<div style="background:var(--card);border:1px solid ${resuelta?'#4ade80':'var(--border)'};border-radius:12px;padding:14px 16px;margin-bottom:12px">
+      <div style="font-size:11px;font-weight:700;color:${resuelta?'#4ade80':'var(--muted)'};margin-bottom:8px;letter-spacing:1px">${resuelta?'EXAMPLE':'QUESTION '+q.n}</div>
+      <div style="display:flex;gap:10px;margin-bottom:8px">
+        <div style="font-family:'Rajdhani',sans-serif;font-weight:700;font-size:12px;color:#60a5fa;min-width:52px;padding-top:2px">${spA}:</div>
+        <div style="font-size:13px;color:var(--text)">${q.prompt||''}</div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <div style="font-family:'Rajdhani',sans-serif;font-weight:700;font-size:12px;color:#a78bfa;min-width:52px;padding-top:6px">${spB}:</div>
+        <div style="flex:1">${opts}<div id="rw2_fb${q.n}" style="font-size:12px;margin-top:4px"></div></div>
+      </div>
+    </div>`;
+  };
+  const ej=d.example?fila({...d.example,n:0},true):'';
+  const qs=(d.questions||[]).map(q=>fila(q,false)).join('');
   area.innerHTML=`<div style="max-width:680px;margin:0 auto">
-    <div style="font-family:'Orbitron',monospace;font-size:12px;color:#a78bfa;margin-bottom:4px;font-weight:700">📝 R&W PART 2 — DIALOGUE GAP-FILL</div>
-    <div style="font-size:12px;color:var(--muted);margin-bottom:16px">Topic: ${d.topic||''}</div>
-    <p style="color:var(--muted);font-size:13px;margin-bottom:16px">Read the conversation. Choose the best answer (A, B or C) for each gap. ✏️</p>
-    <div style="margin-bottom:16px">${lineHTML}</div>
-    <button class="submit-btn" onclick="checkMoversRW2()">Check answers ✓</button>
+    <div style="font-family:'Orbitron',monospace;font-size:12px;color:#a78bfa;margin-bottom:4px;font-weight:700">\u{1F4DD} R&amp;W PART 2 \u2014 6 QUESTIONS</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:4px">Topic: ${d.topic||''}</div>
+    ${d.scene?`<div style="font-size:12px;color:var(--muted);font-style:italic;margin-bottom:14px">\u{1F5BC}\uFE0F ${d.scene}</div>`:''}
+    <p style="color:var(--muted);font-size:13px;margin-bottom:16px">Read the conversation and choose the best answer. \u270F\uFE0F</p>
+    ${ej}${qs}
+    <button class="submit-btn" onclick="checkMoversRW2()">Check answers \u2713</button>
     <div id="rw2_result" style="margin-top:16px"></div>
   </div>`;
 }
 
 function checkMoversRW2(){
   const d=window._moversRW2Data;if(!d)return;
-  const gaps=d.dialogue.filter(l=>l.gap);
+  const qs=d.questions||[];
   let correct=0;
-  gaps.forEach(g=>{
-    const sel=document.querySelector(`input[name="rw2_g${g.n}"]:checked`);
-    const fb=document.getElementById('rw2_fb'+g.n);
-    if(sel&&sel.value===g.answer){correct++;if(fb)fb.innerHTML='<span style="color:#4ade80">✓ Correct!</span>';}
-    else{if(fb)fb.innerHTML=`<span style="color:#f87171">✗ Answer: <b>${g.answer}</b></span>`;}
+  qs.forEach(q=>{
+    const sel=document.querySelector(`input[name="rw2_q${q.n}"]:checked`);
+    const fb=document.getElementById('rw2_fb'+q.n);
+    if(sel&&sel.value===q.answer){correct++;if(fb)fb.innerHTML='<span style="color:#4ade80">\u2713 Correct!</span>';}
+    else{if(fb)fb.innerHTML=`<span style="color:#f87171">\u2717 Answer: <b>${q.answer}</b></span>`;}
   });
-  const total=gaps.length,pct=correct/total,km=Math.round(30+(pct*20));
+  const total=qs.length||1,pct=correct/total,km=Math.round(30+(pct*20));
   addKm(km);
   const res=document.getElementById('rw2_result');
-  if(res)res.innerHTML=`<div class="result-box" style="border-color:${pct===1?'#4ade80':pct>=.6?'var(--gold2)':'var(--red)'}">${pct===1?'🏆 Perfect!':pct>=.6?'⭐ Good!':'💪 Keep going!'} ${correct}/${total} — +${km} km!</div><button class="submit-btn" style="margin-top:10px;width:100%" onclick="runMoversRW2()">New exercise 🔄</button>`;
-  showToast(`R&W Part 2: ${correct}/${total} — +${km} km!`);
+  if(res)res.innerHTML=`<div class="result-box" style="border-color:${pct===1?'#4ade80':pct>=.6?'var(--gold2)':'var(--red)'}">${pct===1?'\u{1F3C6} Perfect!':pct>=.6?'\u2B50 Good!':'\u{1F4AA} Keep going!'} ${correct}/${total} \u2014 +${km} km!</div><button class="submit-btn" style="margin-top:10px;width:100%" onclick="runMoversRW2()">New exercise \u{1F504}</button>`;
+  showToast(`R&W Part 2: ${correct}/${total} \u2014 +${km} km!`);
 }
 
 async function runMoversRW3(){
