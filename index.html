@@ -1874,8 +1874,21 @@ const MOVERS_CONFIRMED_MATERIAL={
   },
   rw2:{
     confirmedOn:'2026-09-23',
-    source:'Lesson plan oficial "A1 Movers Reading and Writing Part 2" (Cambridge) \u2014 confirmado por Angel/Rodrigo contra lo que entra en la prueba del colegio de ma\u00f1ana.',
-    summary:`Two school friends, a boy and a girl, walk to school together and talk about television and films \u2014 especially a film about pirates they watched, and going to the cinema. The boy leads: he asks what she did last night, whether she saw the pirate film, which pirate she liked best, and whether that pirate was the one with long curly hair. Then he stops asking and starts sharing: he says he likes films which are funny, suggests going to see a funny film at the cinema, and finally suggests asking a friend called Fred to come along. She replies to each one. What the real task tests is choosing the reply that FITS \u2014 the right tense for a past question, the right short answer for "Was he...?", a name when asked "which one", agreement ("Me too.") for a statement rather than a question, enthusiasm ("What a good idea!") for a suggestion, and a practical answer ("OK, we can phone him.") for a plan. The wrong options are always correct English; they fail because each one answers a slightly different question.`
+    source:'Lesson plan oficial "A1 Movers Reading and Writing Part 2" (Cambridge) \u2014 confirmado por Angel/Rodrigo contra lo que entra en la prueba del colegio.',
+    summary:`Two school friends, a boy and a girl, walk to school together and talk about what they did LAST NIGHT: a film about pirates they watched on television, and then a plan to go to the cinema. The whole conversation is anchored in the PAST at the start and moves to opinions and plans at the end. The boy leads.`,
+    // Plano exacto del ejercicio real, pregunta por pregunta. Angel pidio (23 sept) que cada
+    // version generada sea EL MISMO ejercicio y no una variacion libre: mismo orden, mismo tipo
+    // de intercambio, mismo foco gramatical y misma razon por la que falla cada distractor.
+    // Solo cambian las palabras de la superficie (no se copia el texto de Cambridge al repo).
+    blueprint:[
+      'Example. Past question with "did" about last night. Correct reply = a PAST SIMPLE statement. Distractor 1 = the same action in present continuous. Distractor 2 = the same action as a present habit in the negative.',
+      '1. Past yes/no question with "Did you...?" about the film. Correct reply = "Yes," + a past opinion. Distractor 1 = present-tense agreement ("Yes, so do I."). Distractor 2 = identifying a person ("Yes, that is him.").',
+      '2. "Which...?" question in the past asking WHICH ONE. Correct reply = names or identifies the character. Distractor 1 = an opinion about the film instead of the character ("I liked it best."). Distractor 2 = right idea but WRONG PERSON/pronoun ("She was a pirate.").',
+      '3. "Was he the one with...?" Correct reply = a short confirmation ("Yes, that is right."). Distractor 1 = WRONG AUXILIARY in the short answer ("No, he hasn\u2019t." after "Was"). Distractor 2 = a possessive statement that answers nothing ("He has got one.").',
+      '4. NOT a question: the boy STATES a preference in the present ("I like films which are funny."). Correct reply = agreement ("Me too."). Distractor 1 = lukewarm evaluation ("It is all right."). Distractor 2 = a question with the wrong subject ("Do they?").',
+      '5. A SUGGESTION ("How about going to...?"). Correct reply = enthusiasm ("What a good idea!"). Distractor 1 = a flat comment ("It is nice."). Distractor 2 = a polite formula for the wrong situation ("Fine, thank you.").',
+      '6. A SUGGESTION about including a friend ("Let us ask X to come with us."). Correct reply = a practical next step ("OK, we can phone him."). Distractor 1 = possessive confusion ("OK, that is X\u2019s."). Distractor 2 = reverses who asks whom ("OK, he can ask us.").'
+    ]
   },
   rw3:{
     confirmedOn:'2026-08-30',
@@ -6278,8 +6291,13 @@ async function runMoversRW2(){
   // dificultad de esta parte, asi que va explicado en el prompt Y demostrado en el JSON de
   // ejemplo (que es lo que el modelo de verdad copia).
   const topicHint=confirmed
-    ? `CONFIRMED CLASSROOM MATERIAL - this is what the student is actually studying in school this week (${confirmed.source}). Base the conversation on this exact content: ${confirmed.summary}
-IMPORTANT: write an ORIGINAL version in your own words each time - same two children, same subject, same kinds of exchange, but fresh wording, never a word-for-word copy. Keep the same six question types and the same reason each wrong option is wrong.`
+    ? `CONFIRMED CLASSROOM MATERIAL - this is the exact task the student is studying for a test (${confirmed.source}).
+Scene: ${confirmed.summary}
+
+YOU MUST FOLLOW THIS BLUEPRINT EXACTLY, IN THIS ORDER. It is the real exam task, item by item. Reproduce the same exchange type, the same grammar being tested, and the same reason each wrong option is wrong. Change ONLY the surface words (names, which film, which character, which day) so the student cannot simply memorise it:
+${confirmed.blueprint.join('\n')}
+
+Do not add, remove or reorder items. Do not change a question into a statement or a statement into a question. If the blueprint says the line is a suggestion, it must be a suggestion.`
     : `Topic: ${moversRandomTopic()}.`;
   const prompt=`You are a Cambridge A1 Movers Reading & Writing Part 2 generator.
 Follow the REAL exam format exactly:
@@ -6298,7 +6316,7 @@ THE HARD PART, AND THE WHOLE POINT OF THIS TASK: the two wrong options must be p
 
 Also vary what the leading child does: NOT every line is a question. At least two of the six must be statements or suggestions, where the other child has to react rather than answer.
 ${topicHint}
-Rules: A1 Movers vocabulary only. The replies are SHORT - most are two to six words, the way children really answer.
+Rules: A1 Movers vocabulary only. The replies are SHORT - most are two to six words, the way children really answer. The first half of the conversation is about something that already happened, so questions 1 to 3 must use PAST forms (did, was, watched, saw). Questions 4 to 6 move to opinions and plans.
 Return ONLY valid JSON:
 {"topic":"Films and the cinema","speakerA":"Paul","speakerB":"Daisy",
 "scene":"Two school friends are walking to school and talking.",
