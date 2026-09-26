@@ -678,6 +678,13 @@
           <div class="rqn-sub" id="rqn-mock-sub">Cargando...</div>
           <div class="rqn-badge" id="rqn-mock-badge"></div>
         </button>
+        <button class="rqn-btn talking" onclick="openSpeakingClub()">
+          <div class="rqn-icon">🗣️</div>
+          <div class="rqn-cat">SPEAKING</div>
+          <div class="rqn-title">Speaking Club</div>
+          <div class="rqn-sub">Movers Part 4 · Let's talk!</div>
+          <div class="rqn-badge">6 temas · Mini Movers</div>
+        </button>
         <button class="rqn-btn libre" onclick="openPracticaLibre()">
           <div class="rqn-icon">🌍</div>
           <div class="rqn-cat">PRÁCTICA LIBRE</div>
@@ -6199,6 +6206,605 @@ function checkMoversRW6(){
 }
 
 // ══ MOVERS R&W PARTS 1-5 ══
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SPEAKING CLUB — A1 Movers Speaking Part 4 (26 septiembre 2026)
+// ══════════════════════════════════════════════════════════════════════════════
+// Rodrigo rinde el Movers oficial el sabado 3 de octubre. De las cuatro partes del
+// Speaking, tres son de imagenes (diferencias, historia en secuencia, cual sobra) y se
+// practican en papel con los sample papers de Cambridge. La Parte 4 no lleva imagenes:
+// es conversacion personal, y es donde la app aporta algo que un papa no puede improvisar
+// diez veces seguidas. Formato verificado contra cambridgeenglish.org y contra el handbook
+// oficial de Movers Digital: 4 partes, 5-7 minutos, Parte 4 = preguntas sobre el propio
+// nino (colegio, fin de semana, amigos, hobbies, familia, casa, gustos y disgustos).
+//
+// El banco de preguntas lo armaron Angel y ChatGPT. NO es un listado oficial de Cambridge
+// (Cambridge publica temas, no un banco cerrado de preguntas); son preguntas de practica
+// alineadas con esos temas. El contenido va separado de la logica para poder ampliarlo.
+//
+// Decision de diseno: el objetivo NO es que memorice respuestas. Por eso cada pregunta
+// trae una follow-up, que es donde se rompe la respuesta ensayada y tiene que improvisar.
+// Y el feedback nunca dice "incorrecto": premia que se comunique, y si hay un error sugiere
+// otra forma de decirlo sin interrumpir la fluidez. Mismo criterio que el Survival Kit.
+// Voz de la 'profesora' del Speaking Club. El acento sale del perfil: _ttsInstr() lo pasa a
+// americano para Rodrigo. Se pide lento y claro porque el nino tiene que ENTENDER la
+// pregunta antes de poder contestarla, que es justo lo que mide la Parte 4.
+const SPEAKING_CLUB_TTS='Speak with a clear British accent. You are a friendly, warm primary school teacher talking to a 9-year-old child. Speak slowly and very clearly, with a kind and encouraging tone. Ask the question naturally, as if you really want to know the answer.';
+const SPEAKING_CLUB=[
+ {id:'me',icon:'\u{1F466}',label:'Me!',es:'Sobre mi',qs:[
+   {q:"What's your name?"},
+   {q:"How old are you?"},
+   {q:"Where do you live?",f:"Do you like your city?"},
+   {q:"Who do you live with?",f:"How many people live with you?"},
+   {q:"What's your favourite colour?",f:"Why do you like it?"},
+   {q:"What's your favourite food?",f:"When do you eat it?"},
+   {q:"What's your favourite animal?",f:"Have you got a pet?"},
+   {q:"What's your favourite day of the week?",f:"Why?"}
+ ]},
+ {id:'family',icon:'\u{1F46A}',label:'Family & Friends',es:'Familia y amigos',qs:[
+   {q:"Who is in your family?",f:"How many people are there?"},
+   {q:"Who do you play with at home?",f:"What do you play?"},
+   {q:"Who is your best friend?",f:"What's his or her name?"},
+   {q:"What do you like doing with your friends?",f:"Where do you play?"},
+   {q:"Who do you usually play with at school?",f:"What do you play?"},
+   {q:"What do you do with your family?",f:"When do you do it?"},
+   {q:"Have you got any brothers or sisters?",f:"What do you do together?"},
+   {q:"Who makes you laugh?",f:"Why?"}
+ ]},
+ {id:'school',icon:'\u{1F3EB}',label:'My School',es:'Mi colegio',qs:[
+   {q:"What's your school called?",f:"Do you like your school?"},
+   {q:"What's your favourite subject?",f:"Why do you like it?"},
+   {q:"Who's your favourite teacher?",f:"Why do you like this teacher?"},
+   {q:"What do you do at school?",f:"What do you do in the morning?"},
+   {q:"What do you do at break time?",f:"Who do you play with?"},
+   {q:"Who do you play with at break time?",f:"What do you play?"},
+   {q:"What's your favourite thing to do at school?",f:"Why?"},
+   {q:"What do you usually do after school?",f:"Who are you with?"}
+ ]},
+ {id:'sports',icon:'⚽',label:'Sports & Activities',es:'Deportes',qs:[
+   {q:"Do you like sports?",f:"What's your favourite sport?"},
+   {q:"What's your favourite sport?",f:"Why do you like it?"},
+   {q:"Do you play football?",f:"Who do you play with?"},
+   {q:"Do you ride a bike?",f:"Where do you ride it?"},
+   {q:"Do you swim?",f:"Where do you swim?"},
+   {q:"What sports do you do at school?",f:"Which one do you like best?"},
+   {q:"What do you do after school?",f:"Do you play sports?"},
+   {q:"What's your favourite activity?",f:"Who do you do it with?"}
+ ]},
+ {id:'freetime',icon:'\u{1F3AE}',label:'Free Time',es:'Tiempo libre',qs:[
+   {q:"What do you do in your free time?",f:"Who do you do it with?"},
+   {q:"What do you like doing after school?",f:"When do you do it?"},
+   {q:"Do you like playing computer games?",f:"What's your favourite game?"},
+   {q:"Do you like watching TV?",f:"What's your favourite programme?"},
+   {q:"Do you like reading?",f:"What do you like reading?"},
+   {q:"What's your favourite game?",f:"Who do you play with?"},
+   {q:"What's your favourite hobby?",f:"Why do you like it?"},
+   {q:"What don't you like doing?",f:"Why not?"}
+ ]},
+ {id:'weekend',icon:'\u{1F333}',label:'My Weekend',es:'Fin de semana',qs:[
+   {q:"What do you do at the weekend?",f:"What do you do on Saturday?"},
+   {q:"What do you do on Sunday?",f:"Who are you with?"},
+   {q:"Where do you go at the weekend?",f:"Who do you go with?"},
+   {q:"Do you visit your family at the weekend?",f:"Who do you visit?"},
+   {q:"Do you play with your friends at the weekend?",f:"What do you play?"},
+   {q:"What's your favourite thing to do at the weekend?",f:"Why?"},
+   {q:"What did you do last weekend?",f:"Who were you with?"},
+   {q:"Where did you go last weekend?",f:"Did you have fun?"}
+ ]}
+];
+// Las dos ultimas del fin de semana van en pasado a proposito: el handbook oficial dice
+// que los ninos deben estar preparados para preguntas sobre lo que hicieron el fin de
+// semana anterior, no solo en presente.
+
+function _scFY(a){const x=[...a];for(let i=x.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[x[i],x[j]]=[x[j],x[i]];}return x;}
+function _scTopic(id){return SPEAKING_CLUB.find(t=>t.id===id)||null;}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SPEAKING PARTS 1-3 — versión con emoji (26 septiembre 2026)
+// ══════════════════════════════════════════════════════════════════════════════
+// Las partes 1, 2 y 3 del Speaking de Movers son de imágenes. Las de Cambridge NO se
+// pueden copiar acá: index.html vive en un repo público de GitHub. La salida es usar
+// emoji, que no tienen derechos, se ven igual en cualquier equipo y —lo importante—
+// permiten entrenar EXACTAMENTE la misma destreza:
+//   Parte 1 → comparar dos escenas y decir en qué se diferencian (número, objeto,
+//             color, posición, qué está haciendo alguien).
+//   Parte 2 → mirar cuatro viñetas en secuencia y contar la historia.
+//   Parte 3 → decir cuál sobra de cuatro y JUSTIFICAR con "because".
+// Lo que NO reproduce es el ASPECTO del examen. Rodrigo tiene que ver las imágenes
+// reales en papel al menos una vez (sample papers de Cambridge) para que el formato
+// no lo sorprenda el día del examen. Esto es entrenamiento, no simulacro visual.
+const SPEAKING_PICS={
+ // ── Parte 1: dos escenas con exactamente 4 diferencias ──
+ p1:[
+  {title:'In the park',
+   a:['\u{1F333}','\u{1F415}','\u{1F534}','\u{1F466}','\u{1F426}\u{1F426}'],
+   b:['\u{1F333}','\u{1F408}','\u{1F535}','\u{1F466}','\u{1F426}'],
+   diffs:["In the first picture there is a dog, but in the second picture there is a cat.",
+          "The ball is red in the first picture and blue in the second picture.",
+          "There are two birds in the first picture and only one bird in the second picture.",
+          "There is a tree in both pictures, but the boy is the same."]},
+  {title:'At home',
+   a:['\u{1F3E0}','\u{1F431}','\u{1F33B}\u{1F33B}\u{1F33B}','☀️','\u{1F6B2}'],
+   b:['\u{1F3E0}','\u{1F436}','\u{1F33B}','☁️','\u{1F6B2}'],
+   diffs:["There is a cat in the first picture and a dog in the second picture.",
+          "There are three flowers in the first picture and one flower in the second picture.",
+          "The sun is shining in the first picture, but there is a cloud in the second picture.",
+          "There is a bike in both pictures."]},
+  {title:'At the party',
+   a:['\u{1F382}','\u{1F388}\u{1F388}','\u{1F467}','\u{1F381}','\u{1F3B8}'],
+   b:['\u{1F382}','\u{1F388}\u{1F388}\u{1F388}\u{1F388}','\u{1F466}','\u{1F381}','\u{1F941}'],
+   diffs:["There are two balloons in the first picture and four balloons in the second picture.",
+          "There is a girl in the first picture and a boy in the second picture.",
+          "There is a guitar in the first picture and a drum in the second picture.",
+          "There is a cake and a present in both pictures."]},
+  {title:'At the beach',
+   a:['\u{1F3D6}️','\u{1F3CA}','⛵','\u{1F41F}\u{1F41F}','\u{1F576}️'],
+   b:['\u{1F3D6}️','\u{1F6B6}','⛵⛵','\u{1F41F}\u{1F41F}','\u{1F452}'],
+   diffs:["In the first picture the person is swimming, but in the second picture the person is walking.",
+          "There is one boat in the first picture and two boats in the second picture.",
+          "There are sunglasses in the first picture and a hat in the second picture.",
+          "There are two fish in both pictures."]},
+  {title:'In the classroom',
+   a:['\u{1F4DA}\u{1F4DA}','\u{1F469}‍\u{1F3EB}','\u{1F58D}️','\u{1F5A5}️','\u{1F34E}'],
+   b:['\u{1F4DA}','\u{1F468}‍\u{1F3EB}','\u{1F58D}️','\u{1F5A5}️','\u{1F34C}'],
+   diffs:["There are two books in the first picture and one book in the second picture.",
+          "The teacher is a woman in the first picture and a man in the second picture.",
+          "There is an apple in the first picture and a banana in the second picture.",
+          "There is a pencil and a computer in both pictures."]}
+ ],
+ // ── Parte 2: historia en cuatro viñetas. El examinador cuenta la primera. ──
+ p2:[
+  {title:"Tom's day at the beach",name:'Tom',
+   panels:[{e:'\u{1F466}\u{1F3D6}️☀️',say:"This is Tom. He is at the beach and the sun is shining."},
+           {e:'\u{1F466}\u{1F3CA}\u{1F30A}'},{e:'\u{1F466}\u{1F3F0}\u{1FAA3}'},{e:'\u{1F466}\u{1F366}\u{1F600}'}]},
+  {title:"Anna and the lost cat",name:'Anna',
+   panels:[{e:'\u{1F467}\u{1F431}\u{1F3E0}',say:"This is Anna. She is at home with her cat."},
+           {e:'\u{1F431}\u{1F6AA}\u{1F333}'},{e:'\u{1F467}\u{1F622}\u{1F50D}'},{e:'\u{1F467}\u{1F431}\u{1F603}'}]},
+  {title:"Sam's birthday",name:'Sam',
+   panels:[{e:'\u{1F466}\u{1F634}\u{1F6CF}️',say:"This is Sam. It is his birthday and he is waking up."},
+           {e:'\u{1F466}\u{1F381}\u{1F60D}'},{e:'\u{1F466}\u{1F382}\u{1F46A}'},{e:'\u{1F466}⚽\u{1F3DE}️'}]},
+  {title:"A rainy day",name:'Ben',
+   panels:[{e:'\u{1F466}\u{1F3EB}☀️',say:"This is Ben. He is going to school and it is sunny."},
+           {e:'\u{1F327}️\u{1F466}\u{1F628}'},{e:'\u{1F467}☂️\u{1F466}'},{e:'\u{1F466}\u{1F467}\u{1F3E0}\u{1F603}'}]}
+ ],
+ // ── Parte 3: cuatro cosas, una sobra. Lo que se evalúa es el PORQUÉ. ──
+ p3:[
+  {items:[['\u{1F436}','dog'],['\u{1F431}','cat'],['\u{1F434}','horse'],['\u{1FA91}','chair']],odd:3,why:"The chair is different because it isn't an animal."},
+  {items:[['\u{1F34E}','apple'],['\u{1F34C}','banana'],['\u{1F347}','grapes'],['⚽','football']],odd:3,why:"The football is different because you can't eat it."},
+  {items:[['\u{1F697}','car'],['\u{1F68C}','bus'],['\u{1F6B2}','bike'],['\u{1F455}','T-shirt']],odd:3,why:"The T-shirt is different because it isn't a vehicle."},
+  {items:[['\u{1F454}','tie'],['\u{1F45F}','shoes'],['\u{1F452}','hat'],['\u{1F34D}','pineapple']],odd:3,why:"The pineapple is different because you don't wear it."},
+  {items:[['⚽','football'],['\u{1F3C0}','basketball'],['\u{1F3BE}','tennis'],['\u{1F4DA}','books']],odd:3,why:"The books are different because they aren't a sport."},
+  {items:[['\u{1F327}️','rain'],['☀️','sun'],['❄️','snow'],['\u{1F9E6}','socks']],odd:3,why:"The socks are different because they aren't weather."},
+  {items:[['\u{1F98A}','fox'],['\u{1F43B}','bear'],['\u{1F98C}','deer'],['\u{1F41F}','fish']],odd:3,why:"The fish is different because it lives in water."},
+  {items:[['\u{1F35E}','bread'],['\u{1F9C0}','cheese'],['\u{1F95A}','egg'],['\u{1F58A}️','pen']],odd:3,why:"The pen is different because it isn't food."},
+  {items:[['\u{1F3B8}','guitar'],['\u{1F941}','drum'],['\u{1F3B9}','piano'],['\u{1F6CF}️','bed']],odd:3,why:"The bed is different because you can't play music with it."},
+  {items:[['\u{1F468}‍\u{1F3EB}','teacher'],['\u{1F469}‍⚕️','doctor'],['\u{1F46E}','police officer'],['\u{1F333}','tree']],odd:3,why:"The tree is different because it isn't a person."},
+  {items:[['\u{1F534}','red'],['\u{1F535}','blue'],['\u{1F7E2}','green'],['\u{1F42C}','dolphin']],odd:3,why:"The dolphin is different because it isn't a colour."},
+  {items:[['\u{1F3E0}','house'],['\u{1F3EB}','school'],['\u{1F3E5}','hospital'],['\u{1F99C}','parrot']],odd:3,why:"The parrot is different because it isn't a building."}
+ ]
+};
+
+// ── Motor común de las partes 1-3 ──
+// Mismo patrón start/stop del resto de los módulos con micrófono. Lo que cambia entre
+// partes es qué se muestra arriba y con qué se compara la respuesta.
+function _scpFY(a){const x=[...a];for(let i=x.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[x[i],x[j]]=[x[j],x[i]];}return x;}
+function _scpPanel(html){return `<div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;text-align:center">${html}</div>`;}
+
+function _scpMicBlock(onNext,label){
+  return `<div style="background:var(--card2);border-radius:12px;padding:14px;margin-top:16px">
+    <div id="scp-transcript" style="min-height:44px;color:var(--muted);font-size:13px;font-style:italic;padding:9px;background:var(--bg);border-radius:8px;margin-bottom:10px">Your answer will appear here...</div>
+    <div style="display:flex;gap:8px">
+      <button id="scp-btn" onclick="scpMicToggle()" style="flex:1;padding:12px;background:rgba(34,197,94,.1);border:2px solid rgba(34,197,94,.3);border-radius:9px;color:#22c55e;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">\u{1F3A4} Start recording</button>
+      <button id="scp-reset" onclick="scpMicReset()" style="display:none;padding:12px 14px;background:var(--card);border:2px solid var(--border);border-radius:9px;color:var(--muted);font-weight:700;cursor:pointer">\u{1F504}</button>
+      <button onclick="${onNext}" style="padding:12px 18px;background:#22c55e;border:none;border-radius:9px;color:#0a0a1a;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">${label}</button>
+    </div>
+    <div id="scp-fb" style="margin-top:12px"></div>
+  </div>`;
+}
+async function scpMicToggle(){
+  const btn=document.getElementById('scp-btn'),el=document.getElementById('scp-transcript'),rst=document.getElementById('scp-reset');
+  if(!micIsRecording()){
+    if(btn){btn.style.background='rgba(245,158,11,.15)';btn.style.borderColor='rgba(245,158,11,.4)';btn.textContent='\u{1F399}️ Get ready...';}
+    if(rst)rst.style.display='block';
+    if(el)el.textContent='';
+    micStart().catch(e=>{if(el)el.textContent='Mic not available.';});
+    setTimeout(()=>{if(micIsRecording()){
+      if(btn){btn.style.background='rgba(239,68,68,.2)';btn.style.borderColor='#ef4444';btn.textContent='\u{1F534} Stop recording';}
+      if(el)el.textContent='Listening... click "Stop recording" when done.';}},900);
+  } else {
+    if(btn){btn.style.background='rgba(34,197,94,.1)';btn.style.borderColor='rgba(34,197,94,.3)';btn.textContent='\u{1F3A4} Start recording';btn.disabled=true;}
+    if(rst)rst.style.display='none';
+    if(el)el.textContent='Transcribing...';
+    const text=await micStopAndTranscribe();
+    if(el)el.textContent=text||'(no speech detected)';
+    if(btn)btn.disabled=false;
+  }
+}
+function scpMicReset(){
+  if(!micReset())return;
+  const btn=document.getElementById('scp-btn'),el=document.getElementById('scp-transcript'),rst=document.getElementById('scp-reset');
+  if(btn){btn.style.background='rgba(34,197,94,.1)';btn.style.borderColor='rgba(34,197,94,.3)';btn.textContent='\u{1F3A4} Start recording';}
+  if(rst)rst.style.display='none';
+  if(el)el.textContent='Your answer will appear here...';
+}
+function _scpSaid(){
+  const el=document.getElementById('scp-transcript');
+  const t=(el&&el.textContent||'').trim();
+  if(!t||t.startsWith('Your answer')||t.startsWith('(no speech')||t.startsWith('Listening')||t.startsWith('Transcribing')||t.startsWith('Mic not'))return null;
+  return t;
+}
+function _scpAviso(){const fb=document.getElementById('scp-fb');if(fb)fb.innerHTML='<div style="font-size:13px;color:var(--muted)">\u{1F3A4} Say something first!</div>';}
+
+// ── PARTE 1 · cuatro diferencias ──
+function scpPart1(){
+  const it=_scpFY(SPEAKING_PICS.p1)[0];
+  window._scp={part:1,it};
+  const esc=a=>a.map(x=>`<span style="font-size:34px;margin:0 6px">${x}</span>`).join('');
+  document.getElementById('module-content-area').innerHTML=`<div style="max-width:640px;margin:0 auto">
+    <div style="font-family:'Orbitron',monospace;font-size:11px;color:#22c55e;letter-spacing:2px;margin-bottom:4px">SPEAKING PART 1</div>
+    <div style="font-size:14px;color:var(--text);font-weight:700;margin-bottom:2px">Find four differences</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:16px">${it.title} · Look at the two pictures and tell me <b>four things</b> that are different.</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      ${_scpPanel('<div style="font-size:11px;color:var(--muted);margin-bottom:8px">PICTURE 1</div>'+esc(it.a))}
+      ${_scpPanel('<div style="font-size:11px;color:var(--muted);margin-bottom:8px">PICTURE 2</div>'+esc(it.b))}
+    </div>
+    ${_scpMicBlock('scpCheck1()','Check ✓')}
+    <button onclick="openSpeakingClub()" style="background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;width:100%;margin-top:14px">← Speaking Club</button>
+  </div>`;
+  ttsSpeak('Look at the two pictures. They look the same, but some things are different. Can you tell me four differences?',{rate:0.92,instructions:SPEAKING_CLUB_TTS});
+}
+async function scpCheck1(){
+  const S=window._scp,said=_scpSaid(); if(!S)return;
+  if(!said){_scpAviso();return;}
+  const fb=document.getElementById('scp-fb');
+  if(fb)fb.innerHTML='<div style="font-size:13px;color:var(--muted)">✨ ...</div>';
+  let out='';
+  try{
+    out=await callClaude(`A 9-year-old is practising Cambridge A1 Movers Speaking Part 1 (find the differences). These are the four real differences:
+${S.it.diffs.map((d,i)=>(i+1)+'. '+d).join('\n')}
+
+This is what the child said: "${said}"
+
+Reply in English a 9-year-old understands, in at most 4 short lines:
+- First line: how many differences he found, like "You found 3 of 4! \u{1F44F}"
+- Then list ONLY the ones he did NOT mention, each on one line starting with "\u{1F4A1}", written as a simple full sentence he could say.
+- Be warm. Never say "wrong". Say nothing about pronunciation.
+Return ONLY the reply.`,260);
+  }catch(e){}
+  if(!out)out='\u{1F44D} Good try!\\n'+S.it.diffs.map(d=>'\u{1F4A1} '+d).join('\\n');
+  if(fb)fb.innerHTML=`<div style="font-size:13px;color:var(--text);line-height:1.7;background:var(--bg);border-radius:8px;padding:10px 12px;white-space:pre-wrap">${out.replace(/</g,'&lt;')}</div>
+    <button onclick="scpPart1()" style="margin-top:10px;width:100%;padding:11px;background:#22c55e;border:none;border-radius:9px;color:#0a0a1a;font-family:'Rajdhani',sans-serif;font-weight:700;cursor:pointer">\u{1F504} Another one</button>`;
+  addKm(20);
+}
+
+// ── PARTE 2 · continuar la historia ──
+function scpPart2(){
+  const it=_scpFY(SPEAKING_PICS.p2)[0];
+  window._scp={part:2,it,panel:1};
+  scpRender2();
+}
+function scpRender2(){
+  const S=window._scp,it=S.it;
+  const cells=it.panels.map((p,i)=>{
+    const activo=i===S.panel, visto=i<S.panel;
+    const borde=activo?'#22c55e':(visto?'var(--border)':'var(--border)');
+    const op=(i>S.panel)?'opacity:.25':'';
+    return `<div style="background:var(--card);border:2px solid ${borde};border-radius:12px;padding:14px 8px;text-align:center;${op}">
+      <div style="font-size:10px;color:var(--muted);margin-bottom:6px">${i+1}</div>
+      <div style="font-size:26px;line-height:1.3">${p.e}</div>
+    </div>`;}).join('');
+  const fin=S.panel>=it.panels.length;
+  document.getElementById('module-content-area').innerHTML=`<div style="max-width:640px;margin:0 auto">
+    <div style="font-family:'Orbitron',monospace;font-size:11px;color:#22c55e;letter-spacing:2px;margin-bottom:4px">SPEAKING PART 2</div>
+    <div style="font-size:14px;color:var(--text);font-weight:700">${it.title}</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:14px">These pictures tell a story. It's called <b>${it.title}</b>. This is <b>${it.name}</b>.</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:8px">${cells}</div>
+    <div style="font-size:12px;color:var(--muted);font-style:italic;margin-bottom:6px">\u{1F469}‍\u{1F3EB} ${it.panels[0].say}</div>
+    ${fin?`<div class="result-box" style="border-color:#22c55e;text-align:center;margin-top:14px">
+        <div style="font-size:30px">\u{1F3C6}</div>
+        <div style="font-size:15px;font-weight:700;color:#22c55e;margin-top:4px">You told the whole story!</div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:14px">
+        <button onclick="scpPart2()" style="flex:1;padding:12px;background:#22c55e;border:none;border-radius:10px;color:#0a0a1a;font-family:'Rajdhani',sans-serif;font-weight:700;cursor:pointer">\u{1F504} Another story</button>
+        <button onclick="openSpeakingClub()" style="flex:1;padding:12px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Rajdhani',sans-serif;font-weight:700;cursor:pointer">\u{1F3E0} Speaking Club</button>
+      </div>`
+    :`<div style="font-size:13px;color:var(--text);margin:10px 0 0">\u{1F5E3}️ Now tell me about picture <b>${S.panel+1}</b>.</div>
+      ${_scpMicBlock('scpCheck2()','Next →')}`}
+    <button onclick="openSpeakingClub()" style="background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;width:100%;margin-top:14px">← Speaking Club</button>
+  </div>`;
+  if(S.panel===1)ttsSpeak(it.panels[0].say+' Now you tell me the story.',{rate:0.92,instructions:SPEAKING_CLUB_TTS});
+}
+async function scpCheck2(){
+  const S=window._scp,said=_scpSaid(); if(!S)return;
+  if(!said){_scpAviso();return;}
+  const fb=document.getElementById('scp-fb');
+  if(fb)fb.innerHTML='<div style="font-size:13px;color:var(--muted)">✨ ...</div>';
+  let out='\u{1F44D} Good!';
+  try{
+    const r=await callClaude(`A 9-year-old is telling a picture story in English (Cambridge A1 Movers Speaking Part 2). The story is called "${S.it.title}" and the character is ${S.it.name}. He is describing picture ${S.panel+1}, which shows: ${S.it.panels[S.panel].e}
+He said: "${said}"
+Reply in ONE short warm line a 9-year-old understands. Praise any sentence that describes the picture. If it is only one word, praise it and ask "Can you say a full sentence?". If there is a small grammar slip, praise first then add on a new line "You can also say: <corrected sentence>". Never say "wrong". Say nothing about pronunciation. Return ONLY the reply.`,120);
+    if(r&&r.trim())out=r.trim();
+  }catch(e){}
+  if(fb)fb.innerHTML=`<div style="font-size:13px;color:var(--text);line-height:1.6;background:var(--bg);border-radius:8px;padding:10px 12px;white-space:pre-wrap">${out.replace(/</g,'&lt;')}</div>
+    <button onclick="scpNext2()" style="margin-top:10px;width:100%;padding:11px;background:#22c55e;border:none;border-radius:9px;color:#0a0a1a;font-family:'Rajdhani',sans-serif;font-weight:700;cursor:pointer">Continue →</button>`;
+}
+function scpNext2(){const S=window._scp;if(!S)return;S.panel++;if(S.panel>=S.it.panels.length)addKm(25);scpRender2();}
+
+// ── PARTE 3 · cuál sobra y por qué ──
+function scpPart3(){
+  const sets=_scpFY(SPEAKING_PICS.p3).slice(0,4);
+  window._scp={part:3,sets,i:0};
+  scpRender3();
+}
+function scpRender3(){
+  const S=window._scp;
+  if(S.i>=S.sets.length){
+    addKm(25);
+    document.getElementById('module-content-area').innerHTML=`<div style="max-width:640px;margin:0 auto">
+      <div class="result-box" style="border-color:#22c55e;text-align:center">
+        <div style="font-size:32px">\u{1F3C6}</div>
+        <div style="font-size:15px;font-weight:700;color:#22c55e;margin-top:4px">You did all four sets!</div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:14px">
+        <button onclick="scpPart3()" style="flex:1;padding:12px;background:#22c55e;border:none;border-radius:10px;color:#0a0a1a;font-family:'Rajdhani',sans-serif;font-weight:700;cursor:pointer">\u{1F504} Again</button>
+        <button onclick="openSpeakingClub()" style="flex:1;padding:12px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Rajdhani',sans-serif;font-weight:700;cursor:pointer">\u{1F3E0} Speaking Club</button>
+      </div></div>`;
+    return;
+  }
+  const st=S.sets[S.i];
+  const orden=_scpFY(st.items.map((x,i)=>({x,i})));
+  S.orden=orden;
+  const cells=orden.map(o=>`<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 6px;text-align:center">
+      <div style="font-size:34px">${o.x[0]}</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:6px">${o.x[1]}</div>
+    </div>`).join('');
+  document.getElementById('module-content-area').innerHTML=`<div style="max-width:640px;margin:0 auto">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+      <div style="flex:1;height:4px;background:var(--card2);border-radius:2px"><div style="height:100%;width:${Math.round(S.i/S.sets.length*100)}%;background:#22c55e;border-radius:2px"></div></div>
+      <span style="font-size:11px;color:var(--muted);font-family:'Orbitron',monospace">${S.i+1}/${S.sets.length}</span>
+    </div>
+    <div style="font-family:'Orbitron',monospace;font-size:11px;color:#22c55e;letter-spacing:2px;margin-bottom:4px">SPEAKING PART 3</div>
+    <div style="font-size:14px;color:var(--text);font-weight:700">Which one is different?</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:14px">Tell me which one is different — and <b>why</b>.</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">${cells}</div>
+    ${_scpMicBlock('scpCheck3()','Check ✓')}
+    <button onclick="openSpeakingClub()" style="background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;width:100%;margin-top:14px">← Speaking Club</button>
+  </div>`;
+  ttsSpeak('Which one is different, and why?',{rate:0.92,instructions:SPEAKING_CLUB_TTS});
+}
+async function scpCheck3(){
+  const S=window._scp,said=_scpSaid(); if(!S)return;
+  if(!said){_scpAviso();return;}
+  const st=S.sets[S.i];
+  const fb=document.getElementById('scp-fb');
+  if(fb)fb.innerHTML='<div style="font-size:13px;color:var(--muted)">✨ ...</div>';
+  let out='\u{1F44D} Good!';
+  try{
+    const r=await callClaude(`A 9-year-old is practising Cambridge A1 Movers Speaking Part 3 (odd one out). The four things are: ${st.items.map(x=>x[1]).join(', ')}. The odd one is "${st.items[st.odd][1]}". A good reason is: "${st.why}"
+He said: "${said}"
+
+Reply in at most 2 short lines, in English a 9-year-old understands:
+- If he named the right one AND gave a reason: praise him warmly.
+- If he named the right one but gave NO reason: praise him, then add "Can you tell me why?"
+- If he named a different one but his reason makes sense, accept it warmly — in this task any sensible reason is fine.
+- If it does not make sense, say "Good try!" and then on a new line give the reason starting with "\u{1F4A1}".
+Never say "wrong". Say nothing about pronunciation. Return ONLY the reply.`,160);
+    if(r&&r.trim())out=r.trim();
+  }catch(e){}
+  if(fb)fb.innerHTML=`<div style="font-size:13px;color:var(--text);line-height:1.6;background:var(--bg);border-radius:8px;padding:10px 12px;white-space:pre-wrap">${out.replace(/</g,'&lt;')}</div>
+    <button onclick="scpNext3()" style="margin-top:10px;width:100%;padding:11px;background:#22c55e;border:none;border-radius:9px;color:#0a0a1a;font-family:'Rajdhani',sans-serif;font-weight:700;cursor:pointer">Continue →</button>`;
+}
+function scpNext3(){const S=window._scp;if(!S)return;S.i++;scpRender3();}
+
+// ── Hub ──
+function openSpeakingClub(){
+  openModule('movers');
+  document.getElementById('mod-title').textContent='SPEAKING CLUB';
+  const cards=SPEAKING_CLUB.map(t=>`
+    <button onclick="scStart('${t.id}')" style="display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:14px 16px;margin-bottom:10px;background:var(--card);border:1px solid var(--border);border-radius:14px;cursor:pointer">
+      <div style="font-size:26px">${t.icon}</div>
+      <div style="flex:1">
+        <div style="font-size:14px;font-weight:700;color:var(--text)">${t.label}</div>
+        <div style="font-size:12px;color:var(--muted)">${t.es} · ${t.qs.length} preguntas</div>
+      </div>
+      <div style="color:var(--muted);font-size:16px">▶</div>
+    </button>`).join('');
+  document.getElementById('module-content-area').innerHTML=`<div style="max-width:620px;margin:0 auto">
+    <div style="background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.3);border-radius:14px;padding:16px 18px;margin-bottom:18px">
+      <div style="font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:#22c55e;letter-spacing:2px">SPEAKING CLUB</div>
+      <div style="font-size:15px;font-weight:700;color:var(--text);margin-top:4px">Let's talk! \u{1F5E3}️</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:8px;line-height:1.6">\u{1F3A7} Listen to the question.<br>\u{1F9E0} Think.<br>\u{1F5E3}️ Answer in English!</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:10px;font-style:italic">No perfect answers — just talk!</div>
+    </div>
+    <button onclick="scStart('mini')" style="width:100%;padding:14px;margin-bottom:18px;background:var(--gold2, #eab308);border:none;border-radius:14px;color:#0a0a1a;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:15px;letter-spacing:1px;cursor:pointer">\u{1F393} MINI MOVERS — 6 preguntas, una de cada tema</button>
+    <div style="font-size:11px;color:var(--muted);letter-spacing:2px;font-family:'Orbitron',monospace;margin-bottom:10px">PARTES 1 A 3 \u00b7 CON IM\u00c1GENES</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px">
+      <button onclick="scpPart1()" style="padding:14px 6px;background:var(--card);border:1px solid var(--border);border-radius:12px;cursor:pointer;text-align:center">
+        <div style="font-size:22px">\u{1F50D}</div><div style="font-size:11px;font-weight:700;color:var(--text);margin-top:4px">Part 1</div><div style="font-size:10px;color:var(--muted)">4 diferencias</div></button>
+      <button onclick="scpPart2()" style="padding:14px 6px;background:var(--card);border:1px solid var(--border);border-radius:12px;cursor:pointer;text-align:center">
+        <div style="font-size:22px">\u{1F4D6}</div><div style="font-size:11px;font-weight:700;color:var(--text);margin-top:4px">Part 2</div><div style="font-size:10px;color:var(--muted)">la historia</div></button>
+      <button onclick="scpPart3()" style="padding:14px 6px;background:var(--card);border:1px solid var(--border);border-radius:12px;cursor:pointer;text-align:center">
+        <div style="font-size:22px">\u{1F914}</div><div style="font-size:11px;font-weight:700;color:var(--text);margin-top:4px">Part 3</div><div style="font-size:10px;color:var(--muted)">cu\u00e1l sobra</div></button>
+    </div>
+    <div style="font-size:11px;color:var(--muted);font-style:italic;margin-bottom:18px">Con emoji, no con los dibujos de Cambridge \u2014 la pr\u00e1ctica es la misma, pero mira las hojas impresas al menos una vez.</div>
+    <div style="font-size:11px;color:var(--muted);letter-spacing:2px;font-family:'Orbitron',monospace;margin-bottom:10px">PARTE 4 \u00b7 CONVERSACI\u00d3N</div>
+    ${cards}
+  </div>`;
+}
+
+// ── Arranque ──
+// Practice: 5 preguntas al azar del tema elegido. Mini Movers: una de cada tema.
+// Cada pregunta trae su follow-up, que es donde se rompe la respuesta ensayada.
+function scStart(modo){
+  let items=[];
+  if(modo==='mini'){
+    items=SPEAKING_CLUB.map(t=>{const q=_scFY(t.qs)[0];return {...q,topic:t.label,icon:t.icon};});
+  } else {
+    const t=_scTopic(modo); if(!t)return;
+    items=_scFY(t.qs).slice(0,5).map(q=>({...q,topic:t.label,icon:t.icon}));
+  }
+  // Cada item se expande a sus turnos: pregunta principal y, si existe, la follow-up.
+  const turnos=[];
+  items.forEach(it=>{
+    turnos.push({text:it.q,topic:it.topic,icon:it.icon,follow:false});
+    if(it.f)turnos.push({text:it.f,topic:it.topic,icon:it.icon,follow:true});
+  });
+  window._sc={modo,turnos,i:0,answers:[],started:Date.now()};
+  scAsk();
+}
+
+function scAsk(){
+  const S=window._sc; if(!S)return;
+  if(S.i>=S.turnos.length){scFinish();return;}
+  const t=S.turnos[S.i];
+  const pct=Math.round(S.i/S.turnos.length*100);
+  document.getElementById('module-content-area').innerHTML=`<div style="max-width:620px;margin:0 auto">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <div style="flex:1;height:4px;background:var(--card2);border-radius:2px"><div style="height:100%;width:${pct}%;background:#22c55e;border-radius:2px"></div></div>
+      <span style="font-size:11px;color:var(--muted);font-family:'Orbitron',monospace">${S.i+1}/${S.turnos.length}</span>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:10px">${t.icon} ${t.topic}${t.follow?' · follow-up':''}</div>
+    <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:16px">
+      <div style="font-size:30px;flex-shrink:0">\u{1F469}‍\u{1F3EB}</div>
+      <div style="flex:1;background:var(--card);border-radius:0 12px 12px 12px;padding:14px 16px;font-size:16px;color:var(--text);line-height:1.5">${t.text}</div>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <button onclick="scRepeat()" style="flex:1;padding:9px;background:var(--card2);border:1px solid var(--border);border-radius:9px;color:var(--muted);font-size:12px;cursor:pointer">\u{1F504} Say it again</button>
+      <button onclick="scDontUnderstand()" style="flex:1;padding:9px;background:var(--card2);border:1px solid var(--border);border-radius:9px;color:var(--muted);font-size:12px;cursor:pointer">\u{1F6D1} Sorry, I don't understand</button>
+    </div>
+    <div style="background:var(--card2);border-radius:12px;padding:14px">
+      <div id="sc-transcript" style="min-height:44px;color:var(--muted);font-size:13px;font-style:italic;padding:9px;background:var(--bg);border-radius:8px;margin-bottom:10px">Your answer will appear here...</div>
+      <div style="display:flex;gap:8px">
+        <button id="sc-btn" onclick="scMicToggle()" style="flex:1;padding:12px;background:rgba(34,197,94,.1);border:2px solid rgba(34,197,94,.3);border-radius:9px;color:#22c55e;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">\u{1F3A4} Start recording</button>
+        <button id="sc-reset" onclick="scMicReset()" style="display:none;padding:12px 14px;background:var(--card);border:2px solid var(--border);border-radius:9px;color:var(--muted);font-weight:700;cursor:pointer">\u{1F504}</button>
+        <button id="sc-next" onclick="scSubmit()" style="padding:12px 18px;background:#22c55e;border:none;border-radius:9px;color:#0a0a1a;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">Next →</button>
+      </div>
+      <div id="sc-fb" style="margin-top:12px"></div>
+    </div>
+    <button onclick="openSpeakingClub()" style="background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;width:100%;text-align:center;margin-top:14px">← Speaking Club</button>
+  </div>`;
+  scRepeat();
+}
+
+function scRepeat(){
+  const S=window._sc; if(!S)return;
+  const t=S.turnos[S.i]; if(!t)return;
+  ttsSpeak(t.text,{rate:0.92,instructions:SPEAKING_CLUB_TTS});
+}
+
+// Cambridge dice que si el nino no entiende, el examinador repite o reformula. Decir
+// "Sorry, I don't understand" es una habilidad real del examen, no una trampa: por eso
+// tiene boton propio y el sistema responde reformulando, no penalizando.
+async function scDontUnderstand(){
+  const S=window._sc; if(!S)return;
+  const t=S.turnos[S.i]; if(!t)return;
+  const fb=document.getElementById('sc-fb');
+  if(fb)fb.innerHTML='<div style="font-size:13px;color:var(--muted)">\u{1F504} Let’s try again!</div>';
+  let simple=null;
+  try{
+    simple=await callClaude(`Rewrite this question for a 9-year-old learning English, using easier and shorter words. Keep it a question. Return ONLY the new question, nothing else.\nQuestion: ${t.text}`,60);
+  }catch(e){}
+  if(simple&&fb)fb.innerHTML=`<div style="font-size:13px;color:var(--text)">\u{1F504} Let’s try again!<br><b>${simple.trim()}</b></div>`;
+  ttsSpeak((simple&&simple.trim())||t.text,{rate:0.85,instructions:SPEAKING_CLUB_TTS});
+}
+
+// Mismo modelo start/stop por click que el resto de los modulos con microfono.
+async function scMicToggle(){
+  const btn=document.getElementById('sc-btn'),el=document.getElementById('sc-transcript');
+  const rst=document.getElementById('sc-reset'),nxt=document.getElementById('sc-next');
+  if(!micIsRecording()){
+    if(btn){btn.style.background='rgba(245,158,11,.15)';btn.style.borderColor='rgba(245,158,11,.4)';btn.textContent='\u{1F399}️ Get ready...';}
+    if(rst)rst.style.display='block';
+    if(el)el.textContent='';
+    micStart().catch(e=>{if(el)el.textContent='Mic not available.';});
+    setTimeout(()=>{
+      if(micIsRecording()){
+        if(btn){btn.style.background='rgba(239,68,68,.2)';btn.style.borderColor='#ef4444';btn.textContent='\u{1F534} Stop recording';}
+        if(el)el.textContent='Listening... click "Stop recording" when done.';
+      }
+    },900);
+  } else {
+    if(btn){btn.style.background='rgba(34,197,94,.1)';btn.style.borderColor='rgba(34,197,94,.3)';btn.textContent='\u{1F3A4} Start recording';btn.disabled=true;}
+    if(rst)rst.style.display='none';
+    if(nxt)nxt.disabled=true;
+    if(el)el.textContent='Transcribing...';
+    const text=await micStopAndTranscribe();
+    if(el)el.textContent=text||'(no speech detected)';
+    if(btn)btn.disabled=false;
+    if(nxt)nxt.disabled=false;
+  }
+}
+function scMicReset(){
+  if(!micReset())return;
+  const btn=document.getElementById('sc-btn'),el=document.getElementById('sc-transcript'),rst=document.getElementById('sc-reset');
+  if(btn){btn.style.background='rgba(34,197,94,.1)';btn.style.borderColor='rgba(34,197,94,.3)';btn.textContent='\u{1F3A4} Start recording';}
+  if(rst)rst.style.display='none';
+  if(el)el.textContent='Your answer will appear here...';
+}
+
+// El feedback NUNCA dice "incorrecto". Premia comunicarse; si hay un error, ofrece otra
+// forma de decirlo sin interrumpir la fluidez. No evalua pronunciacion: Whisper entrega
+// texto, no audio, y juzgar pronunciacion sobre una transcripcion seria inventar.
+async function scSubmit(){
+  const S=window._sc; if(!S)return;
+  const el=document.getElementById('sc-transcript');
+  const ans=(el&&el.textContent||'').trim();
+  const t=S.turnos[S.i];
+  const fb=document.getElementById('sc-fb');
+  const vacio=!ans||ans.startsWith('Your answer')||ans.startsWith('(no speech')||ans.startsWith('Listening')||ans.startsWith('Transcribing')||ans.startsWith('Mic not');
+  if(vacio){ if(fb)fb.innerHTML='<div style="font-size:13px;color:var(--muted)">\u{1F3A4} Say something first!</div>'; return; }
+  S.answers.push({q:t.text,a:ans});
+  if(fb)fb.innerHTML='<div style="font-size:13px;color:var(--muted)">✨ ...</div>';
+  let out='\u{1F44D} Good!';
+  try{
+    const r=await callClaude(`You are a warm, encouraging English teacher talking to a 9-year-old boy who is practising for the Cambridge A1 Movers Speaking test.
+
+Question asked: "${t.text}"
+What he said: "${ans}"
+
+Reply in ONE short line, in English a 9-year-old understands. Rules:
+- NEVER say "incorrect" or "wrong". Never give a score.
+- If the answer fits the question, praise it: "Great!" or "Nice answer!"
+- If it fits but is very short (one word), praise it and add: "Can you tell me more?"
+- If it fits but has a small grammar slip, praise it first, then add on a new line: "You can also say: <the corrected sentence>"
+- If it does not answer the question at all, say: "Let's try again!" and nothing else.
+- Say NOTHING about pronunciation or accent: you are reading a transcript, not hearing him.
+Return ONLY the reply text.`,120);
+    if(r&&r.trim())out=r.trim();
+  }catch(e){}
+  if(fb)fb.innerHTML=`<div style="font-size:13px;color:var(--text);line-height:1.6;background:var(--bg);border-radius:8px;padding:10px 12px;white-space:pre-wrap">${out.replace(/</g,'&lt;')}</div>
+    <button onclick="scNext()" style="margin-top:10px;width:100%;padding:11px;background:#22c55e;border:none;border-radius:9px;color:#0a0a1a;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">Continue →</button>`;
+}
+
+function scNext(){ const S=window._sc; if(!S)return; S.i++; scAsk(); }
+
+function scFinish(){
+  const S=window._sc; if(!S)return;
+  const n=S.answers.length;
+  const mins=Math.max(1,Math.round((Date.now()-S.started)/60000));
+  const km=Math.round(25+n*4);
+  addKm(km);
+  const lista=S.answers.map(a=>`<div style="padding:9px 0;border-bottom:1px solid var(--border)">
+      <div style="font-size:12px;color:var(--muted)">${a.q}</div>
+      <div style="font-size:13px;color:var(--text);margin-top:3px">\u{1F5E3}️ ${a.a.replace(/</g,'&lt;')}</div>
+    </div>`).join('');
+  document.getElementById('module-content-area').innerHTML=`<div style="max-width:620px;margin:0 auto">
+    <div class="result-box" style="border-color:#22c55e;text-align:center">
+      <div style="font-size:34px">\u{1F3C6}</div>
+      <div style="font-size:16px;font-weight:700;color:#22c55e;margin-top:6px">Well done!</div>
+      <div style="font-size:13px;color:var(--text);margin-top:4px">You answered <b>${n}</b> questions in English · ${mins} min · +${km} km</div>
+    </div>
+    <div style="font-size:11px;color:var(--muted);letter-spacing:2px;font-family:'Orbitron',monospace;margin:18px 0 8px">LO QUE DIJISTE</div>
+    <div style="background:var(--card);border-radius:12px;padding:6px 14px">${lista}</div>
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button onclick="scStart('${S.modo}')" style="flex:1;padding:12px;background:#22c55e;border:none;border-radius:10px;color:#0a0a1a;font-family:'Rajdhani',sans-serif;font-weight:700;cursor:pointer">\u{1F504} Again</button>
+      <button onclick="openSpeakingClub()" style="flex:1;padding:12px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Rajdhani',sans-serif;font-weight:700;cursor:pointer">\u{1F3E0} Speaking Club</button>
+    </div>
+  </div>`;
+  showToast(`Speaking Club: ${n} respuestas — +${km} km!`);
+}
+
 
 async function runMoversRW1(){
   showLoading('Preparing Part 1...');
