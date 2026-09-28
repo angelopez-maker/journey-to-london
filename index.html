@@ -774,6 +774,13 @@
           <div class="rqn-sub">Elige cualquier tema PET</div>
           <div class="rqn-badge next">Gramática · Vocab · Más</div>
         </button>
+        <button class="rqn-btn" onclick="openDueloFuturo()" style="border-color:rgba(96,165,250,.4);background:rgba(96,165,250,.06)">
+          <div class="rqn-icon">🔮</div>
+          <div class="rqn-cat" style="color:#60a5fa">FUTURO</div>
+          <div class="rqn-title">El Duelo del Futuro</div>
+          <div class="rqn-sub">&#191;Cu&#225;l de las cinco formas?</div>
+          <div class="rqn-badge" style="background:rgba(96,165,250,.15);color:#60a5fa;border-color:rgba(96,165,250,.3)">Unidad 5 &#183; B1</div>
+        </button>
         <button class="rqn-btn test" onclick="openTestTheTest()">
           <div class="rqn-icon">📋</div>
           <div class="rqn-cat">EXAM PREP</div>
@@ -6598,6 +6605,402 @@ Never say "wrong". Say nothing about pronunciation. Return ONLY the reply.`,160)
 function scpNext3(){const S=window._scp;if(!S)return;S.i++;scpRender3();}
 
 // ── Hub ──
+// ══════════════════════════════════════════════════════════════════════════
+// EL DUELO DEL FUTURO — Fernando (28 septiembre 2026)
+// Entrena lo único que el libro no enseña: ELEGIR cuál de las cinco formas.
+//
+// Criterio de diseño (el mismo que arregló el R&W Part 2 de Rodrigo):
+// el banco está ESCRITO A MANO y etiquetado. La IA no inventa items — solo
+// explica cuando el niño pregunta "¿y por qué no la otra?". Cada distractor
+// es PLAUSIBLE: si el distractor es absurdo, el ejercicio deja de medir
+// criterio y pasa a medir "cuál se ve rara".
+//
+// Complementa el material impreso: 'El Futuro - Cuaderno completo' y
+// 'Test del Futuro'. Los nombres de las reglas son los mismos en los tres.
+// ══════════════════════════════════════════════════════════════════════════
+
+const FUTURO_FORMAS={
+  will :{et:'WILL',              c:'#60a5fa', lema:'sale de tu cabeza'},
+  gt   :{et:'BE GOING TO',       c:'#c084fc', lema:'ya existía antes de hablar'},
+  pc   :{et:'PRESENT CONTINUOUS',c:'#2dd4bf', lema:'ya está en la agenda'},
+  ps   :{et:'PRESENT SIMPLE',    c:'#eab308', lema:'no depende de nadie'},
+  might:{et:'MIGHT',             c:'#f87171', lema:'quizás'}
+};
+
+// t = frase con ___ · o = opciones · c = índice correcto · f = forma
+// w = por qué esa · x = por qué falla cada otra (paralelo a o, null en la correcta)
+const FUTURO_BANCO=[
+// ── WILL ──
+{t:"I think it ___ tomorrow.",o:["will rain","is going to rain"],c:0,f:'will',
+ w:"Con <b>I think</b> el futuro va con <b>will</b>: es lo que crees, no lo que ves.",
+ x:[null,"<i>going to</i> pide evidencia delante o un plan ya tomado. Acá solo lo supones."]},
+{t:"That bag looks heavy. ___ it for you.",o:["I'll carry","I'm going to carry"],c:0,f:'will',
+ w:"Es un <b>ofrecimiento</b>, y nace justo ahora, mientras hablas.",
+ x:[null,"<i>going to</i> es para lo que ya tenías decidido. Este ofrecimiento no existía hace un segundo."]},
+{t:"I promise I ___ anyone.",o:["won't tell","'m not going to tell"],c:0,f:'will',
+ w:"Las <b>promesas</b> van con <b>will</b>. Es uno de los 8 usos del libro.",
+ x:[null,"<i>going to</i> suena a plan, no a compromiso. Una promesa se hace con <i>will</i>."]},
+{t:"___ the window, please?",o:["Will you close","Are you going to close"],c:0,f:'will',
+ w:"<b>Pedirle algo a alguien</b> se hace con <b>Will you…?</b>",
+ x:[null,"Eso pregunta por sus planes, no le pide el favor."]},
+{t:"One day cars ___ themselves.",o:["will drive","are driving"],c:0,f:'will',
+ w:"Es una <b>predicción</b> a futuro lejano: <i>one day</i>, sin fecha ni evidencia.",
+ x:[null,"Present continuous necesita un plan arreglado con fecha. Nadie agendó eso."]},
+{t:"<i>(suena el teléfono)</i> ___ it!",o:["I'll get","I'm getting"],c:0,f:'will',
+ w:"<b>Decisión repentina</b>: el teléfono sonó recién y decidiste en ese segundo.",
+ x:[null,"Eso significaría que ya estaba arreglado de antes. No lo estaba."]},
+{t:"I ___ thirteen next March.",o:["will be","am going to be"],c:0,f:'will',
+ w:"Es un <b>hecho futuro</b>: pasa solo, no lo decide nadie.",
+ x:[null,"Cumplir años no es un plan tuyo ni algo que estés viendo venir."]},
+{t:"She ___ probably win the race.",o:["will","is going to"],c:0,f:'will',
+ w:"Con <b>probably</b> el inglés pide <b>will</b>: futuro incierto.",
+ x:[null,"<i>probably</i> dice justamente que no estás seguro. <i>going to</i> suena a que lo ves venir."]},
+{t:"If you do that again, I ___ Mum.",o:["'ll tell","'m telling"],c:0,f:'will',
+ w:"Es una <b>amenaza</b>, y también nace en el momento.",
+ x:[null,"Eso suena a plan ya arreglado con tu mamá, que no es la idea."]},
+{t:"I hope it ___ sunny on Saturday.",o:["will be","is being"],c:0,f:'will',
+ w:"Con <b>hope</b> va <b>will</b>: futuro incierto, uso 7 del libro.",
+ x:[null,"<i>be</i> casi no va en <i>-ing</i>, y menos para hablar del futuro."]},
+{t:"Don't worry, I ___ you tonight.",o:["'ll call","call"],c:0,f:'will',
+ w:"Es una <b>promesa</b> hecha ahora mismo.",
+ x:[null,"El present simple solo sirve para horarios oficiales, no para lo que tú prometes."]},
+{t:"Nobody knows what ___ in 2050.",o:["will happen","is happening"],c:0,f:'will',
+ w:"<b>Predicción</b> pura: nadie sabe, nadie tiene evidencia.",
+ x:[null,"Present continuous habla de algo ya arreglado. Nadie arregló el año 2050."]},
+// ── BE GOING TO ──
+{t:"Look at those clouds! It ___ soon.",o:["will rain","is going to rain"],c:1,f:'gt',
+ w:"La <b>evidencia está delante de ti</b>: las nubes ya están ahí.",
+ x:["<i>will</i> sirve cuando solo lo crees. Acá lo estás viendo.",null]},
+{t:"Careful! You ___ that glass!",o:["will break","are going to break"],c:1,f:'gt',
+ w:"Lo estás viendo pasar: hay <b>evidencia en el presente</b>.",
+ x:["<i>will</i> sería una predicción sacada de la nada. Esto ya está ocurriendo.",null]},
+{t:"I've decided: I ___ a doctor.",o:["will be","am going to be"],c:1,f:'gt',
+ w:"<b>I've decided</b> lo dice todo: la decisión ya estaba tomada antes de hablar.",
+ x:["<i>will</i> es para la decisión que nace en el momento. Esta ya estaba tomada.",null]},
+{t:"He's running too fast — he ___!",o:["will fall","is going to fall"],c:1,f:'gt',
+ w:"Lo estás viendo correr: la <b>evidencia manda</b>.",
+ x:["<i>will</i> no encaja cuando la causa está pasando delante de ti.",null]},
+{t:"This summer I ___ my grandparents.",o:["am going to visit","am visiting"],c:0,f:'gt',
+ w:"Es una <b>intención</b>: lo quieres hacer, pero no hay nada arreglado todavía.",
+ x:[null,"Present continuous pide algo ya arreglado. <i>This summer</i> a secas no lo está."]},
+{t:"We ___ a new car. We've been saving for months.",o:["are going to buy","buy"],c:0,f:'gt',
+ w:"<b>Plan ya decidido</b>: llevan meses ahorrando para esto.",
+ x:[null,"El present simple hablaría de algo que hacen siempre, no de este plan."]},
+{t:"Watch out! The ladder ___!",o:["is going to fall","might fall"],c:0,f:'gt',
+ w:"<b>Watch out!</b> significa que lo estás viendo: hay evidencia.",
+ x:[null,"<i>might</i> es para cuando <b>no</b> tienes evidencia. Acá la tienes delante."]},
+{t:"I ___ study medicine. I chose it last year.",o:["am going to","will"],c:0,f:'gt',
+ w:"Lo eligió el año pasado: la decisión es <b>vieja</b>, no de ahora.",
+ x:[null,"<i>will</i> sirve para lo que decides en este segundo."]},
+{t:"Look at his face — he ___ cry.",o:["is going to","will"],c:0,f:'gt',
+ w:"Su cara es la <b>evidencia</b>, y está delante de ti.",
+ x:[null,"<i>will</i> sería adivinar. Acá no adivinas: lo ves."]},
+{t:"___ the match tonight? You said you had it all planned.",o:["Are you going to watch","Will you watch"],c:0,f:'gt',
+ w:"Pregunta por un <b>plan que ya existía</b>: él mismo lo había dicho.",
+ x:[null,"<i>Will you…?</i> suena a pedirle un favor, no a preguntar por su plan."]},
+{t:"The sky is getting dark. There ___ a storm.",o:["is going to be","will be"],c:0,f:'gt',
+ w:"El cielo oscureciéndose es la <b>evidencia presente</b>.",
+ x:[null,"<i>will</i> es para lo que crees sin pruebas. Acá la prueba está a la vista."]},
+{t:"I've already decided: I ___ at home tonight.",o:["am going to stay","will stay"],c:0,f:'gt',
+ w:"<b>Already decided</b>: la decisión es anterior a esta frase.",
+ x:[null,"<i>will</i> contradice el <i>already decided</i>: sería decidirlo recién."]},
+{t:"She ___ her hair. She's just bought the dye.",o:["is going to colour","will colour"],c:0,f:'gt',
+ w:"Comprar el tinte es <b>evidencia</b> de un plan que ya existe.",
+ x:[null,"<i>will</i> no sirve cuando ya hay señales concretas de la decisión."]},
+{t:"We ___ a party next month — we haven't booked anything yet.",o:["are going to have","are having"],c:0,f:'gt',
+ w:"Hay <b>intención</b> pero todavía no hay nada reservado.",
+ x:[null,"Present continuous exige que ya esté arreglado, y acá no hay nada reservado."]},
+// ── PRESENT CONTINUOUS ──
+{t:"I ___ Pablo at six. It's all arranged.",o:["am meeting","meet"],c:0,f:'pc',
+ w:"<b>Arreglado</b>, con hora: plan fijo, va en present continuous.",
+ x:[null,"El present simple solo sirve para horarios oficiales, no para tus citas."]},
+{t:"We ___ to London on 3rd July. Everything is booked.",o:["are flying","fly"],c:0,f:'pc',
+ w:"Pasajes sacados y fecha puesta: es un <b>compromiso</b>.",
+ x:[null,"<i>We fly</i> hablaría de una rutina, como si volaran todos los 3 de julio."]},
+{t:"She ___ a party on Saturday. She's invited everyone.",o:["is having","will have"],c:0,f:'pc',
+ w:"Ya invitó a todos: está <b>arreglado</b>, no es una idea.",
+ x:[null,"<i>will</i> es para lo que crees o decides ahora. Esto ya está armado."]},
+{t:"What ___ tonight?",o:["are you doing","do you do"],c:0,f:'pc',
+ w:"Pregunta por los <b>planes</b> de esta noche.",
+ x:[null,"<i>What do you do?</i> pregunta en qué trabajas o qué haces siempre."]},
+{t:"I can't come. I ___ the dentist tomorrow morning.",o:["am seeing","see"],c:0,f:'pc',
+ w:"Hora con el dentista: <b>cita agendada</b>.",
+ x:[null,"<i>I see the dentist</i> suena a costumbre, no a la hora de mañana."]},
+{t:"They ___ dinner with us tonight. I already set the table.",o:["are having","will have"],c:0,f:'pc',
+ w:"La mesa ya está puesta: el plan <b>ya está armado</b>.",
+ x:[null,"<i>will</i> lo dejaría como una idea, y acá ya hay mesa puesta."]},
+{t:"Don't call me at eight — I ___ football with Pablo.",o:["am playing","play"],c:0,f:'pc',
+ w:"Es un plan <b>con hora y con gente</b>: a las ocho, con Pablo.",
+ x:[null,"<i>I play football</i> habla de lo que haces siempre, no de esta noche."]},
+{t:"We ___ the museum tomorrow. The guide is booked.",o:["are visiting","visit"],c:0,f:'pc',
+ w:"Guía reservado: <b>arreglado</b>.",
+ x:[null,"El present simple dejaría la visita como parte de una rutina."]},
+{t:"She ___ her grandmother on Sunday. It's in her diary.",o:["is visiting","visits"],c:0,f:'pc',
+ w:"Está <b>anotado en la agenda</b>. Esa es literalmente la regla.",
+ x:[null,"<i>She visits her grandmother on Sundays</i> sería una costumbre, no este domingo."]},
+{t:"___ to the party on Friday? I need to know.",o:["Are you coming","Do you come"],c:0,f:'pc',
+ w:"Pregunta por un <b>plan concreto</b> del viernes.",
+ x:[null,"<i>Do you come…?</i> preguntaría si sueles ir a esas fiestas."]},
+{t:"We ___ at seven tonight. I booked the table.",o:["are eating","eat"],c:0,f:'pc',
+ w:"Mesa reservada y hora fijada: <b>compromiso</b>.",
+ x:[null,"<i>We eat at seven</i> sería lo que hacen todos los días."]},
+// ── PRESENT SIMPLE ──
+{t:"The train ___ at 7:30 every morning.",o:["leaves","is leaving"],c:0,f:'ps',
+ w:"<b>Horario oficial</b> que se repite. No lo decide nadie.",
+ x:[null,"Present continuous sería un plan de alguien; el tren no planea nada."]},
+{t:"The film ___ at eight, so hurry up.",o:["starts","is going to start"],c:0,f:'ps',
+ w:"El cine tiene <b>cartelera</b>: es un horario impreso.",
+ x:[null,"<i>going to</i> es para planes o predicciones, no para la cartelera del cine."]},
+{t:"School ___ on 3rd March.",o:["begins","is beginning"],c:0,f:'ps',
+ w:"<b>Calendario escolar</b>: está fijado y no depende de ti.",
+ x:[null,"Present continuous sería un plan personal, y este no lo es."]},
+{t:"What time ___ tomorrow?",o:["does the museum open","is the museum opening"],c:0,f:'ps',
+ w:"Pregunta por el <b>horario</b> del museo.",
+ x:[null,"Eso preguntaría por una apertura especial arreglada para mañana."]},
+{t:"The match ___ on Sunday at four.",o:["is","will be"],c:0,f:'ps',
+ w:"El partido tiene <b>fecha y hora oficiales</b>: con <i>be</i> basta.",
+ x:[null,"<i>will be</i> lo convertiría en una predicción, y esto ya está programado."]},
+{t:"Our plane ___ at 6:40 in the morning.",o:["leaves","is going to leave"],c:0,f:'ps',
+ w:"Los aviones tienen <b>itinerario</b>.",
+ x:[null,"<i>going to</i> haría parecer que el avión lo decidió."]},
+{t:"The shop ___ at six on Saturdays.",o:["doesn't close","is not closing"],c:0,f:'ps',
+ w:"Horario de la tienda, en negativo: <b>doesn't</b> + verbo desnudo.",
+ x:[null,"Present continuous hablaría de este sábado en particular, no del horario."]},
+{t:"Hurry up! The bus ___ in five minutes.",o:["leaves","will leave"],c:0,f:'ps',
+ w:"Aunque falten cinco minutos, sigue siendo el <b>horario del bus</b>.",
+ x:[null,"<i>will</i> sería adivinar la hora, y la hora está en el letrero."]},
+{t:"The new term ___ on 1st March.",o:["starts","is starting"],c:0,f:'ps',
+ w:"<b>Calendario oficial</b> del colegio.",
+ x:[null,"Present continuous lo haría sonar como un plan de alguien."]},
+{t:"The library ___ at eight tomorrow morning.",o:["opens","is opening"],c:0,f:'ps',
+ w:"<b>Horario</b> de la biblioteca.",
+ x:[null,"Eso sonaría a una inauguración arreglada para mañana."]},
+{t:"The exam ___ next Tuesday at nine.",o:["is","is being"],c:0,f:'ps',
+ w:"Fecha y hora <b>oficiales</b>: con <i>be</i> en present simple.",
+ x:[null,"<i>is being</i> no se usa así; <i>be</i> casi no va en <i>-ing</i>."]},
+// ── MIGHT ──
+{t:"Take a coat. It ___ cold later, but I'm not sure.",o:["might be","is going to be"],c:0,f:'might',
+ w:"<b>I'm not sure</b>: posibilidad, sin ninguna evidencia.",
+ x:[null,"<i>going to</i> necesita evidencia delante, y acá no la hay."]},
+{t:"Maybe I ___ to the party — I haven't decided.",o:["might go","am going to go"],c:0,f:'might',
+ w:"<b>No ha decidido</b>: eso es exactamente <i>might</i>.",
+ x:[null,"<i>going to</i> significa que ya lo decidiste, y la frase dice lo contrario."]},
+{t:"Perhaps we ___ to the beach — who knows.",o:["might go","are going"],c:0,f:'might',
+ w:"<b>Perhaps</b> y <b>who knows</b>: pura posibilidad.",
+ x:[null,"Present continuous exige que esté arreglado, y nadie arregló nada."]},
+{t:"We ___ time tomorrow. It depends on the weather.",o:["might not have","are not having"],c:0,f:'might',
+ w:"<b>It depends</b>: no lo sabes todavía.",
+ x:[null,"Present continuous afirmaría que ya está decidido que no."]},
+{t:"I'm not sure, but she ___ late.",o:["might be","is being"],c:0,f:'might',
+ w:"<b>I'm not sure</b>: cincuenta y cincuenta.",
+ x:[null,"<i>is being late</i> no se dice; <i>be</i> casi no va en <i>-ing</i>."]},
+{t:"It ___ tomorrow, but the forecast says nothing.",o:["might snow","is going to snow"],c:0,f:'might',
+ w:"Sin pronóstico no hay evidencia: solo <b>posibilidad</b>.",
+ x:[null,"<i>going to</i> pide una señal concreta, y la frase dice que no hay ninguna."]},
+{t:"Don't wait for me. I ___ be late.",o:["might","will"],c:0,f:'might',
+ w:"No lo sabe: avisa por si acaso.",
+ x:[null,"<i>will</i> suena a que estás seguro de llegar tarde, y no lo estás."]},
+{t:"She ___ like the present — it depends on her taste.",o:["might not","will not"],c:0,f:'might',
+ w:"<b>It depends</b>: no te comprometes con ninguna de las dos.",
+ x:[null,"<i>will not</i> afirmaría que seguro no le gusta. Eso no lo sabes."]},
+{t:"We ___ go to the cinema tonight. Or we might stay home.",o:["might","are going to"],c:0,f:'might',
+ w:"La misma frase ofrece <b>dos posibilidades</b>: nada está decidido.",
+ x:[null,"<i>going to</i> diría que ya está decidido, y la segunda mitad lo desmiente."]},
+{t:"Take an umbrella. It ___ rain, but the sky is clear.",o:["might","is going to"],c:0,f:'might',
+ w:"El cielo está despejado: <b>no hay evidencia</b>, solo precaución.",
+ x:[null,"<i>going to</i> necesita evidencia, y la frase dice que el cielo está limpio."]}
+];
+
+// Fisher-Yates. Principio 9: nunca .sort(()=>Math.random()-0.5).
+function _dfFY(a){const r=a.slice();for(let i=r.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[r[i],r[j]]=[r[j],r[i]];}return r;}
+
+const DF_KEY='jtl_duelo_futuro_v1';
+function _dfStats(){
+  try{const s=JSON.parse(localStorage.getItem(DF_KEY)||'{}');
+    Object.keys(FUTURO_FORMAS).forEach(k=>{if(!s[k])s[k]={ok:0,n:0};});return s;}
+  catch(e){const s={};Object.keys(FUTURO_FORMAS).forEach(k=>s[k]={ok:0,n:0});return s;}
+}
+function _dfSave(s){try{localStorage.setItem(DF_KEY,JSON.stringify(s));}catch(e){}}
+function _dfPct(st,k){return st[k].n?Math.round(st[k].ok/st[k].n*100):null;}
+
+// Las débiles primero: ordena las formas por peor porcentaje (las no vistas van al medio).
+function _dfDebiles(){
+  const st=_dfStats();
+  return Object.keys(FUTURO_FORMAS).map(k=>({k,p:_dfPct(st,k)===null?55:_dfPct(st,k)}))
+    .sort((a,b)=>a.p-b.p).map(o=>o.k);
+}
+
+function openDueloFuturo(){
+  openModule('movers');
+  document.getElementById('mod-title').textContent='EL DUELO DEL FUTURO';
+  const st=_dfStats();
+  const chips=Object.keys(FUTURO_FORMAS).map(k=>{
+    const F=FUTURO_FORMAS[k],p=_dfPct(st,k),n=FUTURO_BANCO.filter(i=>i.f===k).length;
+    const badge=p===null?'<span style="color:var(--muted);font-size:11px">sin datos</span>'
+      :`<span style="font-size:11px;font-weight:700;color:${p>=80?'#22c55e':p>=60?'#eab308':'#f87171'}">${p}%</span>`;
+    return `<button onclick="dfStart('${k}')" style="display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:11px 14px;margin-bottom:8px;background:var(--card);border:1px solid var(--border);border-left:3px solid ${F.c};border-radius:12px;cursor:pointer">
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:700;color:${F.c}">${F.et}</div>
+        <div style="font-size:11px;color:var(--muted)">${F.lema} · ${n} situaciones</div>
+      </div>${badge}</button>`;
+  }).join('');
+  document.getElementById('module-content-area').innerHTML=`<div style="max-width:620px;margin:0 auto">
+    <div style="background:rgba(96,165,250,.06);border:1px solid rgba(96,165,250,.3);border-radius:14px;padding:16px 18px;margin-bottom:18px">
+      <div style="font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:#60a5fa;letter-spacing:2px">EL DUELO DEL FUTURO</div>
+      <div style="font-size:15px;font-weight:700;color:var(--text);margin-top:4px">¿Cuál de las cinco? 🔮</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:8px;line-height:1.6">Acá no se trata de armar la forma: se trata de <b style="color:var(--text)">elegirla</b>.<br>Lee la situación completa — la pista siempre está fuera del hueco.</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:10px;font-style:italic">Mismas reglas que tu Cuaderno del Futuro.</div>
+    </div>
+    <button onclick="dfStart('debiles')" style="width:100%;padding:14px;margin-bottom:10px;background:#60a5fa;border:none;border-radius:14px;color:#0a0a1a;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:15px;letter-spacing:1px;cursor:pointer">🎯 DONDE MÁS FALLAS — 12 situaciones</button>
+    <button onclick="dfStart('mix')" style="width:100%;padding:12px;margin-bottom:18px;background:var(--card);border:1px solid var(--border);border-radius:14px;color:var(--text);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">🎲 MEZCLA COMPLETA — 15 al azar</button>
+    <div style="font-size:11px;color:var(--muted);letter-spacing:2px;font-family:'Orbitron',monospace;margin-bottom:10px">UNA FORMA A LA VEZ</div>
+    ${chips}
+    <div style="font-size:11px;color:var(--muted);font-style:italic;margin-top:12px">El porcentaje es tuyo y se guarda en este equipo. ${FUTURO_BANCO.length} situaciones en total.</div>
+  </div>`;
+}
+
+function dfStart(modo){
+  let items=[];
+  if(modo==='mix'){
+    items=_dfFY(FUTURO_BANCO).slice(0,15);
+  } else if(modo==='debiles'){
+    const orden=_dfDebiles();
+    // 5 de la peor, 4 de la segunda, 3 de la tercera: insiste donde duele.
+    const reparto=[5,4,3];
+    orden.slice(0,3).forEach((k,i)=>{
+      items=items.concat(_dfFY(FUTURO_BANCO.filter(it=>it.f===k)).slice(0,reparto[i]));
+    });
+    items=_dfFY(items);
+  } else {
+    items=_dfFY(FUTURO_BANCO.filter(it=>it.f===modo)).slice(0,10);
+  }
+  if(!items.length){showToast('No hay situaciones para eso.');return;}
+  window._df={modo,items,i:0,ok:0,fallos:{},started:Date.now()};
+  dfAsk();
+}
+
+function dfAsk(){
+  const S=window._df; if(!S)return;
+  if(S.i>=S.items.length){dfFinish();return;}
+  const it=S.items[S.i];
+  const pct=Math.round(S.i/S.items.length*100);
+  const frase=it.t.replace('___','<span style="color:#60a5fa;font-weight:700">________</span>');
+  const ops=it.o.map((o,idx)=>`<button id="df-op-${idx}" onclick="dfAnswer(${idx})" style="display:block;width:100%;text-align:left;padding:13px 16px;margin-bottom:9px;background:var(--card);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:15px;cursor:pointer">${o}</button>`).join('');
+  document.getElementById('module-content-area').innerHTML=`<div style="max-width:620px;margin:0 auto">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      <div style="flex:1;height:4px;background:var(--card2);border-radius:2px"><div style="height:100%;width:${pct}%;background:#60a5fa;border-radius:2px"></div></div>
+      <span style="font-size:11px;color:var(--muted);font-family:'Orbitron',monospace">${S.i+1}/${S.items.length}</span>
+    </div>
+    <div style="background:var(--card2);border-radius:14px;padding:20px 18px;margin-bottom:16px;font-size:17px;line-height:1.6;color:var(--text)">${frase}</div>
+    <div id="df-ops">${ops}</div>
+    <div id="df-fb"></div>
+    <button onclick="openDueloFuturo()" style="background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;width:100%;text-align:center;margin-top:14px">← El Duelo del Futuro</button>
+  </div>`;
+}
+
+function dfAnswer(idx){
+  const S=window._df; if(!S||S.answered)return;
+  S.answered=true;
+  const it=S.items[S.i],bien=idx===it.c,F=FUTURO_FORMAS[it.f];
+  it.o.forEach((_,i)=>{
+    const b=document.getElementById('df-op-'+i); if(!b)return;
+    b.style.cursor='default'; b.onclick=null;
+    if(i===it.c){b.style.borderColor='#22c55e';b.style.background='rgba(34,197,94,.10)';b.style.color='#22c55e';b.style.fontWeight='700';}
+    else if(i===idx){b.style.borderColor='#f87171';b.style.background='rgba(248,113,113,.08)';b.style.color='#f87171';}
+    else {b.style.opacity='.45';}
+  });
+  const st=_dfStats(); st[it.f].n++; if(bien)st[it.f].ok++; _dfSave(st);
+  if(bien){S.ok++;} else {S.fallos[it.f]=(S.fallos[it.f]||0)+1;}
+  const porQueNo = (!bien && it.x[idx]) ? `<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+      <div style="font-size:11px;color:#f87171;font-family:'Orbitron',monospace;letter-spacing:1px;margin-bottom:4px">POR QUÉ NO LA QUE ELEGISTE</div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.5">${it.x[idx]}</div></div>` : '';
+  document.getElementById('df-fb').innerHTML=`<div style="background:var(--card);border:1px solid ${bien?'rgba(34,197,94,.35)':'rgba(248,113,113,.35)'};border-radius:13px;padding:15px 17px;margin-top:6px">
+      <div style="display:flex;align-items:center;gap:9px;margin-bottom:8px">
+        <span style="font-size:19px">${bien?'✅':'🔍'}</span>
+        <span style="font-size:12px;font-weight:700;letter-spacing:2px;font-family:'Orbitron',monospace;color:${F.c}">${F.et}</span>
+      </div>
+      <div style="font-size:14px;color:var(--text);line-height:1.55">${it.w}</div>
+      ${porQueNo}
+      <div style="display:flex;gap:8px;margin-top:13px">
+        <button onclick="dfPorQue()" id="df-why" style="flex:1;padding:10px;background:var(--card2);border:1px solid var(--border);border-radius:9px;color:var(--muted);font-size:12px;cursor:pointer">🤔 Explícamelo de otra forma</button>
+        <button onclick="dfNext()" style="padding:10px 20px;background:#60a5fa;border:none;border-radius:9px;color:#0a0a1a;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">Siguiente →</button>
+      </div>
+      <div id="df-why-out" style="margin-top:10px"></div>
+    </div>`;
+}
+
+// La IA entra SOLO acá: no inventa el item ni la respuesta, solo vuelve a explicar
+// lo que ya está decidido en el banco. Se le pasa la regla como dato, no como pregunta.
+async function dfPorQue(){
+  const S=window._df; if(!S)return;
+  const it=S.items[S.i],F=FUTURO_FORMAS[it.f];
+  const out=document.getElementById('df-why-out'),btn=document.getElementById('df-why');
+  if(btn){btn.disabled=true;btn.textContent='Pensando...';}
+  if(out)out.innerHTML='<div style="font-size:12px;color:var(--muted);font-style:italic">Miss Kamil_IA está pensando...</div>';
+  const prompt=`Eres Miss Kamil_IA, profesora de ingles de Fernando (12 anos, nivel B1, chileno).
+Fernando esta practicando cuando usar cada forma de futuro.
+
+LA FRASE: "${it.t.replace('___', it.o[it.c])}"
+LA FORMA CORRECTA ES: ${F.et}
+LA RAZON YA ESTABLECIDA (no la contradigas, no la cambies): ${it.w.replace(/<[^>]+>/g,'')}
+
+Explicale ESA MISMA razon de otra manera, con otras palabras, en 2 o 3 frases cortas
+en espanol chileno de tu (nunca vos). Usa una comparacion o un ejemplo distinto del
+que ya vio. No repitas la explicacion literal. No uses garabatos. No listes reglas:
+explicasela como se la explicarias hablando.
+Responde SOLO con el texto de la explicacion, sin comillas ni encabezados.`;
+  try{
+    const r=await callClaude(prompt,300);
+    if(out)out.innerHTML=`<div style="background:var(--card2);border-left:3px solid ${F.c};border-radius:0 9px 9px 0;padding:11px 13px;font-size:13px;color:var(--text);line-height:1.55">${String(r).trim()}</div>`;
+  }catch(e){
+    if(out)out.innerHTML='<div style="font-size:12px;color:var(--muted)">No pude conectarme. La explicación de arriba es la buena.</div>';
+  }
+  if(btn){btn.disabled=false;btn.textContent='🤔 Explícamelo de otra forma';}
+}
+
+function dfNext(){
+  const S=window._df; if(!S)return;
+  S.i++; S.answered=false; dfAsk();
+}
+
+function dfFinish(){
+  const S=window._df; if(!S)return;
+  const total=S.items.length,pct=Math.round(S.ok/total*100);
+  const mins=Math.max(1,Math.round((Date.now()-S.started)/60000));
+  const km=Math.max(3,Math.round(S.ok*1.2));
+  addKm(km);
+  const peor=Object.keys(S.fallos).sort((a,b)=>S.fallos[b]-S.fallos[a])[0];
+  const st=_dfStats();
+  const tabla=Object.keys(FUTURO_FORMAS).map(k=>{
+    const F=FUTURO_FORMAS[k],p=_dfPct(st,k);
+    return `<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)">
+      <div style="width:8px;height:8px;border-radius:50%;background:${F.c};flex-shrink:0"></div>
+      <div style="flex:1;font-size:12px;color:var(--text)">${F.et}</div>
+      <div style="font-size:12px;font-weight:700;color:${p===null?'var(--muted)':p>=80?'#22c55e':p>=60?'#eab308':'#f87171'}">${p===null?'—':p+'%'}</div>
+      <button onclick="dfStart('${k}')" style="padding:4px 10px;background:var(--card2);border:1px solid var(--border);border-radius:7px;color:var(--muted);font-size:11px;cursor:pointer">practicar</button>
+    </div>`;
+  }).join('');
+  const consejo = peor
+    ? `Donde más se te fue hoy fue en <b style="color:${FUTURO_FORMAS[peor].c}">${FUTURO_FORMAS[peor].et}</b>. Abre esa carilla del cuaderno y lee la sección <b>NO LO USES CUANDO</b> — ahí está la respuesta.`
+    : `No fallaste ninguna. Prueba la mezcla completa o sube la apuesta con las que menos has practicado.`;
+  document.getElementById('module-content-area').innerHTML=`<div style="max-width:620px;margin:0 auto;text-align:center">
+    <div style="font-size:46px;margin-bottom:6px">${pct>=80?'🏆':pct>=60?'💪':'🔍'}</div>
+    <div style="font-family:'Orbitron',monospace;font-size:11px;letter-spacing:2px;color:var(--muted)">EL DUELO DEL FUTURO</div>
+    <div style="font-size:30px;font-weight:700;color:var(--text);margin:6px 0">${S.ok} / ${total}</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:6px">${pct}% · ${mins} min · +${km} km</div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:13px;padding:15px 17px;margin:16px 0;text-align:left;font-size:13px;color:var(--muted);line-height:1.6">${consejo}</div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:13px;padding:13px 17px;margin-bottom:16px;text-align:left">
+      <div style="font-size:11px;font-family:'Orbitron',monospace;letter-spacing:2px;color:var(--muted);margin-bottom:8px">TU HISTORIAL POR FORMA</div>
+      ${tabla}
+    </div>
+    <div style="display:flex;gap:9px">
+      <button onclick="dfStart('debiles')" style="flex:1;padding:12px;background:#60a5fa;border:none;border-radius:11px;color:#0a0a1a;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">🎯 Otra ronda</button>
+      <button onclick="openDueloFuturo()" style="flex:1;padding:12px;background:var(--card);border:1px solid var(--border);border-radius:11px;color:var(--text);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">← Menú</button>
+    </div>
+  </div>`;
+  window._df=null;
+}
+
 function openSpeakingClub(){
   openModule('movers');
   document.getElementById('mod-title').textContent='SPEAKING CLUB';
