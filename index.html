@@ -6814,6 +6814,15 @@ const FUTURO_BANCO=[
 // Fisher-Yates. Principio 9: nunca .sort(()=>Math.random()-0.5).
 function _dfFY(a){const r=a.slice();for(let i=r.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[r[i],r[j]]=[r[j],r[i]];}return r;}
 
+// Baraja las opciones de UNA pregunta, en una copia. El banco quedo escrito con la
+// respuesta correcta casi siempre primera (93%), asi que mostrarlo en orden ensenaba
+// "elige la de arriba" en vez de la regla. 'x' viaja pegado a 'o' y 'c' se recalcula,
+// de modo que x[c] sigue siendo null y cada explicacion sigue con su opcion.
+function _dfBaraja(it){
+  const idx=_dfFY(it.o.map((_,i)=>i));
+  return Object.assign({},it,{o:idx.map(i=>it.o[i]),x:idx.map(i=>it.x[i]),c:idx.indexOf(it.c)});
+}
+
 const DF_KEY='jtl_duelo_futuro_v1';
 function _dfStats(){
   try{const s=JSON.parse(localStorage.getItem(DF_KEY)||'{}');
@@ -6875,6 +6884,7 @@ function dfStart(modo){
     items=_dfFY(FUTURO_BANCO.filter(it=>it.f===modo)).slice(0,10);
   }
   if(!items.length){showToast('No hay situaciones para eso.');return;}
+  items=items.map(_dfBaraja);
   window._df={modo,items,i:0,ok:0,fallos:{},started:Date.now()};
   dfAsk();
 }
