@@ -9623,14 +9623,17 @@ function openNarniaSkills(){
       </div>
       <div style="color:var(--muted);font-size:16px">▶</div>
     </button>
-    ${['📖 READING','🗣️ SPEAKING','✍️ WRITING'].map(t=>`
-      <div style="display:flex;align-items:center;gap:13px;width:100%;padding:15px 17px;margin-bottom:9px;background:var(--card2);border:1px dashed var(--border);border-radius:13px;opacity:.55">
-        <div style="font-size:24px">${t.split(' ')[0]}</div>
+    ${[['nrMenu()','📖','READING','#60a5fa',NARNIA_TF.length+' frases · V / F / no se dice, y ordenar los hechos'],
+       ['nsMenu()','🗣️','SPEAKING','#22c55e',NARNIA_SPEAK.length+' preguntas de opinión · con micrófono'],
+       ['nwMenu()','✍️','WRITING','#c084fc',NARNIA_WRITE.length+' tareas tipo PET · con corrección']]
+      .map(b=>`<button onclick="${b[0]}" style="display:flex;align-items:center;gap:13px;width:100%;text-align:left;padding:15px 17px;margin-bottom:9px;background:var(--card);border:1px solid var(--border);border-left:3px solid ${b[3]};border-radius:13px;cursor:pointer">
+        <div style="font-size:26px">${b[1]}</div>
         <div style="flex:1">
-          <div style="font-size:14px;font-weight:700;color:var(--muted)">${t.split(' ')[1]}</div>
-          <div style="font-size:12px;color:var(--muted)">Próximamente</div>
+          <div style="font-size:14px;font-weight:700;color:${b[3]}">${b[2]}</div>
+          <div style="font-size:12px;color:var(--muted)">${b[4]}</div>
         </div>
-      </div>`).join('')}
+        <div style="color:var(--muted);font-size:16px">▶</div>
+      </button>`).join('')}
     <button onclick="openModule('bookclub')" style="background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;width:100%;margin-top:12px">← Book Club</button>
   </div>`;
 }
@@ -9773,6 +9776,550 @@ function nlFinish(){
   </div>`;
   showToast(`Narnia Listening: ${S.ok}/${S.total} — +${km} km!`);
   window._nl=null;
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// NARNIA · CAPÍTULOS 1-4 — READING, SPEAKING y WRITING (29 septiembre 2026)
+// Completa las 4 habilidades sobre la card del Book Club. Listening ya estaba.
+//
+// Se aplican de entrada las tres lecciones que salieron de Listening:
+//   · nada de contenido generado sobre hechos del libro — todo escrito a mano
+//   · las opciones se barajan al mostrar (el banco escrito a mano sesga solo)
+//   · si hay ayuda, el puntaje lo dice; nunca un 100% falso
+// ══════════════════════════════════════════════════════════════════════════
+
+// ── READING 1: verdadero / falso / no se dice ──
+// La tercera categoría es la que de verdad entrena el PET: distinguir "el libro
+// dice que NO" de "el libro no lo dice". Las de tipo '?' se verificaron contra
+// el texto real de los capítulos: el dato no aparece en ninguna parte.
+const NARNIA_TF=[
+ {cap:1,s:"The children were sent away from London because of the war.",v:'T',
+  w:"Los mandan al campo por los bombardeos. Es lo primero que cuenta el capítulo."},
+ {cap:1,s:"The Professor lived in the house with a housekeeper and some servants.",v:'T',
+  w:"No vivía solo: estaban la señora Macready y los sirvientes."},
+ {cap:1,s:"Lucy was the oldest of the four children.",v:'F',
+  w:"Es la <b>menor</b> de los cuatro. Peter es el mayor."},
+ {cap:1,s:"The children's parents travelled with them to the house.",v:'F',
+  w:"Van solos. Por eso los reciben el Profesor y la señora Macready."},
+ {cap:1,s:"Lucy's favourite subject at school was history.",v:'?',
+  w:"El libro nunca habla del colegio de Lucy ni de sus ramos."},
+ {cap:1,s:"Lucy left the wardrobe door open behind her.",v:'T',
+  w:"Lo hace a propósito: sabía que encerrarse en un ropero es una tontera."},
+ {cap:1,s:"The children travelled to the house by train.",v:'?',
+  w:"El libro no cuenta c&#243;mo llegaron. Puede parecer obvio, pero no lo dice."},
+ {cap:1,s:"Lucy had a birthday while she was staying at the house.",v:'?',
+  w:"Ning&#250;n cumplea&#241;os aparece en estos cap&#237;tulos."},
+ {cap:4,s:"The lady was wearing gloves.",v:'?',
+  w:"Se describe su manto y su corona, pero nunca guantes."},
+ {cap:1,s:"The wardrobe had belonged to the Professor's mother.",v:'?',
+  w:"No se dice de quién era el ropero ni de dónde salió."},
+ {cap:2,s:"Lucy invited Mr Tumnus to have tea with her.",v:'F',
+  w:"Al rev&#233;s: es <b>&#233;l</b> quien la invita a su cueva."},
+ {cap:2,s:"Mr Tumnus lived in a wooden house in the wood.",v:'F',
+  w:"Vivía en una <b>cueva</b>, no en una casa."},
+ {cap:2,s:"Mr Tumnus played music on a violin.",v:'F',
+  w:"Era una <b>flauta</b> peque&#241;a, no un viol&#237;n. Y la m&#250;sica le dio sue&#241;o a Lucy."},
+ {cap:2,s:"Mr Tumnus had a sister who lived with him.",v:'?',
+  w:"Nunca se menciona ninguna hermana."},
+ {cap:2,s:"Mr Tumnus cried because he felt bad about what he was doing.",v:'T',
+  w:"Llora justo antes de confesarle la verdad a Lucy."},
+ {cap:2,s:"Mr Tumnus took Lucy back to the lamp-post.",v:'T',
+  w:"La lleva de vuelta él mismo, en vez de entregarla."},
+ {cap:3,s:"Peter and Susan believed Lucy's story about the wood.",v:'F',
+  w:"No le creen ninguno de los dos. Creen que está inventando."},
+ {cap:3,s:"Edmund followed Lucy into the wardrobe.",v:'T',
+  w:"La sigue mientras juegan a las escondidas."},
+ {cap:3,s:"Time passed normally in our world while Lucy was in Narnia.",v:'F',
+  w:"No pasó <b>nada</b> de tiempo. Por eso nadie le cree."},
+ {cap:3,s:"Edmund found Lucy as soon as he arrived in the wood.",v:'F',
+  w:"La llama y nadie contesta. Está solo."},
+ {cap:3,s:"Edmund felt happy and excited alone in the snow.",v:'F',
+  w:"Todo lo contrario: ten&#237;a fr&#237;o y lo estaba pasando mal."},
+ {cap:3,s:"Edmund was ten years old.",v:'?',
+  w:"El libro nunca dice la edad de ninguno de los cuatro hermanos."},
+ {cap:4,s:"The lady gave Edmund something hot to drink.",v:'T',
+  w:"Primero la bebida caliente y dulce, después los dulces."},
+ {cap:4,s:"Edmund asked for Turkish Delight himself.",v:'T',
+  w:"Ella le pregunta qué quiere y él lo pide."},
+ {cap:4,s:"The lady promised to make Edmund a King one day.",v:'T',
+  w:"Primero Príncipe, y después Rey. Es el anzuelo."},
+ {cap:4,s:"Edmund told Lucy everything about the lady on the sledge.",v:'F',
+  w:"No le cuenta nada. Se queda callado."},
+ {cap:4,s:"The lady's house was between two hills.",v:'T',
+  w:"Ahí es donde le pide que lleve a sus hermanos."},
+ {cap:4,s:"The lady had three servants in her sledge.",v:'?',
+  w:"Solo se menciona al enano que conduce."},
+];
+
+// ── READING 2: ¿en qué orden pasó? ──
+// Ordenar hechos es destreza real de lectura y no se puede resolver buscando
+// palabras sueltas: hay que haber entendido el capítulo completo.
+const NARNIA_ORDEN=[
+ {cap:1,titulo:'Lucy Looks into a Wardrobe',pasos:[
+  "The four children arrive at the Professor's house.",
+  "It rains, so they decide to explore the house.",
+  "They find an empty room with a big wardrobe.",
+  "Lucy gets inside and feels snow under her feet.",
+  "She sees a lamp-post in the middle of the wood."]},
+ {cap:2,titulo:'What Lucy Found There',pasos:[
+  "Lucy meets Mr Tumnus by the lamp-post.",
+  "They walk together to his cave.",
+  "He makes a big tea for her.",
+  "He plays a tune on his flute and Lucy feels sleepy.",
+  "He tells her the truth and takes her back."]},
+ {cap:3,titulo:'Edmund and the Wardrobe',pasos:[
+  "Lucy tells the others, but nobody believes her.",
+  "Days later, the children play hide-and-seek.",
+  "Edmund follows Lucy into the wardrobe.",
+  "He calls her name and nobody answers.",
+  "He hears bells and sees a sledge coming."]},
+ {cap:4,titulo:'Turkish Delight',pasos:[
+  "The lady asks Edmund what he is.",
+  "She gives him a hot sweet drink.",
+  "She gives him a box of Turkish Delight.",
+  "She asks him about his brother and sisters.",
+  "She promises to make him a Prince."]},
+];
+
+// ── SPEAKING: preguntas de opinión sobre el libro ──
+// A nivel B1 lo que se mide no es recordar, es DAR UNA RAZÓN. Por eso el
+// feedback revisa dos cosas concretas y no un "muy bien" genérico.
+const NARNIA_SPEAK=[
+ {cap:1,q:"Why do you think Lucy went into the wardrobe?"},
+ {cap:1,q:"How did Lucy feel when she found the snow? Why?"},
+ {cap:1,q:"Would you walk into the wood alone? Why or why not?"},
+ {cap:2,q:"Why did Mr Tumnus start to cry?"},
+ {cap:2,q:"Do you think Mr Tumnus was a good person? Why?"},
+ {cap:2,q:"What would you do if you were Lucy in the cave?"},
+ {cap:3,q:"Why didn't Peter and Susan believe Lucy?"},
+ {cap:3,q:"Why was Edmund unkind to his sister?"},
+ {cap:3,q:"How did Edmund feel alone in the snow? Why?"},
+ {cap:4,q:"Why did Edmund eat so much Turkish Delight?"},
+ {cap:4,q:"Do you think the lady was telling the truth? Why?"},
+ {cap:4,q:"Why did Edmund say nothing to Lucy about the Queen?"},
+];
+
+// ── WRITING: tareas tipo PET amarradas al libro ──
+const NARNIA_WRITE=[
+ {cap:1,t:"An email to a friend",
+  p:"You are Lucy. Write an email to a friend telling her what you found at the back of the wardrobe.",
+  n:100,pide:["Say where you were and what you did","Describe the wood","Say how you felt"]},
+ {cap:2,t:"Mr Tumnus's cave",
+  p:"Describe Mr Tumnus's home. What was inside? What did he give Lucy to eat?",
+  n:80,pide:["Describe the cave","Say what was on the table","Use at least three words from your Narnia sheet"]},
+ {cap:2,t:"A note from Mr Tumnus",
+  p:"You are Mr Tumnus. Write a short note to Lucy saying you are sorry and explaining why.",
+  n:80,pide:["Say sorry","Explain who you work for","Say what you decided to do"]},
+ {cap:3,t:"Edmund's diary",
+  p:"You are Edmund. Write your diary for the night after you followed Lucy into the wardrobe.",
+  n:100,pide:["Say what happened, in the past","Describe the lady on the sledge","Say how you felt"]},
+ {cap:4,t:"The White Witch",
+  p:"Describe the lady Edmund met. What did she look like? How did she behave with him?",
+  n:80,pide:["Describe what she looked like","Say what she gave him","Say what she promised"]},
+ {cap:4,t:"What happens next?",
+  p:"Continue the story. Edmund is back in the house with his brother and sisters. What does he do?",
+  n:100,pide:["Write in the past simple","Say what Edmund says to the others","Give one reason for what he does"]},
+];
+
+function _nrFY(a){const r=[...a];for(let i=r.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[r[i],r[j]]=[r[j],r[i]];}return r;}
+
+// ══════════ READING ══════════
+function nrMenu(){
+  openModule('bookclub');
+  document.getElementById('mod-title').textContent='NARNIA · READING';
+  const tf=NARNIA_TF.length, ord=NARNIA_ORDEN.length;
+  document.getElementById('module-content-area').innerHTML=`<div style="max-width:640px;margin:0 auto">
+    <div style="background:rgba(96,165,250,.06);border:1px solid rgba(96,165,250,.3);border-radius:14px;padding:16px 18px;margin-bottom:18px">
+      <div style="font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:#60a5fa;letter-spacing:2px">📖 READING</div>
+      <div style="font-size:13px;color:var(--text);margin-top:7px;line-height:1.6">Dos ejercicios del PET, sobre lo que ya leíste.</div>
+    </div>
+    <button onclick="nrStartTF()" style="width:100%;padding:15px;margin-bottom:10px;background:#60a5fa;border:none;border-radius:13px;color:#0a0a1a;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:15px;letter-spacing:1px;cursor:pointer">✓ ✗ ? &nbsp; VERDADERO, FALSO O NO SE DICE — 8 frases</button>
+    <button onclick="nrStartOrden()" style="width:100%;padding:15px;margin-bottom:16px;background:var(--card);border:1px solid var(--border);border-radius:13px;color:var(--text);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:15px;cursor:pointer">🔢 ¿EN QUÉ ORDEN PASÓ? — un capítulo</button>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px 15px;font-size:12px;color:var(--muted);line-height:1.6">
+      <b style="color:var(--text)">La trampa del "no se dice":</b> no es lo mismo que el libro diga <b>que no</b>, a que el libro <b>no lo diga</b>. Si no te acuerdas de haberlo leído, no inventes — probablemente no está. Hay ${tf} frases y ${ord} capítulos para ordenar.
+    </div>
+    <button onclick="openNarniaSkills()" style="background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;width:100%;margin-top:14px">← Las 4 habilidades</button>
+  </div>`;
+}
+
+function nrStartTF(){
+  window._nr={modo:'tf',items:_nrFY(NARNIA_TF).slice(0,8),i:0,ok:0,started:Date.now()};
+  nrAskTF();
+}
+
+function nrAskTF(){
+  const S=window._nr; if(!S)return;
+  if(S.i>=S.items.length){nrFinish();return;}
+  const it=S.items[S.i], pct=Math.round(S.i/S.items.length*100);
+  const botones=[['T','✓ True','#22c55e'],['F','✗ False','#f87171'],['?','? Doesn\'t say','#eab308']]
+    .map(b=>`<button id="nr-op-${b[0]}" onclick="nrAnswerTF('${b[0]}')" style="flex:1;min-width:0;padding:14px 4px;background:var(--card);border:1px solid var(--border);border-radius:11px;color:${b[2]};font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;line-height:1.25;cursor:pointer">${b[1]}</button>`).join('');
+  document.getElementById('module-content-area').innerHTML=`<div style="max-width:640px;margin:0 auto">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <div style="flex:1;height:4px;background:var(--card2);border-radius:2px"><div style="height:100%;width:${pct}%;background:#60a5fa;border-radius:2px"></div></div>
+      <span style="font-size:11px;color:var(--muted);font-family:'Orbitron',monospace">${S.i+1}/${S.items.length}</span>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Capítulo ${it.cap}</div>
+    <div style="background:var(--card2);border-radius:13px;padding:20px 18px;margin-bottom:14px;font-size:16px;line-height:1.55;color:var(--text)">${it.s}</div>
+    <div style="display:flex;gap:8px">${botones}</div>
+    <div id="nr-fb"></div>
+    <button onclick="nrMenu()" style="background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;width:100%;margin-top:14px">← Reading</button>
+  </div>`;
+}
+
+function nrAnswerTF(elegida){
+  const S=window._nr; if(!S||S.answered)return;
+  S.answered=true;
+  const it=S.items[S.i], bien=elegida===it.v;
+  if(bien)S.ok++;
+  ['T','F','?'].forEach(k=>{
+    const b=document.getElementById('nr-op-'+k); if(!b)return;
+    b.style.cursor='default'; b.onclick=null;
+    if(k===it.v){b.style.borderColor='#22c55e';b.style.background='rgba(34,197,94,.12)';}
+    else if(k===elegida){b.style.borderColor='#f87171';b.style.background='rgba(248,113,113,.10)';}
+    else b.style.opacity='.4';
+  });
+  const nombre={'T':'True','F':'False','?':"Doesn't say"}[it.v];
+  document.getElementById('nr-fb').innerHTML=`<div style="background:var(--card);border:1px solid ${bien?'rgba(34,197,94,.35)':'rgba(248,113,113,.35)'};border-radius:12px;padding:14px 16px;margin-top:12px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px"><span style="font-size:18px">${bien?'✅':'🔍'}</span>
+      <span style="font-size:12px;font-weight:700;letter-spacing:1px;font-family:'Orbitron',monospace;color:${bien?'#22c55e':'#f87171'}">${nombre.toUpperCase()}</span></div>
+      <div style="font-size:13px;color:var(--text);line-height:1.5">${it.w}</div>
+      <button onclick="nrNextTF()" style="width:100%;margin-top:12px;padding:11px;background:#60a5fa;border:none;border-radius:9px;color:#0a0a1a;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">Siguiente →</button>
+    </div>`;
+}
+function nrNextTF(){const S=window._nr; if(!S)return; S.i++; S.answered=false; nrAskTF();}
+
+// ── ¿en qué orden pasó? ──
+function nrStartOrden(){
+  const c=_nrFY(NARNIA_ORDEN)[0];
+  window._nro={cap:c,mezcla:_nrFY(c.pasos.map((p,i)=>({p,i}))),puestos:[],started:Date.now()};
+  nrRenderOrden();
+}
+
+function nrRenderOrden(){
+  const S=window._nro; if(!S)return;
+  const dispo=S.mezcla.filter(m=>!S.puestos.includes(m.i));
+  const puestos=S.puestos.map((idx,n)=>{
+    const p=S.cap.pasos[idx];
+    return `<div onclick="nrSacar(${n})" title="Tócala para sacarla" style="display:flex;gap:9px;align-items:center;padding:9px 11px;margin-bottom:6px;background:var(--card2);border:1px solid var(--border);border-radius:10px;cursor:pointer">
+      <span style="font-family:'Orbitron',monospace;font-size:12px;color:#60a5fa;font-weight:700">${n+1}</span>
+      <span style="flex:1;font-size:13px;color:var(--text)">${p}</span>
+      <span style="font-size:13px;color:var(--muted)">&#10005;</span></div>`;}).join('');
+  const opciones=dispo.map(m=>`<button onclick="nrPoner(${m.i})" style="display:block;width:100%;text-align:left;padding:11px 13px;margin-bottom:7px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:13px;cursor:pointer">${m.p}</button>`).join('');
+  const listo=S.puestos.length===S.cap.pasos.length;
+  document.getElementById('module-content-area').innerHTML=`<div style="max-width:640px;margin:0 auto">
+    <div style="font-family:'Orbitron',monospace;font-size:11px;color:#60a5fa;letter-spacing:2px;margin-bottom:4px">¿EN QUÉ ORDEN PASÓ?</div>
+    <div style="font-size:14px;color:var(--text);font-weight:700">Capítulo ${S.cap.cap} · ${S.cap.titulo}</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:14px">Toca las frases en el orden en que ocurrieron. Si te equivocas, toca la que pusiste mal para sacarla.</div>
+    ${puestos?`<div style="margin-bottom:12px">${puestos}</div>`:''}
+    ${opciones}
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button onclick="nrResetOrden()" style="flex:1;padding:11px;background:var(--card2);border:1px solid var(--border);border-radius:9px;color:var(--muted);font-size:12px;cursor:pointer">🔄 Empezar de nuevo</button>
+      ${listo?`<button onclick="nrCheckOrden()" style="flex:1;padding:11px;background:#60a5fa;border:none;border-radius:9px;color:#0a0a1a;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">Comprobar ✓</button>`:''}
+    </div>
+    <div id="nro-fb"></div>
+    <button onclick="nrMenu()" style="background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;width:100%;margin-top:14px">← Reading</button>
+  </div>`;
+}
+function nrPoner(i){const S=window._nro; if(!S||S.puestos.includes(i))return; S.puestos.push(i); nrRenderOrden();}
+// Sacar una sola frase mal puesta. Antes el unico camino era "empezar de nuevo", y con
+// cinco pasos un toque equivocado obligaba a rehacerlo todo.
+function nrSacar(n){const S=window._nro; if(!S)return; S.puestos.splice(n,1); nrRenderOrden();}
+function nrResetOrden(){const S=window._nro; if(!S)return; S.puestos=[]; nrRenderOrden();}
+
+function nrCheckOrden(){
+  const S=window._nro; if(!S)return;
+  const bien=S.puestos.filter((idx,n)=>idx===n).length;
+  const total=S.cap.pasos.length;
+  const perfecto=bien===total;
+  const km=perfecto?20:Math.max(5,bien*3);
+  addKm(km);
+  const lista=S.puestos.map((idx,n)=>{
+    const ok=idx===n;
+    return `<div style="display:flex;gap:9px;padding:7px 0;border-bottom:1px solid var(--border)">
+      <span style="color:${ok?'#22c55e':'#f87171'}">${ok?'✓':'✗'}</span>
+      <span style="flex:1;font-size:12px;color:var(--text)">${S.cap.pasos[idx]}</span>
+      ${ok?'':`<span style="font-size:11px;color:var(--muted)">iba ${idx+1}ª</span>`}</div>`;}).join('');
+  document.getElementById('nro-fb').innerHTML=`<div style="background:var(--card);border:1px solid ${perfecto?'rgba(34,197,94,.35)':'rgba(248,113,113,.35)'};border-radius:12px;padding:14px 16px;margin-top:12px">
+      <div style="font-size:14px;font-weight:700;color:${perfecto?'#22c55e':'var(--text)'};margin-bottom:9px">${perfecto?'🏆 Orden perfecto':`${bien} de ${total} en su lugar`} · +${km} km</div>
+      ${lista}
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button onclick="nrStartOrden()" style="flex:1;padding:10px;background:#60a5fa;border:none;border-radius:9px;color:#0a0a1a;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;cursor:pointer">Otro capítulo</button>
+        <button onclick="nrMenu()" style="flex:1;padding:10px;background:var(--card2);border:1px solid var(--border);border-radius:9px;color:var(--text);font-size:13px;cursor:pointer">← Reading</button>
+      </div>
+    </div>`;
+}
+
+function nrFinish(){
+  const S=window._nr; if(!S)return;
+  const pct=Math.round(S.ok/S.items.length*100);
+  const km=Math.max(5,S.ok*4);
+  addKm(km);
+  document.getElementById('module-content-area').innerHTML=`<div style="max-width:640px;margin:0 auto;text-align:center">
+    <div style="font-size:44px">${pct>=75?'🏆':pct>=50?'💪':'📖'}</div>
+    <div style="font-family:'Orbitron',monospace;font-size:11px;letter-spacing:2px;color:var(--muted);margin-top:4px">NARNIA · READING</div>
+    <div style="font-size:29px;font-weight:700;color:var(--text);margin:6px 0">${S.ok} / ${S.items.length}</div>
+    <div style="font-size:13px;color:var(--muted)">${pct}% · +${km} km</div>
+    <div style="display:flex;gap:9px;margin-top:20px">
+      <button onclick="nrStartTF()" style="flex:1;padding:12px;background:#60a5fa;border:none;border-radius:11px;color:#0a0a1a;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">🔄 Otra ronda</button>
+      <button onclick="nrMenu()" style="flex:1;padding:12px;background:var(--card);border:1px solid var(--border);border-radius:11px;color:var(--text);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">← Reading</button>
+    </div>
+  </div>`;
+  showToast(`Narnia Reading: ${S.ok}/${S.items.length} — +${km} km!`);
+  window._nr=null;
+}
+
+// ══════════ SPEAKING ══════════
+const NARNIA_SPEAK_TTS='Speak with a clear British accent. You are a warm English teacher talking to a twelve-year-old about a book he has read. Ask the question naturally, slowly and clearly, as if you really want to hear his opinion.';
+
+function nsMenu(){
+  openModule('bookclub');
+  document.getElementById('mod-title').textContent='NARNIA · SPEAKING';
+  document.getElementById('module-content-area').innerHTML=`<div style="max-width:640px;margin:0 auto">
+    <div style="background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.3);border-radius:14px;padding:16px 18px;margin-bottom:18px">
+      <div style="font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:#22c55e;letter-spacing:2px">🗣️ SPEAKING</div>
+      <div style="font-size:13px;color:var(--text);margin-top:7px;line-height:1.6">Preguntas de <b>opinión</b> sobre el libro. No hay respuesta correcta — lo que se mide es que <b>des una razón</b>.</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:8px">Casi todas piden hablar del pasado. Ojo con eso.</div>
+    </div>
+    <button onclick="nsStart()" style="width:100%;padding:15px;margin-bottom:16px;background:#22c55e;border:none;border-radius:13px;color:#0a0a1a;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:15px;letter-spacing:1px;cursor:pointer">🎤 EMPEZAR — 4 preguntas</button>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px 15px;font-size:12px;color:var(--muted);line-height:1.6">
+      <b style="color:var(--text)">Cómo se corrige:</b> Miss Kamil_IA mira solo dos cosas — si diste <b>una razón</b> (<i>because…</i>) y si usaste bien el <b>pasado</b>. Nada más. No te va a corregir la pronunciación.
+    </div>
+    <button onclick="openNarniaSkills()" style="background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;width:100%;margin-top:14px">← Las 4 habilidades</button>
+  </div>`;
+}
+
+function nsStart(){
+  window._ns={items:_nrFY(NARNIA_SPEAK).slice(0,4),i:0,answers:[],started:Date.now()};
+  nsAsk();
+}
+
+function nsAsk(){
+  const S=window._ns; if(!S)return;
+  if(S.i>=S.items.length){nsFinish();return;}
+  const it=S.items[S.i], pct=Math.round(S.i/S.items.length*100);
+  document.getElementById('module-content-area').innerHTML=`<div style="max-width:640px;margin:0 auto">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <div style="flex:1;height:4px;background:var(--card2);border-radius:2px"><div style="height:100%;width:${pct}%;background:#22c55e;border-radius:2px"></div></div>
+      <span style="font-size:11px;color:var(--muted);font-family:'Orbitron',monospace">${S.i+1}/${S.items.length}</span>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Capítulo ${it.cap}</div>
+    <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:14px">
+      <div style="font-size:30px;flex-shrink:0">👩‍🏫</div>
+      <div style="flex:1;background:var(--card);border-radius:0 12px 12px 12px;padding:14px 16px;font-size:16px;color:var(--text);line-height:1.5">${it.q}</div>
+    </div>
+    <button onclick="nsRepeat()" style="width:100%;padding:9px;margin-bottom:12px;background:var(--card2);border:1px solid var(--border);border-radius:9px;color:var(--muted);font-size:12px;cursor:pointer">🔄 Say it again</button>
+    <div style="background:var(--card2);border-radius:12px;padding:14px">
+      <div id="ns-transcript" style="min-height:44px;color:var(--muted);font-size:13px;font-style:italic;padding:9px;background:var(--bg);border-radius:8px;margin-bottom:10px">Your answer will appear here...</div>
+      <div style="display:flex;gap:8px">
+        <button id="ns-btn" onclick="nsMicToggle()" style="flex:1;padding:12px;background:rgba(34,197,94,.1);border:2px solid rgba(34,197,94,.3);border-radius:9px;color:#22c55e;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">🎤 Start recording</button>
+        <button id="ns-reset" onclick="nsMicReset()" style="display:none;padding:12px 14px;background:var(--card);border:2px solid var(--border);border-radius:9px;color:var(--muted);font-weight:700;cursor:pointer">🔄</button>
+        <button onclick="nsSubmit()" style="padding:12px 18px;background:#22c55e;border:none;border-radius:9px;color:#0a0a1a;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">Check &#10003;</button>
+      </div>
+      <div id="ns-fb" style="margin-top:12px"></div>
+    </div>
+    <button onclick="nsMenu()" style="background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;width:100%;margin-top:14px">← Speaking</button>
+  </div>`;
+  nsRepeat();
+}
+
+function nsRepeat(){
+  const S=window._ns; if(!S)return;
+  const it=S.items[S.i]; if(!it)return;
+  ttsSpeak(it.q,{rate:0.92,instructions:NARNIA_SPEAK_TTS});
+}
+
+async function nsMicToggle(){
+  const btn=document.getElementById('ns-btn');
+  if(micIsRecording()){
+    btn.textContent='⏳ ...';
+    const txt=await micStopAndTranscribe();
+    const t=document.getElementById('ns-transcript');
+    if(t){t.textContent=txt||'(no se escuchó nada)';t.style.fontStyle='normal';t.style.color='var(--text)';}
+    btn.textContent='🎤 Start recording';
+    const r=document.getElementById('ns-reset'); if(r)r.style.display='block';
+  } else {
+    micStart(); btn.textContent='⏹ Stop';
+  }
+}
+function nsMicReset(){
+  micReset();
+  const t=document.getElementById('ns-transcript');
+  if(t){t.textContent='Your answer will appear here...';t.style.fontStyle='italic';t.style.color='var(--muted)';}
+  const r=document.getElementById('ns-reset'); if(r)r.style.display='none';
+}
+
+async function nsSubmit(){
+  const S=window._ns; if(!S)return;
+  const t=document.getElementById('ns-transcript');
+  const said=t?t.textContent.trim():'';
+  if(!said||said.startsWith('Your answer')){ showToast('Graba tu respuesta primero 🎤'); return; }
+  const it=S.items[S.i];
+  S.answers.push({q:it.q,a:said});
+  const fb=document.getElementById('ns-fb');
+  if(fb)fb.innerHTML='<div style="font-size:12px;color:var(--muted);font-style:italic">Miss Kamil_IA está escuchando...</div>';
+  const prompt=`Eres Miss Kamil_IA, profesora de ingles de Fernando (12 anos, nivel B1, chileno).
+Ha leido los capitulos 1 a 4 de "The Lion, the Witch and the Wardrobe" y esta practicando
+speaking sobre el libro.
+
+PREGUNTA: "${it.q}"
+LO QUE DIJO: "${said}"
+
+Revisa SOLO DOS COSAS, nada mas:
+1. Dio una RAZON? (un "because", "so", "I think... because", o una explicacion clara)
+2. Uso bien el PASADO donde correspondia? (went, was, said, felt, gave...)
+
+Responde en espanol chileno de tu (nunca vos), en maximo 3 lineas cortas:
+- Primero una frase de animo concreta sobre lo que SI hizo bien.
+- Si no dio razon, pidesela con un ejemplo de como empezarla.
+- Si hubo un error de pasado, muestra la frase corregida. UN error, el mas importante.
+NUNCA comentes la pronunciacion. NUNCA digas "incorrecto". Si el contenido es una opinion
+distinta a la tuya, no la corrijas: es una opinion.
+Responde solo con el texto, sin encabezados.`;
+  let out='👍 Good!';
+  try{ out=String(await callClaude(prompt,300)).trim(); }catch(e){}
+  if(fb)fb.innerHTML=`<div style="background:var(--card);border-left:3px solid #22c55e;border-radius:0 9px 9px 0;padding:11px 13px;font-size:13px;color:var(--text);line-height:1.55">${out}</div>
+    <button onclick="nsNext()" style="width:100%;margin-top:10px;padding:11px;background:#22c55e;border:none;border-radius:9px;color:#0a0a1a;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">Siguiente →</button>`;
+}
+function nsNext(){const S=window._ns; if(!S)return; S.i++; micReset(); nsAsk();}
+
+function nsFinish(){
+  const S=window._ns; if(!S)return;
+  const n=S.answers.length, km=25+n*5;
+  addKm(km);
+  const lista=S.answers.map(a=>`<div style="padding:9px 0;border-bottom:1px solid var(--border)">
+      <div style="font-size:12px;color:var(--muted)">${a.q}</div>
+      <div style="font-size:13px;color:var(--text);margin-top:3px">🗣️ ${a.a.replace(/</g,'&lt;')}</div></div>`).join('');
+  document.getElementById('module-content-area').innerHTML=`<div style="max-width:640px;margin:0 auto">
+    <div class="result-box" style="border-color:#22c55e;text-align:center">
+      <div style="font-size:34px">🏆</div>
+      <div style="font-size:16px;font-weight:700;color:#22c55e;margin-top:6px">Well done!</div>
+      <div style="font-size:13px;color:var(--text);margin-top:4px">Hablaste de <b>${n}</b> preguntas sobre el libro · +${km} km</div>
+    </div>
+    <div style="font-size:11px;color:var(--muted);letter-spacing:2px;font-family:'Orbitron',monospace;margin:18px 0 8px">LO QUE DIJISTE</div>
+    <div style="background:var(--card);border-radius:12px;padding:6px 14px">${lista}</div>
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button onclick="nsStart()" style="flex:1;padding:12px;background:#22c55e;border:none;border-radius:10px;color:#0a0a1a;font-family:'Rajdhani',sans-serif;font-weight:700;cursor:pointer">🔄 Otra ronda</button>
+      <button onclick="nsMenu()" style="flex:1;padding:12px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Rajdhani',sans-serif;font-weight:700;cursor:pointer">← Speaking</button>
+    </div>
+  </div>`;
+  window._ns=null;
+}
+
+// ══════════ WRITING ══════════
+function nwMenu(){
+  openModule('bookclub');
+  document.getElementById('mod-title').textContent='NARNIA · WRITING';
+  const cards=NARNIA_WRITE.map((t,i)=>`
+    <button onclick="nwStart(${i})" style="display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:13px 15px;margin-bottom:8px;background:var(--card);border:1px solid var(--border);border-left:3px solid #c084fc;border-radius:12px;cursor:pointer">
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:700;color:var(--text)">${t.t}</div>
+        <div style="font-size:11px;color:var(--muted)">Capítulo ${t.cap} · unas ${t.n} palabras</div>
+      </div>
+      <div style="color:var(--muted);font-size:15px">▶</div>
+    </button>`).join('');
+  document.getElementById('module-content-area').innerHTML=`<div style="max-width:640px;margin:0 auto">
+    <div style="background:rgba(192,132,252,.06);border:1px solid rgba(192,132,252,.3);border-radius:14px;padding:16px 18px;margin-bottom:18px">
+      <div style="font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:#c084fc;letter-spacing:2px">✍️ WRITING</div>
+      <div style="font-size:13px;color:var(--text);margin-top:7px;line-height:1.6">Seis tareas tipo PET sobre el libro. Escribe, y Miss Kamil_IA te devuelve el texto corregido con lo que hay que arreglar.</div>
+    </div>
+    ${cards}
+    <button onclick="openNarniaSkills()" style="background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;width:100%;margin-top:14px">← Las 4 habilidades</button>
+  </div>`;
+}
+
+// El borrador se guarda en este equipo mientras escribe. Sin esto, tocar cualquier
+// boton por error borraba 100 palabras de trabajo — que a los 12 anos desanima mucho
+// mas que una respuesta mala.
+const NW_KEY='jtl_narnia_draft_';
+function _nwLeer(i){try{return localStorage.getItem(NW_KEY+i)||'';}catch(e){return '';}}
+function _nwGuardar(i,txt){try{localStorage.setItem(NW_KEY+i,txt);}catch(e){}}
+
+function nwStart(i){
+  const t=NARNIA_WRITE[i]; if(!t)return;
+  window._nw={t,i,started:Date.now()};
+  const pide=t.pide.map(x=>`<li style="margin-bottom:3px">${x}</li>`).join('');
+  document.getElementById('module-content-area').innerHTML=`<div style="max-width:640px;margin:0 auto">
+    <div style="font-family:'Orbitron',monospace;font-size:11px;color:#c084fc;letter-spacing:2px;margin-bottom:4px">CAPÍTULO ${t.cap}</div>
+    <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:8px">${t.t}</div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:12px">
+      <div style="font-size:14px;color:var(--text);line-height:1.55;margin-bottom:9px">${t.p}</div>
+      <div style="font-size:12px;color:var(--muted)">Acuérdate de:</div>
+      <ul style="font-size:12px;color:var(--muted);margin:5px 0 0 16px;padding:0">${pide}</ul>
+    </div>
+    <textarea id="nw-text" oninput="nwCount()" placeholder="Write here..." style="width:100%;min-height:190px;padding:14px;background:var(--card2);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:14px;line-height:1.6;font-family:inherit;outline:none;resize:vertical"></textarea>
+    <div style="display:flex;align-items:center;gap:10px;margin-top:8px">
+      <span id="nw-count" style="flex:1;font-size:12px;color:var(--muted)">0 palabras · apunta a unas ${t.n}</span>
+      <button onclick="nwSubmit()" style="padding:11px 20px;background:#c084fc;border:none;border-radius:10px;color:#0a0a1a;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">Revisar ✓</button>
+    </div>
+    <div id="nw-fb" style="margin-top:14px"></div>
+    <button onclick="nwMenu()" style="background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;width:100%;margin-top:14px">← Writing</button>
+  </div>`;
+  const ta=document.getElementById('nw-text');
+  const guardado=_nwLeer(i);
+  if(ta&&guardado){ta.value=guardado;}
+  nwCount();
+}
+
+function nwCount(){
+  const el=document.getElementById('nw-text'), c=document.getElementById('nw-count');
+  if(!el||!c)return;
+  const n=el.value.trim()?el.value.trim().split(/\s+/).length:0;
+  const meta=window._nw?window._nw.t.n:100;
+  c.textContent=n+' palabras · apunta a unas '+meta+(n?' · se guarda solo':'');
+  c.style.color = n>=meta*0.8 ? '#22c55e' : 'var(--muted)';
+  if(window._nw)_nwGuardar(window._nw.i, el.value);
+}
+
+async function nwSubmit(){
+  const S=window._nw; if(!S)return;
+  const el=document.getElementById('nw-text');
+  const txt=el?el.value.trim():'';
+  if(txt.split(/\s+/).length<20){ showToast('Escribe un poco más antes de revisar ✍️'); return; }
+  const fb=document.getElementById('nw-fb');
+  if(fb)fb.innerHTML='<div style="font-size:12px;color:var(--muted);font-style:italic">Miss Kamil_IA está leyendo...</div>';
+  const prompt=`Eres Miss Kamil_IA, profesora de ingles de Fernando (12 anos, nivel B1, chileno).
+Ha leido los capitulos 1 a 4 de "The Lion, the Witch and the Wardrobe".
+
+LA TAREA ERA: "${S.t.p}"
+DEBIA INCLUIR: ${S.t.pide.join(' / ')}
+LARGO PEDIDO: unas ${S.t.n} palabras
+
+LO QUE ESCRIBIO:
+"""
+${txt}
+"""
+
+Devuelve EXACTAMENTE este JSON, sin nada antes ni despues:
+{"bien":"una frase concreta en espanol sobre lo mejor que hizo",
+ "falta":"si le falto algo de lo que debia incluir, dilo en una frase; si no falto nada, pon una cadena vacia",
+ "errores":[{"mal":"la frase suya tal cual","bien":"la frase corregida","por":"por que, en espanol, en menos de 12 palabras"}],
+ "nivel":"una frase en espanol sobre si el largo y el nivel de ingles estan a la altura del PET"}
+
+Reglas: maximo 4 errores, los MAS importantes, priorizando pasado simple y orden de
+palabras. No corrijas estilo ni cosas de gusto. No inventes errores si no los hay:
+devuelve la lista vacia. Espanol chileno de tu, nunca vos.`;
+  try{
+    const d=parseJSON(await callClaude(prompt,1400));
+    const errs=(d.errores||[]).map(e=>`<div style="padding:9px 0;border-bottom:1px solid var(--border)">
+        <div style="font-size:13px;color:#f87171;text-decoration:line-through">${String(e.mal||'').replace(/</g,'&lt;')}</div>
+        <div style="font-size:13px;color:#22c55e;font-weight:700;margin-top:2px">${String(e.bien||'').replace(/</g,'&lt;')}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">${String(e.por||'')}</div></div>`).join('');
+    // Una vez por tarea: antes cada clic en "Revisar" sumaba 30 km y se podia repetir sin escribir nada nuevo.
+    const yaPago=(window._nwPagadas=window._nwPagadas||{});
+    const km=yaPago[S.i]?0:30;
+    if(km){yaPago[S.i]=1;addKm(km);}
+    if(fb)fb.innerHTML=`<div style="background:var(--card);border:1px solid rgba(192,132,252,.35);border-radius:12px;padding:15px 17px">
+        <div style="font-size:13px;color:#22c55e;font-weight:700;margin-bottom:8px">✅ ${String(d.bien||'')}</div>
+        ${d.falta?`<div style="font-size:13px;color:var(--text);margin-bottom:9px">📌 ${String(d.falta)}</div>`:''}
+        ${errs?`<div style="font-size:11px;color:var(--muted);letter-spacing:1px;font-family:'Orbitron',monospace;margin:10px 0 4px">LO QUE HAY QUE ARREGLAR</div>${errs}`
+               :'<div style="font-size:13px;color:#22c55e;margin-bottom:6px">Sin errores que valga la pena corregir. Muy bien.</div>'}
+        <div style="font-size:12px;color:var(--muted);margin-top:11px;font-style:italic">${String(d.nivel||'')}</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:8px">${km?('+'+km+' km'):'Ya sumaste los km de esta tarea &#183; puedes seguir corrigiendo gratis'}</div>
+        <button onclick="nwMenu()" style="width:100%;margin-top:12px;padding:11px;background:#c084fc;border:none;border-radius:9px;color:#0a0a1a;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">Otra tarea →</button>
+      </div>`;
+  }catch(e){
+    if(fb)fb.innerHTML='<div style="font-size:13px;color:var(--muted)">No pude conectarme. Guarda lo que escribiste e inténtalo de nuevo.</div>';
+  }
 }
 
 function runBookClub(){
