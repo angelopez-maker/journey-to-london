@@ -1349,6 +1349,16 @@ function shuffleMCItems(items){
 // Formato "opciones = respuesta literal" (ej. Movers R&W4 cloze: options son palabras y answer es
 // la palabra correcta en sí, no una letra — la A/B/C que ve el alumno es solo la etiqueta visual del
 // orden). Acá basta barajar el array; la corrección sigue comparando por texto, no por letra.
+// Shuffle canonico del proyecto (Principio 9). Fisher-Yates real y sin mutar el original.
+// Medido en este motor: .sort(()=>Math.random()-0.5) deja el PRIMER elemento en su lugar el
+// ~19.6% de las veces en una lista de 10, cuando deberia ser 10%. En un ejercicio de parear
+// eso es una fuga: la primera pareja calza el doble de lo que deberia y el nino lo nota.
+function jtlShuffle(a){
+  const r=[...a];
+  for(let i=r.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[r[i],r[j]]=[r[j],r[i]];}
+  return r;
+}
+
 function shuffleWordOptions(gap){
   if(!Array.isArray(gap.options)||gap.options.length<2)return gap;
   // Fisher-Yates, no .sort(()=>Math.random()-0.5) — ese truco es un shuffle sesgado conocido (no da
@@ -4491,7 +4501,7 @@ async function runSpelling(){
   // If unit has vocab, WE own the words — Claude only returns sentences+definitions
   if(unitCtx&&unitCtx.vocab){
     const allWords=unitCtx.vocab.split(',').map(w=>w.trim()).filter(Boolean);
-    const chosen=allWords.sort(()=>Math.random()-0.5).slice(0,10);
+    const chosen=jtlShuffle(allWords).slice(0,10);
     const prompt=`You are an English spelling coach for a ${age}-year-old studying "${unitCtx.unitName}".
 For each word in this list, write:
 1. A short sentence using ___ where the word goes
@@ -4857,9 +4867,13 @@ For vocab_match: write ONE natural sentence per item with a single gap shown as 
 
 function renderWriting(d){
   window._vocabMatch=d.vocab_match||[];
+  // Las respuestas NO van en el HTML. Antes iban en data-answer y bastaba inspeccionar el
+  // elemento para verlas: encodeURIComponent no esconde nada. Ahora viven solo en memoria.
+  window._blankAnswers=(d.fill_blanks||[]).map(b=>String(b.answer||''));
+  window._blankHints=(d.fill_blanks||[]).map(b=>String(b.hint||''));
   const blanksHtml=(d.fill_blanks||[]).map((b,i)=>{
     const parts=b.sentence.split('___');
-    return `<div class="fill-blank-item">${parts[0]}<input class="blank-input" id="blank-${i}" placeholder="..." data-answer="${encodeURIComponent(b.answer)}" data-hint="${encodeURIComponent(b.hint||'')}">${parts[1]||''}</div>`;
+    return `<div class="fill-blank-item">${parts[0]}<input class="blank-input" id="blank-${i}" placeholder="...">${parts[1]||''}</div>`;
   }).join('');
   const vocabHtml=(d.vocab_match||[]).map((v,i)=>{
     const parts=String(v.sentence||'').split('___');
@@ -4922,14 +4936,14 @@ function checkBlanks(){
   const inputs=document.querySelectorAll('.blank-input');
   let correct=0;
   inputs.forEach((inp,i)=>{
-    const answer=decodeURIComponent(inp.dataset.answer).toLowerCase().trim();
+    const answer=String((window._blankAnswers||[])[i]||'').toLowerCase().trim();
     const given=inp.value.toLowerCase().trim();
     if(given===answer){inp.classList.add('correct');correct++;}
     else{
       inp.classList.add('wrong');
       const hint=document.createElement('span');
       hint.style.cssText='font-size:12px;color:var(--gold2);background:rgba(245,200,66,.12);padding:2px 8px;border-radius:6px;white-space:nowrap';
-      hint.textContent='✓ correct answer: '+decodeURIComponent(inp.dataset.answer);
+      hint.textContent='✓ correct answer: '+((window._blankAnswers||[])[i]||'');
       inp.insertAdjacentElement('afterend',hint);
     }
     inp.disabled=true;
@@ -5686,10 +5700,10 @@ function runPronunciation(){
   const unitCtx=state.currentUnit||getUnitContext();
   let words=[];
   if(unitCtx&&unitCtx.vocab){
-    words=unitCtx.vocab.split(',').map(w=>w.trim()).filter(Boolean).sort(()=>Math.random()-0.5).slice(0,5);
+    words=jtlShuffle(unitCtx.vocab.split(',').map(w=>w.trim()).filter(Boolean)).slice(0,5);
   } else {
     // Fallback: common Movers words
-    words=['seagull','starfish','lightning','rainbow','satellite','bakery','laboratory','bracelet','telescope','volcano'].sort(()=>Math.random()-0.5).slice(0,5);
+    words=jtlShuffle(['seagull','starfish','lightning','rainbow','satellite','bakery','laboratory','bracelet','telescope','volcano']).slice(0,5);
   }
 
   window._pronWords=words;
@@ -5862,7 +5876,7 @@ async function runVocabMatch(){
 
   if(unitCtx&&unitCtx.vocab){
     const allWords=unitCtx.vocab.split(',').map(w=>w.trim()).filter(Boolean);
-    const chosen=allWords.sort(()=>Math.random()-0.5).slice(0,5);
+    const chosen=jtlShuffle(allWords).slice(0,5);
     prompt=`Translate these English words to Spanish for a Chilean child. Student level: ${levelDesc}.
 Words: ${chosen.join(', ')}
 Use BRITISH English spelling if the word has a British/American spelling variant (e.g. "colour" not "color", "favourite" not "favorite") — this student is preparing for Cambridge exams.
@@ -5924,7 +5938,7 @@ function renderVocabMatch(pairs,title){
   window._vmMatched=new Set();
   window._vmScore=0;
 
-  const shuffledEs=[...pairs].sort(()=>Math.random()-0.5);
+  const shuffledEs=jtlShuffle(pairs);
 
   if(!document.getElementById('vm-css')){
     const s=document.createElement('style');s.id='vm-css';
@@ -6091,7 +6105,7 @@ Return ONLY this JSON (no markdown, no explanation):
 
 function renderMoversRW6(d){
   // Shuffle word box
-  const box=[...d.wordBox].sort(()=>Math.random()-0.5);
+  const box=jtlShuffle(d.wordBox);
   window._moversAnswers=d.answers;
   window._moversUserAnswers={};
   window._moversSelected=null; // currently "held" word
@@ -6303,8 +6317,108 @@ const SPEAKING_CLUB=[
 // que los ninos deben estar preparados para preguntas sobre lo que hicieron el fin de
 // semana anterior, no solo en presente.
 
+// ── SET 2 (29 septiembre 2026) ─────────────────────────────────────────────
+// Rodrigo dio vuelta las 48 preguntas del set 1 con su papá, así que ya no hay
+// sorpresa: puede anticipar la pregunta por la primera palabra. Este segundo set
+// cubre los mismos 6 temas con preguntas distintas — ninguna frase se repite.
+//
+// Diferencia deliberada con el set 1: el PASADO está repartido en los seis temas
+// (10 preguntas principales, más varios follow-ups), en vez de concentrado en el
+// tema del fin de semana. La idea es que no pueda anticipar cuándo viene el 'did':
+// tiene que oírlo. Eso fue justo lo que Angel trabajó con él a mano.
+const SPEAKING_CLUB_2=[
+ {id:'me',icon:'\u{1F466}',label:'Me!',es:'Sobre mi',qs:[
+   {q:"How do you spell your name?",f:"Do you like your name?"},
+   {q:"When is your birthday?",f:"What do you do on your birthday?"},
+   {q:"What colour is your bedroom?",f:"Do you like it?"},
+   {q:"What's your favourite drink?",f:"When do you drink it?"},
+   {q:"What do you do before school in the morning?",f:"What time do you get up?"},
+   {q:"What did you have for breakfast today?",f:"Was it good?"},
+   {q:"What clothes do you like wearing?",f:"Why?"},
+   {q:"Which is your favourite season?",f:"Why do you like it?"}
+ ]},
+ {id:'family',icon:'\u{1F46A}',label:'Family & Friends',es:'Familia y amigos',qs:[
+   {q:"How many people are there in your family?",f:"Who are they?"},
+   {q:"What does your mum do?",f:"Do you help her at home?"},
+   {q:"Who is the funniest person in your family?",f:"Why?"},
+   {q:"What games do you play with your friends?",f:"Where do you play them?"},
+   {q:"Did you play with your friends yesterday?",f:"What did you do?"},
+   {q:"Who helps you with your homework?",f:"When do you do it?"},
+   {q:"Have you got a cousin?",f:"How old is he or she?"},
+   {q:"What did you do with your family last Sunday?",f:"Did you like it?"}
+ ]},
+ {id:'school',icon:'\u{1F3EB}',label:'My School',es:'Mi colegio',qs:[
+   {q:"How do you go to school?",f:"Who goes with you?"},
+   {q:"What time does school start?",f:"And what time does it finish?"},
+   {q:"What did you learn at school today?",f:"Was it difficult?"},
+   {q:"Which subject is difficult for you?",f:"Why?"},
+   {q:"What do you eat at school?",f:"Do you like it?"},
+   {q:"Have you got a lot of homework?",f:"When do you do it?"},
+   {q:"What did you do at break time today?",f:"Who were you with?"},
+   {q:"How many children are there in your class?",f:"Who sits next to you?"}
+ ]},
+ {id:'sports',icon:'⚽',label:'Sports & Activities',es:'Deportes',qs:[
+   {q:"Can you swim?",f:"Where did you learn?"},
+   {q:"What sport do you watch on TV?",f:"Who is your favourite player?"},
+   {q:"Do you run fast?",f:"Do you like running?"},
+   {q:"Did you play any sport last weekend?",f:"Who did you play with?"},
+   {q:"What do you do on Saturday mornings?",f:"Do you enjoy it?"},
+   {q:"Have you got a bike?",f:"What colour is it?"},
+   {q:"What sport do you want to learn?",f:"Why?"},
+   {q:"Do you like dancing?",f:"When do you dance?"}
+ ]},
+ {id:'freetime',icon:'\u{1F3AE}',label:'Free Time',es:'Tiempo libre',qs:[
+   {q:"What do you do after dinner?",f:"Who is with you?"},
+   {q:"What music do you like?",f:"When do you listen to it?"},
+   {q:"Did you watch TV yesterday?",f:"What did you watch?"},
+   {q:"Do you like drawing?",f:"What do you draw?"},
+   {q:"What's your favourite computer game?",f:"Who do you play with?"},
+   {q:"Do you read comics or books?",f:"Which one do you like best?"},
+   {q:"What do you do when it rains?",f:"Is it fun?"},
+   {q:"Have you got a favourite toy?",f:"Tell me about it."}
+ ]},
+ {id:'weekend',icon:'\u{1F333}',label:'My Weekend',es:'Fin de semana',qs:[
+   {q:"Do you get up early at the weekend?",f:"What time?"},
+   {q:"Where did you go last Saturday?",f:"Who did you go with?"},
+   {q:"What did you eat last Sunday?",f:"Was it nice?"},
+   {q:"Do you help at home at the weekend?",f:"What do you do?"},
+   {q:"What's the best thing about Saturday?",f:"Why?"},
+   {q:"Do you see your grandparents at the weekend?",f:"What do you do together?"},
+   {q:"What are you going to do next weekend?",f:"Who with?"},
+   {q:"Did you have fun last weekend?",f:"What did you do?"}
+ ]}
+];
+
+// Qué banco se está usando: 'mix' (los dos), 's1' o 's2'.
+// Default 's2' (las 48 nuevas): Angel pidio que Rodrigo refresque primero los temas
+// con preguntas que no ha escuchado. El set 1 y la mezcla quedan como practica extra.
+let _scSet='s2';
+function _scSetBanco(v){_scSet=v;openSpeakingClub();}
+function _scBanco(){
+  if(_scSet==='s1')return SPEAKING_CLUB;
+  if(_scSet==='s2')return SPEAKING_CLUB_2;
+  // Mezcla: mismo tema, las preguntas de los dos sets en una sola bolsa.
+  return SPEAKING_CLUB.map(t=>{
+    const t2=SPEAKING_CLUB_2.find(x=>x.id===t.id);
+    return Object.assign({},t,{qs:t.qs.concat(t2?t2.qs:[])});
+  });
+}
+
+// El comodín: muestra la pregunta escrita. Se cuenta, no se prohíbe — la idea es
+// que lo vaya usando menos, no que se frustre. Angel descubrió que con el texto a
+// la vista Rodrigo lee en vez de escuchar, que es exactamente lo contrario de lo
+// que mide el examen.
+function scReveal(){
+  const S=window._sc; if(!S)return;
+  const t=S.turnos[S.i]; if(!t)return;
+  S.revelados=(S.revelados||0)+1;
+  const box=document.getElementById('sc-qbox');
+  if(box){box.textContent=t.text;box.style.color='var(--text)';box.style.fontStyle='normal';}
+  const b=document.getElementById('sc-reveal'); if(b)b.style.display='none';
+}
+
 function _scFY(a){const x=[...a];for(let i=x.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[x[i],x[j]]=[x[j],x[i]];}return x;}
-function _scTopic(id){return SPEAKING_CLUB.find(t=>t.id===id)||null;}
+function _scTopic(id){return _scBanco().find(t=>t.id===id)||null;}
 
 // ══════════════════════════════════════════════════════════════════════════════
 // SPEAKING PARTS 1-3 — versión con emoji (26 septiembre 2026)
@@ -7014,7 +7128,7 @@ function dfFinish(){
 function openSpeakingClub(){
   openModule('movers');
   document.getElementById('mod-title').textContent='SPEAKING CLUB';
-  const cards=SPEAKING_CLUB.map(t=>`
+  const cards=_scBanco().map(t=>`
     <button onclick="scStart('${t.id}')" style="display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:14px 16px;margin-bottom:10px;background:var(--card);border:1px solid var(--border);border-radius:14px;cursor:pointer">
       <div style="font-size:26px">${t.icon}</div>
       <div style="flex:1">
@@ -7029,6 +7143,13 @@ function openSpeakingClub(){
       <div style="font-size:15px;font-weight:700;color:var(--text);margin-top:4px">Let's talk! \u{1F5E3}️</div>
       <div style="font-size:13px;color:var(--muted);margin-top:8px;line-height:1.6">\u{1F3A7} Listen to the question.<br>\u{1F9E0} Think.<br>\u{1F5E3}️ Answer in English!</div>
       <div style="font-size:12px;color:var(--muted);margin-top:10px;font-style:italic">No perfect answers — just talk!</div>
+    </div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:13px;padding:13px 15px;margin-bottom:16px">
+      <div style="font-size:11px;color:var(--muted);font-family:'Orbitron',monospace;letter-spacing:2px;margin-bottom:8px">\u{1F3A7} SOLO AUDIO</div>
+      <div style="font-size:13px;color:var(--text);line-height:1.55">La pregunta <b>no aparece escrita</b>. Escúchala, piénsala y responde.<br>Si de verdad no la pillas, hay un botón para verla — pero intenta primero.<br><span style="color:var(--muted);font-size:12px">Parte con <b>Set 2</b>, que son las preguntas nuevas. Set 1 y Mezcla quedan como pr&#225;ctica extra.</span></div>
+      <div style="display:flex;gap:6px;margin-top:11px">
+        ${[['s2','Set 2'],['s1','Set 1'],['mix','Mezcla']].map(p=>`<button onclick="_scSetBanco('${p[0]}')" style="flex:1;padding:7px 4px;background:${_scSet===p[0]?'rgba(34,197,94,.14)':'var(--card2)'};border:1px solid ${_scSet===p[0]?'rgba(34,197,94,.45)':'var(--border)'};border-radius:8px;color:${_scSet===p[0]?'#22c55e':'var(--muted)'};font-size:11px;font-weight:700;cursor:pointer">${p[1]}</button>`).join('')}
+      </div>
     </div>
     <button onclick="scStart('mini')" style="width:100%;padding:14px;margin-bottom:18px;background:var(--gold2, #eab308);border:none;border-radius:14px;color:#0a0a1a;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:15px;letter-spacing:1px;cursor:pointer">\u{1F393} MINI MOVERS — 6 preguntas, una de cada tema</button>
     <div style="font-size:11px;color:var(--muted);letter-spacing:2px;font-family:'Orbitron',monospace;margin-bottom:10px">PARTES 1 A 3 \u00b7 CON IM\u00c1GENES</div>
@@ -7052,7 +7173,7 @@ function openSpeakingClub(){
 function scStart(modo){
   let items=[];
   if(modo==='mini'){
-    items=SPEAKING_CLUB.map(t=>{const q=_scFY(t.qs)[0];return {...q,topic:t.label,icon:t.icon};});
+    items=_scBanco().map(t=>{const q=_scFY(t.qs)[0];return {...q,topic:t.label,icon:t.icon};});
   } else {
     const t=_scTopic(modo); if(!t)return;
     items=_scFY(t.qs).slice(0,5).map(q=>({...q,topic:t.label,icon:t.icon}));
@@ -7080,7 +7201,7 @@ function scAsk(){
     <div style="font-size:11px;color:var(--muted);margin-bottom:10px">${t.icon} ${t.topic}${t.follow?' · follow-up':''}</div>
     <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:16px">
       <div style="font-size:30px;flex-shrink:0">\u{1F469}‍\u{1F3EB}</div>
-      <div style="flex:1;background:var(--card);border-radius:0 12px 12px 12px;padding:14px 16px;font-size:16px;color:var(--text);line-height:1.5">${t.text}</div>
+      <div style="flex:1"><div id="sc-qbox" style="background:var(--card);border-radius:0 12px 12px 12px;padding:14px 16px;font-size:15px;color:var(--muted);line-height:1.5;font-style:italic">\u{1F3A7} Escucha la pregunta. Esta vez no está escrita.</div><button id="sc-reveal" onclick="scReveal()" style="margin-top:7px;padding:5px 11px;background:none;border:1px dashed var(--border);border-radius:8px;color:var(--muted);font-size:11px;cursor:pointer">\u{1F441} Ver la pregunta escrita</button></div>
     </div>
     <div style="display:flex;gap:8px;margin-bottom:14px">
       <button onclick="scRepeat()" style="flex:1;padding:9px;background:var(--card2);border:1px solid var(--border);border-radius:9px;color:var(--muted);font-size:12px;cursor:pointer">\u{1F504} Say it again</button>
@@ -7207,6 +7328,9 @@ function scFinish(){
       <div style="font-size:34px">\u{1F3C6}</div>
       <div style="font-size:16px;font-weight:700;color:#22c55e;margin-top:6px">Well done!</div>
       <div style="font-size:13px;color:var(--text);margin-top:4px">You answered <b>${n}</b> questions in English · ${mins} min · +${km} km</div>
+      ${(S.revelados||0)===0
+        ? '<div style="font-size:12px;color:#22c55e;margin-top:7px;font-weight:700">\u{1F3A7} Escuchaste todas sin mirar el texto</div>'
+        : `<div style="font-size:12px;color:var(--muted);margin-top:7px">Miraste el texto en <b>${S.revelados}</b> de ${S.turnos.length}. La próxima, intenta una menos.</div>`}
     </div>
     <div style="font-size:11px;color:var(--muted);letter-spacing:2px;font-family:'Orbitron',monospace;margin:18px 0 8px">LO QUE DIJISTE</div>
     <div style="background:var(--card);border-radius:12px;padding:6px 14px">${lista}</div>
@@ -7701,7 +7825,7 @@ function renderMoversL(part,d){
     // Store scripts for TTS
     const allItems=[...d.items,...(d.distractors||[]).map(x=>({name:'',activity:x,clue:''}))];
     window._moversLScripts=d.items.map(it=>it.clue);
-    const activitiesAll=[...d.items.map(i=>i.activity),...(d.distractors||[])].sort(()=>Math.random()-.5);
+    const activitiesAll=jtlShuffle([...d.items.map(i=>i.activity),...(d.distractors||[])]);
     html+=`<div style="font-size:13px;color:var(--text);margin-bottom:12px">Match each person to their activity. Listen to the clue first!</div>`;
     html+=d.items.map((it,i)=>`
       <div style="background:var(--card2);border-radius:10px;padding:14px;margin-bottom:10px">
@@ -9339,6 +9463,318 @@ function saveBookClubProgress(data){
   localStorage.setItem('jtl_bookclub',JSON.stringify(data));
 }
 
+// ══════════════════════════════════════════════════════════════════════════
+// NARNIA · CAPÍTULOS 1-4 · LAS 4 HABILIDADES — Fernando (29 septiembre 2026)
+// Primera entrega: LISTENING. Las otras tres se agregan sobre esta misma card.
+//
+// Pedido de Angel: la profesora va a trabajar las cuatro habilidades sobre la
+// lectura que ya hicieron, así que el módulo se enfoca en los capítulos 1-4.
+//
+// DOS DECISIONES DE FONDO:
+//
+// 1. Las narraciones están ESCRITAS A MANO, no generadas. La IA conoce Narnia
+//    a medias y se equivoca en detalles (quién entró primero, qué había en el
+//    bosque). Un módulo que le enseñe hechos falsos del libro es peor que no
+//    tener módulo. Mismo criterio del blueprint del R&W Part 2 y del banco del
+//    Duelo del Futuro. Ninguna línea es de C. S. Lewis: son resúmenes propios.
+//
+// 2. AUDIO PRIMERO, texto oculto — la lección que Angel encontró con Rodrigo
+//    dando vuelta el computador. Acá viene así de entrada, no como parche.
+//
+// El truco del formato: cada narración se escribe UNA vez con un hueco {X}.
+// Con el dato verdadero sirve para "escucha y responde"; con el dato falso,
+// para "caza el error". Así el error plantado es exactamente uno y está
+// controlado, en vez de depender de que la IA invente uno razonable.
+// ══════════════════════════════════════════════════════════════════════════
+
+const NARNIA_TTS='Speak with a clear British accent. You are telling a story to a twelve-year-old. Warm storyteller voice, clear and unhurried, with natural pauses between sentences. Do not rush.';
+
+const NARNIA_LISTEN=[
+ {id:'n1',cap:1,titulo:'The house in the country',
+  texto:"The four children — Peter, Susan, Edmund and Lucy — were sent away from London because of the air raids. They went to stay in the huge old house of an old Professor, far out in the country. The house was full of long passages and empty rooms. On the second morning it was raining, so they decided to explore. They found a room with a suit of armour, a room full of books, and at last an empty room with nothing in it but {X}.",
+  ok:"a big wardrobe", mal:"an old piano",
+  err:{ok:"The empty room had a big wardrobe in it.",
+       mal:"The empty room had an old piano in it.",
+       otras:["The children came from London.","It was raining that morning.","They found a room full of books."]},
+  qs:[
+   {q:"Why did the children leave London?",o:["Because of the air raids","Because their school closed","Because their parents moved"],c:0},
+   {q:"Who owned the house?",o:["An old Professor","Their grandmother","A teacher"],c:0},
+   {q:"What was the weather like on the second morning?",o:["Rainy","Sunny","Snowy"],c:0},
+   {q:"What was in the empty room?",o:["A big wardrobe","An old piano","A large mirror"],c:0}
+  ]},
+
+ {id:'n2',cap:1,titulo:'Lucy steps inside',
+  texto:"Lucy opened the wardrobe door and stepped inside. She pushed past the long fur coats and smelled mothballs. She expected to feel wood at the back, but instead she felt something soft and cold. It was snow. Lucy walked on and found herself in a wood in the middle of winter. There was snow under her feet and snow on the branches. And in the middle of the wood, standing all alone, there was {X}.",
+  ok:"a lamp-post", mal:"a small wooden house",
+  err:{ok:"There was a lamp-post in the middle of the wood.",
+       mal:"A small house stood in the wood.",
+       otras:["Lucy pushed past the long fur coats hanging inside.","She smelled mothballs inside the wardrobe.","There was snow under her feet and on the branches."]},
+  qs:[
+   {q:"What did Lucy push past inside the wardrobe?",o:["Long fur coats","Old boxes","Winter boots"],c:0},
+   {q:"What did she smell?",o:["Mothballs","Wet wood","Smoke"],c:0},
+   {q:"What season was it in the wood?",o:["Winter","Autumn","Spring"],c:0},
+   {q:"What stood alone in the middle of the wood?",o:["A lamp-post","A house","A tree with a door"],c:0}
+  ]},
+
+ {id:'n3',cap:2,titulo:'Mr Tumnus',
+  texto:"By the lamp-post Lucy met a very strange person. He was carrying parcels and an umbrella, and he had the legs of a goat with cloven hooves. He was a faun, and his name was Mr Tumnus. He was so surprised to meet a human girl that he dropped all his parcels in the snow. He was polite and friendly, and he invited Lucy to have tea with him. She said yes, and they walked together through the snow to {X}.",
+  ok:"his cave", mal:"his little farm",
+  err:{ok:"They walked to his cave.",
+       mal:"They walked to his little farm.",
+       otras:["Mr Tumnus was carrying parcels and an umbrella.","He had the legs of a goat.","He dropped his parcels in the snow."]},
+  qs:[
+   {q:"What was Mr Tumnus carrying?",o:["Parcels and an umbrella","A basket of food","A lamp and a map"],c:0},
+   {q:"What kind of creature was he?",o:["A faun","A dwarf","A giant"],c:0},
+   {q:"Why did he drop his parcels?",o:["He was surprised to see a human girl","He slipped on the snow","The wind blew them away"],c:0},
+   {q:"Where did they go together?",o:["To his cave","To his farm","Back to the lamp-post"],c:0}
+  ]},
+
+ {id:'n4',cap:2,titulo:'The faun tells the truth',
+  texto:"At his home Mr Tumnus made a lovely tea with toast, sardines, boiled eggs and cake. He played a strange tune on a little flute and Lucy began to feel sleepy. Then, suddenly, he started to cry. He told her the truth: he worked for the White Witch, and he was supposed to hand over any human child he found. He was very sorry, and he could not do it. He took Lucy safely back through the wood. In Narnia it was always winter, and {X}.",
+  ok:"Christmas never came", mal:"the sun never rose",
+  err:{ok:"In Narnia it was always winter and Christmas never came.",
+       mal:"The sun never rose in Narnia.",
+       otras:["Mr Tumnus made tea with toast, sardines and cake.","He played a tune on a little flute.","He worked for the White Witch."]},
+  qs:[
+   {q:"What was in the tea Mr Tumnus made?",o:["Toast, sardines, eggs and cake","Soup and bread","Only tea and biscuits"],c:0},
+   {q:"What instrument did he play?",o:["A little flute","A small harp","A drum"],c:0},
+   {q:"Who did Mr Tumnus work for?",o:["The White Witch","The Professor","Aslan"],c:0},
+   {q:"What did he decide to do with Lucy?",o:["Take her safely back","Hand her over","Keep her in his cave"],c:0}
+  ]},
+
+ {id:'n5',cap:3,titulo:'Nobody believes Lucy',
+  texto:"When Lucy came back through the wardrobe, no time had passed at all. She told the others about the wood and the faun, but nobody believed her. Peter and Susan thought she was inventing a game. Edmund was the worst of all: he laughed at her and said cruel things. A few days later, on another rainy afternoon, the children were playing hide-and-seek. Lucy ran into the wardrobe again, and this time {X}.",
+  ok:"Edmund followed her", mal:"Peter followed her",
+  err:{ok:"Edmund followed Lucy into the wardrobe.",
+       mal:"Peter followed Lucy into the wardrobe.",
+       otras:["No time had passed while Lucy was away.","Peter and Susan did not believe her.","The children were playing hide-and-seek."]},
+  qs:[
+   {q:"How much time had passed while Lucy was in Narnia?",o:["No time at all","A whole day","About an hour"],c:0},
+   {q:"What did Peter and Susan think?",o:["That she was inventing a game","That she was telling the truth","That she was ill"],c:0},
+   {q:"Who was the cruellest to Lucy?",o:["Edmund","Peter","Susan"],c:0},
+   {q:"What game were the children playing?",o:["Hide-and-seek","Cards","Football"],c:0}
+  ]},
+
+ {id:'n6',cap:3,titulo:'The sledge',
+  // Corregido 29 sept contra el texto real: la corona y la varita aparecen en el capitulo 4,
+  // no en el 3. Aqui solo va lo que el capitulo 3 describe de verdad.
+  texto:"Edmund got into the wardrobe and pushed through the coats. Soon he was standing in the snow, but Lucy was nowhere to be seen. He called her name and nobody answered. Then he heard bells. A sledge came towards him over the snow, and a dwarf was driving it. Behind the dwarf sat a very tall lady, dressed all in white fur. The sledge was pulled by {X}.",
+  ok:"two reindeer", mal:"four white horses",
+  err:{ok:"The sledge was pulled by two reindeer.",
+       mal:"The sledge was pulled by four white horses.",
+       otras:["Edmund heard bells before he saw the sledge.","A dwarf was driving the sledge.","The lady was dressed all in white fur."]},
+  qs:[
+   {q:"What did Edmund hear before he saw the sledge?",o:["Bells","Lucy calling","A wolf"],c:0},
+   {q:"Who was driving the sledge?",o:["A dwarf","A tall soldier","The lady herself"],c:0},
+   {q:"What was the lady wearing?",o:["White fur","A green cloak","A gold crown"],c:0},
+   {q:"What was pulling the sledge?",o:["Two reindeer","Four white horses","Two large dogs"],c:0}
+  ]},
+
+ {id:'n7',cap:4,titulo:'Turkish Delight',
+  texto:"The lady asked Edmund what he was. When he said he was a boy, she called him a Son of Adam. Her voice became much kinder and she made him sit beside her under her warm mantle. Then she gave him a hot sweet drink and a box of Turkish Delight. The sweets were enchanted: the more he ate, the more he wanted, and he could not stop. While he was eating, she began to ask him questions about {X}.",
+  ok:"his brother and sisters", mal:"his school in London",
+  err:{ok:"She asked him about his brother and sisters.",
+       mal:"She asked him about his school in London.",
+       otras:["She called Edmund a Son of Adam.","She gave him a hot sweet drink.","The Turkish Delight was enchanted."]},
+  qs:[
+   {q:"What did the lady call Edmund?",o:["A Son of Adam","A Son of Eve","A little prince"],c:0},
+   {q:"What did she give him first?",o:["A hot sweet drink","A blanket","A map"],c:0},
+   {q:"Why couldn't Edmund stop eating?",o:["The sweets were enchanted","He was very hungry","They were free"],c:0},
+   {q:"What did she ask him about?",o:["His brother and sisters","His school","The Professor"],c:0}
+  ]},
+
+ {id:'n8',cap:4,titulo:'A promise and a secret',
+  texto:"The lady told Edmund that she was the Queen of Narnia. She promised to make him a Prince, and one day a King, if he brought his brother and his sisters to her house between the two hills. Then the sledge went away over the snow. A moment later Edmund met Lucy, who was very happy to see him. She told him about Mr Tumnus and warned him about the White Witch. Edmund began to feel ill, but {X}.",
+  ok:"he said nothing about the Queen", mal:"he told Lucy everything",
+  err:{ok:"Edmund said nothing to Lucy about the Queen.",
+       mal:"Edmund told Lucy everything about the Queen.",
+       otras:["The lady told Edmund she was the Queen of Narnia.","She promised to make him a Prince.","Lucy warned him about the White Witch."]},
+  qs:[
+   {q:"What did the lady say she was?",o:["The Queen of Narnia","A friend of the Professor","Mr Tumnus's sister"],c:0},
+   {q:"What did she promise Edmund?",o:["To make him a Prince and then a King","To give him more sweets","To take him home"],c:0},
+   {q:"What did she want him to do?",o:["Bring his brother and sisters","Find Mr Tumnus","Keep the lamp-post safe"],c:0},
+   {q:"What did Edmund do when he met Lucy?",o:["He said nothing about the Queen","He told her everything","He ran away"],c:0}
+  ]}
+];
+
+function _nlFY(a){const r=a.slice();for(let i=r.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[r[i],r[j]]=[r[j],r[i]];}return r;}
+// Baraja opciones llevando el índice correcto con ellas (misma lección del Duelo del Futuro:
+// un banco escrito a mano deja la respuesta correcta casi siempre primera).
+function _nlBaraja(o,c){
+  const idx=_nlFY(o.map((_,i)=>i));
+  return {o:idx.map(i=>o[i]), c:idx.indexOf(c)};
+}
+
+function openNarniaSkills(){
+  openModule('bookclub');
+  document.getElementById('mod-title').textContent='NARNIA · CAPS. 1-4';
+  const porCap=[1,2,3,4].map(c=>NARNIA_LISTEN.filter(x=>x.cap===c).length);
+  document.getElementById('module-content-area').innerHTML=`<div style="max-width:640px;margin:0 auto">
+    <div style="background:rgba(234,179,8,.06);border:1px solid rgba(234,179,8,.3);border-radius:14px;padding:16px 18px;margin-bottom:18px">
+      <div style="font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:#eab308;letter-spacing:2px">NARNIA · CAPÍTULOS 1 A 4</div>
+      <div style="font-size:15px;font-weight:700;color:var(--text);margin-top:4px">Las cuatro habilidades 🦁</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:8px;line-height:1.6">Todo sobre lo que ya leíste. Nada de capítulos nuevos: se trata de <b style="color:var(--text)">usar</b> lo que leíste, en inglés.</div>
+    </div>
+    <button onclick="nlMenu()" style="display:flex;align-items:center;gap:13px;width:100%;text-align:left;padding:15px 17px;margin-bottom:9px;background:var(--card);border:1px solid var(--border);border-left:3px solid #2dd4bf;border-radius:13px;cursor:pointer">
+      <div style="font-size:26px">🎧</div>
+      <div style="flex:1">
+        <div style="font-size:14px;font-weight:700;color:#2dd4bf">LISTENING</div>
+        <div style="font-size:12px;color:var(--muted)">${NARNIA_LISTEN.length} escenas · ${porCap.join(' / ')} por capítulo</div>
+      </div>
+      <div style="color:var(--muted);font-size:16px">▶</div>
+    </button>
+    ${['📖 READING','🗣️ SPEAKING','✍️ WRITING'].map(t=>`
+      <div style="display:flex;align-items:center;gap:13px;width:100%;padding:15px 17px;margin-bottom:9px;background:var(--card2);border:1px dashed var(--border);border-radius:13px;opacity:.55">
+        <div style="font-size:24px">${t.split(' ')[0]}</div>
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:700;color:var(--muted)">${t.split(' ')[1]}</div>
+          <div style="font-size:12px;color:var(--muted)">Próximamente</div>
+        </div>
+      </div>`).join('')}
+    <button onclick="openModule('bookclub')" style="background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;width:100%;margin-top:12px">← Book Club</button>
+  </div>`;
+}
+
+function nlMenu(){
+  openModule('bookclub');
+  document.getElementById('mod-title').textContent='NARNIA · LISTENING';
+  document.getElementById('module-content-area').innerHTML=`<div style="max-width:640px;margin:0 auto">
+    <div style="background:rgba(45,212,191,.06);border:1px solid rgba(45,212,191,.3);border-radius:14px;padding:16px 18px;margin-bottom:18px">
+      <div style="font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:#2dd4bf;letter-spacing:2px">🎧 LISTENING</div>
+      <div style="font-size:13px;color:var(--text);margin-top:7px;line-height:1.6">La narración <b>no aparece escrita</b>. Escúchala las veces que quieras y después responde.<br><span style="color:var(--muted);font-size:12px">Hay un botón para ver el texto, pero intenta primero sin él.</span></div>
+    </div>
+    <button onclick="nlStart('escucha')" style="width:100%;padding:15px;margin-bottom:10px;background:#2dd4bf;border:none;border-radius:13px;color:#0a0a1a;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:15px;letter-spacing:1px;cursor:pointer">🎧 ESCUCHA Y RESPONDE — 4 escenas</button>
+    <button onclick="nlStart('error')" style="width:100%;padding:15px;margin-bottom:16px;background:var(--card);border:1px solid rgba(248,113,113,.4);border-radius:13px;color:var(--text);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:15px;cursor:pointer">🕵️ CAZA EL ERROR — 4 escenas</button>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px 15px;font-size:12px;color:var(--muted);line-height:1.6">
+      <b style="color:var(--text)">Caza el error:</b> la narración trae <b>un dato falso</b> sobre lo que pasó en el libro. Escucha bien y di cuál era. Esto no se puede resolver oyendo palabras sueltas — hay que entender la historia.
+    </div>
+    <button onclick="openNarniaSkills()" style="background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;width:100%;margin-top:14px">← Las 4 habilidades</button>
+  </div>`;
+}
+
+function nlStart(modo){
+  const items=_nlFY(NARNIA_LISTEN).slice(0,4);
+  window._nl={modo,items,i:0,ok:0,total:0,revelados:0,started:Date.now()};
+  nlAsk();
+}
+
+function _nlTexto(it,modo){
+  return it.texto.replace('{X}', modo==='error'? it.mal : it.ok);
+}
+
+function nlAsk(){
+  const S=window._nl; if(!S)return;
+  if(S.i>=S.items.length){nlFinish();return;}
+  const it=S.items[S.i];
+  const pct=Math.round(S.i/S.items.length*100);
+  let cuerpo;
+  if(S.modo==='escucha'){
+    const qi=Math.floor(Math.random()*it.qs.length);
+    const b=_nlBaraja(it.qs[qi].o,it.qs[qi].c);
+    S.pregunta={q:it.qs[qi].q,...b,qi};
+    cuerpo=_nlOpciones(S.pregunta);
+  } else {
+    const ops=[it.err.mal,...it.err.otras];
+    const b=_nlBaraja(ops,0);
+    S.pregunta={q:'¿Cuál de estas <b>no</b> pasó así en el libro?',...b};
+    cuerpo=_nlOpciones(S.pregunta);
+  }
+  document.getElementById('module-content-area').innerHTML=`<div style="max-width:640px;margin:0 auto">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <div style="flex:1;height:4px;background:var(--card2);border-radius:2px"><div style="height:100%;width:${pct}%;background:#2dd4bf;border-radius:2px"></div></div>
+      <span style="font-size:11px;color:var(--muted);font-family:'Orbitron',monospace">${S.i+1}/${S.items.length}</span>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Capítulo ${it.cap} · ${it.titulo}</div>
+    <div id="nl-box" style="background:var(--card);border-radius:13px;padding:17px;margin-bottom:11px;font-size:14px;color:var(--muted);font-style:italic;line-height:1.55;text-align:center">🎧 Escucha la narración. No está escrita.</div>
+    <div style="display:flex;gap:8px;margin-bottom:8px">
+      <button onclick="nlPlay()" style="flex:1;padding:12px;background:rgba(45,212,191,.1);border:2px solid rgba(45,212,191,.35);border-radius:10px;color:#2dd4bf;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">🔊 Escuchar otra vez</button>
+      <button id="nl-reveal" onclick="nlReveal()" style="padding:12px 14px;background:none;border:1px dashed var(--border);border-radius:10px;color:var(--muted);font-size:11px;cursor:pointer">👁 Ver el texto</button>
+    </div>
+    <div style="background:var(--card2);border-radius:13px;padding:15px;margin-top:12px">
+      <div style="font-size:15px;color:var(--text);margin-bottom:12px;line-height:1.5">${S.pregunta.q}</div>
+      ${cuerpo}
+    </div>
+    <div id="nl-fb"></div>
+    <button onclick="nlMenu()" style="background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;width:100%;margin-top:14px">← Listening</button>
+  </div>`;
+  nlPlay();
+}
+
+function _nlOpciones(p){
+  return '<div id="nl-ops">'+p.o.map((o,i)=>`<button id="nl-op-${i}" onclick="nlAnswer(${i})" style="display:block;width:100%;text-align:left;padding:12px 15px;margin-bottom:8px;background:var(--card);border:1px solid var(--border);border-radius:11px;color:var(--text);font-size:14px;cursor:pointer">${o}</button>`).join('')+'</div>';
+}
+
+function nlPlay(){
+  const S=window._nl; if(!S)return;
+  const it=S.items[S.i]; if(!it)return;
+  ttsSpeak(_nlTexto(it,S.modo),{rate:0.9,instructions:NARNIA_TTS});
+}
+
+function nlReveal(){
+  const S=window._nl; if(!S)return;
+  const it=S.items[S.i]; if(!it)return;
+  S.revelados++;
+  // Ver el texto entrega la respuesta: el {X} esta ahi. Por eso este item deja de contar
+  // como acierto limpio. No se prohibe ni se castiga — se separa, para que el puntaje
+  // diga la verdad en vez de un 4/4 leyendo todo.
+  S.conAyuda=true;
+  const box=document.getElementById('nl-box');
+  if(box){box.textContent=_nlTexto(it,S.modo);box.style.color='var(--text)';box.style.fontStyle='normal';box.style.textAlign='left';}
+  const b=document.getElementById('nl-reveal'); if(b)b.style.display='none';
+}
+
+function nlAnswer(idx){
+  const S=window._nl; if(!S||S.answered)return;
+  S.answered=true; S.total++;
+  const it=S.items[S.i],p=S.pregunta,bien=idx===p.c;
+  if(bien){ if(S.conAyuda)S.ayudados=(S.ayudados||0)+1; else S.ok++; }
+  p.o.forEach((_,i)=>{
+    const b=document.getElementById('nl-op-'+i); if(!b)return;
+    b.style.cursor='default'; b.onclick=null;
+    if(i===p.c){b.style.borderColor='#22c55e';b.style.background='rgba(34,197,94,.10)';b.style.color='#22c55e';b.style.fontWeight='700';}
+    else if(i===idx){b.style.borderColor='#f87171';b.style.background='rgba(248,113,113,.08)';b.style.color='#f87171';}
+    else b.style.opacity='.45';
+  });
+  const extra = S.modo==='error'
+    ? `<div style="font-size:13px;color:var(--text);line-height:1.5">Lo que dice el libro: <b style="color:#22c55e">${it.err.ok}</b></div>`
+    : `<div style="font-size:13px;color:var(--muted);line-height:1.5">Capítulo ${it.cap} — ${it.titulo}.</div>`;
+  document.getElementById('nl-fb').innerHTML=`<div style="background:var(--card);border:1px solid ${bien?'rgba(34,197,94,.35)':'rgba(248,113,113,.35)'};border-radius:12px;padding:14px 16px;margin-top:10px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px"><span style="font-size:18px">${bien?'✅':'🔍'}</span>
+      <span style="font-size:12px;font-weight:700;letter-spacing:1px;font-family:'Orbitron',monospace;color:${bien?'#22c55e':'#f87171'}">${bien?'CORRECTO':'NO ERA ESA'}</span></div>
+      ${extra}
+      <button onclick="nlNext()" style="width:100%;margin-top:12px;padding:11px;background:#2dd4bf;border:none;border-radius:9px;color:#0a0a1a;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">Siguiente →</button>
+    </div>`;
+}
+
+function nlNext(){const S=window._nl; if(!S)return; S.i++; S.answered=false; S.conAyuda=false; nlAsk();}
+
+function nlFinish(){
+  const S=window._nl; if(!S)return;
+  const pct=S.total?Math.round(S.ok/S.total*100):0;
+  const mins=Math.max(1,Math.round((Date.now()-S.started)/60000));
+  const km=Math.max(5,S.ok*5+(S.ayudados||0)*2);  // el acierto con ayuda vale menos, no cero
+  addKm(km);
+  const ay=S.ayudados||0;
+  const oido = S.revelados===0
+    ? '<div style="font-size:13px;color:#22c55e;margin-top:8px;font-weight:700">🎧 Lo hiciste todo de oído, sin ver el texto</div>'
+    : `<div style="font-size:13px;color:var(--muted);margin-top:8px">Viste el texto en ${S.revelados} de ${S.items.length}. La próxima, intenta una menos.</div>`
+      + (ay? `<div style="font-size:12px;color:var(--muted);margin-top:5px">${ay} ${ay===1?'la acertaste':'las acertaste'} con el texto a la vista, así que ${ay===1?'no cuenta':'no cuentan'} en el puntaje de arriba — el texto trae la respuesta.</div>`:'');
+  document.getElementById('module-content-area').innerHTML=`<div style="max-width:640px;margin:0 auto;text-align:center">
+    <div style="font-size:44px">${pct>=75?'🏆':pct>=50?'💪':'🎧'}</div>
+    <div style="font-family:'Orbitron',monospace;font-size:11px;letter-spacing:2px;color:var(--muted);margin-top:4px">NARNIA · LISTENING</div>
+    <div style="font-size:29px;font-weight:700;color:var(--text);margin:6px 0">${S.ok} / ${S.total}</div>
+    <div style="font-size:12px;color:var(--muted);letter-spacing:1px;font-family:'Orbitron',monospace">DE OÍDO</div>
+    <div style="font-size:13px;color:var(--muted)">${pct}% · ${mins} min · +${km} km</div>
+    ${oido}
+    <div style="display:flex;gap:9px;margin-top:20px">
+      <button onclick="nlStart('${S.modo}')" style="flex:1;padding:12px;background:#2dd4bf;border:none;border-radius:11px;color:#0a0a1a;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">🔄 Otra ronda</button>
+      <button onclick="nlMenu()" style="flex:1;padding:12px;background:var(--card);border:1px solid var(--border);border-radius:11px;color:var(--text);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:14px;cursor:pointer">← Listening</button>
+    </div>
+  </div>`;
+  showToast(`Narnia Listening: ${S.ok}/${S.total} — +${km} km!`);
+  window._nl=null;
+}
+
 function runBookClub(){
   const area=document.getElementById('module-content-area');
   const progress=getBookClubProgress();
@@ -9403,6 +9839,17 @@ function runBookClub(){
 
   area.innerHTML=`<div>
     <div style="font-family:'Orbitron',monospace;font-size:11px;color:var(--green);letter-spacing:2px;margin-bottom:16px">📖 BOOK CLUB</div>
+    <div style="max-width:680px;margin:0 auto 18px">
+      <button onclick="openNarniaSkills()" style="display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:15px 17px;background:rgba(234,179,8,.07);border:1px solid rgba(234,179,8,.35);border-radius:14px;cursor:pointer">
+        <div style="font-size:30px">🦁</div>
+        <div style="flex:1">
+          <div style="font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:#eab308;letter-spacing:2px">CAPÍTULOS 1 A 4</div>
+          <div style="font-size:15px;font-weight:700;color:var(--text);margin-top:2px">Las 4 habilidades</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">Listening · Reading · Speaking · Writing</div>
+        </div>
+        <div style="color:var(--muted);font-size:16px">▶</div>
+      </button>
+    </div>
     ${booksHtml}
   </div>`;
 }
