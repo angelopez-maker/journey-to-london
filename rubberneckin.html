@@ -6556,7 +6556,7 @@ function rkRenderMatchDay(){
 // categoría (que ahora tiene ~15). La sesión de juego sigue siendo corta y liviana, pero el
 // pool grande hace que jugar varias veces se sienta distinto cada vez. Mismo principio a
 // aplicar en Mystery Picture, Stop Look & Listen y Scavenger Hunt cuando se construyan.
-const RK_MATCHDAY_QUIZ_LENGTH = 5;
+const RK_MATCHDAY_QUIZ_LENGTH = 7;  // 7 x 1 shilling (RK_PRICE_MAX.match_day); el 5 era maqueta
 function rkStartMatchQuiz(catId){
   const cat = _rkMatchAllCategories().find(c => c.id === catId);
   if(!cat) return;
@@ -7040,7 +7040,8 @@ function rkHuntAskOliverFinal(){
 // Mind the Gap/Match Day: RK_MYSTERY_BANKS[RK_ACTIVE_THEME] || RK_MYSTERY_BANKS.neutral.
 const RK_MYSTERY_BANKS = {
   // ── FULL / Summer Mode ──────────────────────────────────────────────────
-  // 52 entradas propias + las 4 de neutral, cargadas el 6 de septiembre de 2026.
+  // 52 entradas propias + las 4 de neutral (6 septiembre 2026) + 12 de la tanda 05
+  // (30 septiembre 2026) = 68.
   // Producidas con Gemini bajo el Master Prompt, coladas con check_mystery.js y
   // curadas por Angel. Método completo en "JTL - Metodo de revision de contenido.md".
   // Los ids son estables: nombran la respuesta y NO se renombran nunca (ver plantillas).
@@ -7495,6 +7496,117 @@ const RK_MYSTERY_BANKS = {
       'People eat strawberries and cream while watching me.',
       'I am the oldest tournament of my kind in the world.',
       'I am the most famous tennis championship in the world, played on grass courts in London.']},
+      // ── Tanda 05, cargada el 30 de septiembre de 2026 ──────────────────────
+    // 12 de 13 candidatas. Aslan quedó fuera de esta pasada. Colador: 0 errores
+    // tras quitar el 'Shakespeare' de la pista 4 de Hiddleston (punto ciego del script).
+    {id:'myst_rockstar_games', answer:'Rockstar Games', accept:['rockstar games', 'rockstar', 'rockstar north'], clues:[
+      'I am an incredibly famous entertainment company that produces massive digital worlds.',
+      'My products are known for letting players explore huge open cities, drive fast cars, and cause absolute chaos.',
+      'The headquarters responsible for my biggest hits is located in a normal office building in Edinburgh, Scotland.',
+      'One of my most famous releases is set in the fictional wild west and features cowboys riding horses.',
+      'I am widely considered the most profitable studio in the entire digital entertainment industry.',
+      'My most successful franchise allows you to steal vehicles in fictional cities like Los Santos and Vice City.',
+      'My 2013 release featuring three playable criminals broke industry records by earning one billion dollars in just three days.',
+    ]},
+    {id:'myst_millie_bobby_brown', answer:'Millie Bobby Brown', accept:['millie bobby brown', 'millie brown'], clues:[
+      'I am a highly successful actor who became a global superstar while still a child.',
+      'I am completely deaf in one of my ears, which means I often cannot hear myself when I am performing on set.',
+      'I grew up in England, but I became famous for playing an American teenager.',
+      'In a recent film series, I played the highly intelligent younger sister of a famous London detective.',
+      'My breakthrough role required me to shave my head completely bald.',
+      'In that same massive television series, I use supernatural powers to fight monsters from a dimension called the Upside Down.',
+      'In 2018, Time magazine named me the youngest person ever to be included in their list of the world\'s most influential people.',
+    ]},
+    {id:'myst_tom_hardy', answer:'Tom Hardy', accept:['tom hardy', 'hardy'], clues:[
+      'I am an actor who frequently plays intense, highly aggressive villains on screen.',
+      'In real life, I secretly entered a martial arts tournament in England under my legal first name, Edward, and quietly won the gold medal.',
+      'I am famous for drastically changing my physical appearance and using very strange voices for my characters.',
+      'I spent an entire post-apocalyptic action film driving across the desert while wearing an iron mask over my face.',
+      'I also wore a terrifying breathing mask to play a massive villain who fought the Dark Knight in a subterranean sewer.',
+      'Currently, I play the human host who shares a body with an alien symbiote made of black liquid.',
+      'I received an Academy Award nomination for playing the ruthless fur trapper John Fitzgerald opposite Leonardo DiCaprio.',
+    ]},
+    {id:'myst_cadbury', answer:'Cadbury', accept:['cadbury', 'cadburys'], clues:[
+      'I am a massively successful brand that manufactures sweet treats sold all over the world.',
+      'During the nineteenth century, my founders built an entire, beautiful model village in England just to give their factory workers a healthy place to live.',
+      'I am instantly recognisable on supermarket shelves because of my trademark dark purple packaging.',
+      'My most famous everyday products are solid blocks of smooth dairy chocolate.',
+      'I produce a highly popular seasonal treat that consists of a thick chocolate shell filled with sweet, gooey fondant.',
+      'People frequently hide those specific foil-wrapped treats in gardens during the spring holidays.',
+      'My manufacturing empire began in 1824 when my founder opened a tiny shop in Birmingham selling drinking chocolate and tea.',
+    ]},
+    {id:'myst_banksy', answer:'Banksy', accept:['banksy'], clues:[
+      'I am a globally famous creative figure, yet my true identity remains a complete secret.',
+      'Rather than displaying my work in quiet galleries, I usually paint directly onto public walls and buildings during the night.',
+      'My work often features rats, police officers, and children, used to make political jokes.',
+      'I once built a mechanical shredder into a frame so my painting would automatically destroy itself the moment it was sold at an auction.',
+      'The destroyed artwork, which featured a girl reaching for a red balloon, actually doubled in value after it was sliced into ribbons.',
+      'Because of my accent in anonymous interviews, I am believed to have been born in the English city of Bristol.',
+      'In 2015, I opened a dark, twisted parody of a family theme park in a British seaside town, featuring miserable staff and ruined fairy tales.',
+    ]},
+    {id:'myst_arsenal', answer:'Arsenal', accept:['arsenal', 'arsenal fc'], clues:[
+      'I am a sporting organisation followed by millions of incredibly passionate fans.',
+      'My historical origins are tied to a group of munitions workers in late nineteenth-century London, which is why my official logo features a heavy military weapon.',
+      'I play my home matches in a massive stadium situated in the northern part of the British capital.',
+      'I am the only organisation in the modern history of my league to be awarded a solid gold trophy instead of a silver one.',
+      'I earned that unique golden prize by going an entire season without losing a single domestic match.',
+      'Because of that undefeated record, my squad from that year is still known as "The Invincibles".',
+      'In 2020, I secured my fourteenth FA Cup victory by defeating Chelsea in the final match.',
+    ]},
+    {id:'myst_dyson', answer:'Dyson', accept:['dyson', 'dyson ltd'], clues:[
+      'I am a modern technology brand found in millions of homes worldwide.',
+      'My founder spent fifteen years building over five thousand failed prototypes in his backyard shed before his first product actually worked.',
+      'I revolutionised household cleaning by inventing a machine that uses spinning cyclones instead of a disposable paper bag.',
+      'Over time, I expanded into public washrooms, creating powerful machines that dry your hands with a flat sheet of high-speed air.',
+      'On social media, I am incredibly famous for my expensive hair styling tools that use air to wrap and curl hair without extreme heat.',
+      'My machines are easily recognisable by their bright silver, purple, and copper colours.',
+      'In 1993, my company opened its own research and manufacturing facility in the English town of Malmesbury to produce the DC01 model.',
+    ]},
+    {id:'myst_christian_bale', answer:'Christian Bale', accept:['christian bale', 'bale'], clues:[
+      'I am an actor widely known for my intense dedication to my cinematic roles.',
+      'I am famous for drastically altering my physical body, once losing over sixty pounds to play a skeletal factory worker.',
+      'Immediately after that dramatic weight loss, I had six months to pack on massive amounts of muscle to play a billionaire vigilante.',
+      'Even though I usually speak with an American accent on screen, I was actually born in Wales.',
+      'I starred in a highly acclaimed superhero trilogy directed by Christopher Nolan.',
+      'In those films, I drive an armoured, tank-like vehicle called the Tumbler through the dark streets of Gotham.',
+      'I recently played the terrifying villain Gorr the God Butcher, who wields the Necrosword against an Asgardian prince.',
+    ]},
+    {id:'myst_bear_grylls', answer:'Bear Grylls', accept:['bear grylls', 'grylls'], clues:[
+      'I am an energetic television personality who travels to the most dangerous environments on the planet.',
+      'When I was younger, a terrible parachuting accident broke my back in three places, and doctors feared I would never walk again.',
+      'Just eighteen months after that devastating injury, I successfully reached the very top of Mount Everest.',
+      'I spent years serving in the British Special Air Service, learning extreme wilderness skills.',
+      'On television, I am famous for demonstrating how to stay alive by eating horrific things like giant grubs and raw fish.',
+      'The internet frequently uses an image of me as a meme with the caption "Improvise, Adapt, Overcome".',
+      'In 2009, I was officially appointed as the youngest-ever Chief Scout of the United Kingdom and Overseas Territories.',
+    ]},
+    {id:'myst_elton_john', answer:'Elton John', accept:['elton john', 'sir elton john'], clues:[
+      'I am a legendary musician who has sold hundreds of millions of records over a fifty-year career.',
+      'I own an astonishing personal collection of over two hundred thousand pairs of glasses, kept in special temperature-controlled rooms.',
+      'I frequently collaborate with modern pop stars, including releasing a massive dance remix with Dua Lipa.',
+      'I composed the beautiful, award-winning original songs for an animated film featuring singing lions in the African savanna.',
+      'I perform my incredibly energetic live shows while sitting behind a massive grand piano.',
+      'A recent biographical film about my life was titled after my famous song about a lonely astronaut.',
+      'In 1997, I performed a rewritten version of "Candle in the Wind" at the funeral of Diana, Princess of Wales.',
+    ]},
+    {id:'myst_gareth_bale', answer:'Gareth Bale', accept:['gareth bale', 'bale'], clues:[
+      'I am a recently retired professional athlete known for my incredible speed and powerful left foot.',
+      'Early in my career, I played in London for a team whose emblem is a cockerel standing on a football.',
+      'I eventually moved to a massive Spanish club, where I scored a spectacular overhead kick in a European cup final against Liverpool.',
+      'Despite my success on the pitch, I am famously obsessed with playing a completely different sport that involves walking around quiet green courses.',
+      'I once celebrated a victory by holding up a flag that ranked my home country first, golf second, and my professional football employer third.',
+      'I proudly captained my national team, leading a squad known as the Dragons to multiple major tournaments.',
+      'I was born in Cardiff and hold the record as the highest goalscorer in the history of the Welsh national football team.',
+    ]},
+    {id:'myst_tom_hiddleston', answer:'Tom Hiddleston', accept:['tom hiddleston', 'hiddleston'], clues:[
+      'I am an actor best known for playing a highly intelligent, deeply untrustworthy character in a massive cinematic universe.',
+      'When I first auditioned for that franchise, I actually tried out for the heroic lead role, packing on muscle to swing a heavy hammer.',
+      'The directors decided I was much better suited to play that hero\'s adopted, mischievous brother.',
+      'I spent time studying at Cambridge University and acting in classic English stage plays before going to Hollywood.',
+      'My famous villain character eventually became so popular that he was given his own television series involving time travel.',
+      'On screen, my character frequently wears a dark green cape and a golden helmet featuring two massive curved horns.',
+      'I won a Golden Globe award for playing the hotel night manager Jonathan Pine in a British television adaptation of a John le Carré novel.',
+    ]},
   ],
   neutral: [
     {answer:'Big Ben', accept:['big ben'], clues:[
@@ -8050,6 +8162,7 @@ function rkCurrentSkScenarios(){
 }
 
 let _rkSkOrder = [];
+let _rkSkScore = 0;   // shillings crudos del ciclo: 3 / 1 / 0 por misión, máximo 15 (RK_PRICE_MAX.survival_kit)
 let _rkSkVariant = {};
 let _rkSkIndex = 0;
 let _rkSkCurrent = null;
@@ -8115,6 +8228,7 @@ function rkSkStartCycle(){
   _rkSkVariant = {};
   scenarios.forEach(s => { _rkSkVariant[s.id] = Math.floor(Math.random() * s.variants.length); });
   _rkSkIndex = 0;
+  _rkSkScore = 0;
   rkSkRenderMission();
 }
 
@@ -8225,18 +8339,44 @@ You must NEVER:
 - Use bad language yourself, no matter what the transcript contains.
 - Break character as Oliver Blackwood, or mention that you are an AI.
 
-Give warm, encouraging feedback in 2-3 short sentences, in simple English. Do NOT comment on pronunciation or accent — you only have a text transcript, not audio, so that information doesn't exist. Only offer a corrected version if there's a genuine grammar or clarity problem with what THEY said (correcting their own idea, never swapping it for the example's content) — and even then, keep it light and quick, not a lecture. Keep it casual and relaxed, like a friendly older kid, never like a teacher grading an exam. Reply with plain text only, no JSON, no markdown.`;
+Give warm, encouraging feedback in 2-3 short sentences, in simple English. Do NOT comment on pronunciation or accent — you only have a text transcript, not audio, so that information doesn't exist. Only offer a corrected version if there's a genuine grammar or clarity problem with what THEY said (correcting their own idea, never swapping it for the example's content) — and even then, keep it light and quick, not a lecture. Keep it casual and relaxed, like a friendly older kid, never like a teacher grading an exam. Reply with plain text only, no JSON, no markdown.
+
+Then, on a NEW LAST LINE, write nothing but a score for what they said, in exactly this format:
+SCORE: 3
+Use 3 if they communicated clearly and the English was reasonable (small slips are fine — remember, communication over perfection). Use 1 if they got the idea across but there was a real grammar or clarity problem. Use 0 ONLY if the transcript is off-topic, nonsense, or they did not attempt the task at all. This line is for the game, not for them — never mention it, never explain it, and never put anything else on that line.`;
   rkCallClaude(prompt, 300)
     .then(text => {
-      const clean = text.trim();
+      const { clean, score } = rkSkReadScore(text);
+      _rkSkScore += score;
       _rkSkLastSpoken = clean;
       area.innerHTML = oliverHtml(rkEscapeHtml(clean), true) + rkSkActionsHtml();
       rkTtsSpeak(clean);
     })
     .catch(() => {
+      // El niño habló y el fallo fue nuestro: se le paga 1, igual que el fallback del SCORE.
+      _rkSkScore += 1;
+      console.warn('[survival kit] no se pudo evaluar la misión, se asume 1');
       const msg = "Oops — I couldn't reach the library right now. Try again in a moment!";
       area.innerHTML = oliverHtml(msg, false) + rkSkActionsHtml();
     });
+}
+
+// Separa el veredicto del juego del texto que ve y escucha el niño. Dos cosas importantes:
+// la línea SCORE se borra SIEMPRE, incluso cuando no se pudo leer (si el modelo la escribió
+// raro, que se pierda el puntaje, pero que nunca se la lea Oliver en voz alta); y cuando no
+// hay puntaje el fallback es 1, nunca 0 — si el niño habló y el fallo fue nuestro, se
+// comunicó. El 0 solo lo pone el modelo a propósito.
+function rkSkReadScore(text){
+  const raw = String(text || '');
+  const m = raw.match(/SCORE\s*[:=]?\s*(\d)/i);
+  let score = 1;
+  if(m){
+    score = Math.max(0, Math.min(3, parseInt(m[1], 10)));
+  } else {
+    console.warn('[survival kit] Oliver no devolvió SCORE legible, se asume 1');
+  }
+  const clean = raw.replace(/^[^\S\r\n]*SCORE\b.*$/gim, '').replace(/\n{3,}/g, '\n\n').trim();
+  return { clean, score };
 }
 
 function rkSkActionsHtml(){
@@ -8252,8 +8392,15 @@ function rkSkNext(){
   rkSkRenderMission();
 }
 
+// El pago de Survival Kit es POR RONDA, no por misión (decisión de Angel, opción A): las 5
+// misiones se juegan siempre en bloque y el niño no puede jugar una sola, así que la ronda es
+// la unidad real. De ahí el itemId fijo: la primera ronda paga completo (hasta 15) y las
+// siguientes pagan la mitad con tope 5, que es justo para lo que está calibrado RK_REPEAT_CAP.
+const RK_SK_ITEM_ID = 'sk_round';
+
 function rkSkCycleComplete(){
   if(rkMicIsRecording()) rkMicReset();
+  const ganados = _rkSkScore;
   const msg = `Brilliant! You made it through all ${_rkSkOrder.length} missions. Want to play another round, or head back to the map?`;
   _rkSkLastSpoken = msg;
   const wrap = document.getElementById('rk-sk-wrap');
@@ -8263,11 +8410,21 @@ function rkSkCycleComplete(){
       <div><div class="rk-sk-oliver-name">Oliver Blackwood</div><div class="rk-sk-oliver-text">${msg}</div></div>
       <button class="rk-sk-hear-btn" onclick="rkSkReplay()" title="Hear it">▶</button>
     </div>
+    <div id="rk-sk-payout" class="rk-info-blurb" style="font-weight:700"></div>
     <div class="rk-sk-actions">
       <button class="rk-sk-secondary-btn" onclick="rkBackToMap()">🗺️ Back to map</button>
       <button class="rk-sk-primary-btn" onclick="rkSkStartCycle()">🔁 Play another round</button>
     </div>`;
   rkTtsSpeak(msg);
+  // Se muestra lo que el servidor pagó de verdad, no lo que suponíamos: si la ronda ya se
+  // había jugado, paga la mitad, y prometer 15 para depositar 5 es peor que no prometer nada.
+  // Un fallo de red no dice nada y no interrumpe: esos shillings se vuelven a ganar jugando.
+  rkEarnShillings('survival_kit', ganados, RK_SK_ITEM_ID).then(data => {
+    const el = document.getElementById('rk-sk-payout');
+    if(!el || !data) return;
+    el.textContent = `💰 ${data.paid} shilling${data.paid === 1 ? '' : 's'} earned` +
+                     (data.repeat ? ' (half pay — you have played this round before)' : '');
+  });
 }
 
 // ── Mic/Whisper — mismo patrón que micStart()/micStopAndTranscribe()/micReset() de index.html
