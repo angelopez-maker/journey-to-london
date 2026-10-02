@@ -6452,71 +6452,71 @@ function rkBackToMap(){
 // texto, sin voz ni conversación. No rompe la regla original, la acota correctamente.
 const RK_MATCHDAY_CATEGORIES = [
   {id:'epl', label:'⚽ Premier League', questions:[
-    {q:"Which team has won the most Premier League titles in history?", options:['Manchester United','Chelsea','Arsenal'], answer:0},
-    {q:"Who is the Premier League's all-time top goal scorer, with 260 goals?", options:['Alan Shearer','Wayne Rooney','Harry Kane'], answer:0},
-    {q:"In the 2003-04 season, which team went the whole season without losing a single match?", options:['Arsenal','Liverpool','Manchester City'], answer:0},
-    {q:"In 2016, which team amazed everyone by winning the Premier League for the very first time?", options:['Leicester City','Everton','West Ham United'], answer:0},
-    {q:"What is the nickname of Manchester United?", options:['The Red Devils','The Blues','The Gunners'], answer:0},
-    {q:"What is Liverpool FC's nickname?", options:['The Reds','The Blues','The Toffees'], answer:0},
-    {q:"What is Chelsea FC's nickname?", options:['The Blues','The Reds','The Hammers'], answer:0},
-    {q:"What is the short nickname fans use for Tottenham Hotspur?", options:['Spurs','The Magpies','The Gunners'], answer:0},
-    {q:"What is Everton FC's nickname?", options:['The Toffees','The Eagles','The Saints'], answer:0},
-    {q:"Liverpool FC plays its home matches at which famous stadium?", options:['Anfield','Old Trafford','Stamford Bridge'], answer:0},
-    {q:"Manchester United's stadium, Old Trafford, has a famous nickname. What is it?", options:['The Theatre of Dreams','The Emirates','The Bridge'], answer:0},
-    {q:"In what year did the Premier League begin?", options:['1992','1985','2000'], answer:0},
-    {q:"Which legendary French striker is Arsenal's all-time record goalscorer?", options:['Thierry Henry','Alan Shearer','Wayne Rooney'], answer:0},
-    {q:'The "Merseyside derby" is the famous match between Liverpool and which other team?', options:['Everton','Manchester City','Chelsea'], answer:0},
-    {q:"What color shirts does Chelsea wear for home matches?", options:['Blue','Red','Green'], answer:0},
+    {id:'md_epl_manchesterunited_01', q:"Which team has won the most Premier League titles in history?", options:['Manchester United','Chelsea','Arsenal'], answer:0},
+    {id:'md_epl_alanshearer_01', q:"Who is the Premier League's all-time top goal scorer, with 260 goals?", options:['Alan Shearer','Wayne Rooney','Harry Kane'], answer:0},
+    {id:'md_epl_arsenal_01', q:"In the 2003-04 season, which team went the whole season without losing a single match?", options:['Arsenal','Liverpool','Manchester City'], answer:0},
+    {id:'md_epl_leicestercity_01', q:"In 2016, which team amazed everyone by winning the Premier League for the very first time?", options:['Leicester City','Everton','West Ham United'], answer:0},
+    {id:'md_epl_reddevils_01', q:"What is the nickname of Manchester United?", options:['The Red Devils','The Blues','The Gunners'], answer:0},
+    {id:'md_epl_reds_01', q:"What is Liverpool FC's nickname?", options:['The Reds','The Blues','The Toffees'], answer:0},
+    {id:'md_epl_blues_01', q:"What is Chelsea FC's nickname?", options:['The Blues','The Reds','The Hammers'], answer:0},
+    {id:'md_epl_spurs_01', q:"What is the short nickname fans use for Tottenham Hotspur?", options:['Spurs','The Magpies','The Gunners'], answer:0},
+    {id:'md_epl_toffees_01', q:"What is Everton FC's nickname?", options:['The Toffees','The Eagles','The Saints'], answer:0},
+    {id:'md_epl_anfield_01', q:"Liverpool FC plays its home matches at which famous stadium?", options:['Anfield','Old Trafford','Stamford Bridge'], answer:0},
+    {id:'md_epl_theatredreams_01', q:"Manchester United's stadium, Old Trafford, has a famous nickname. What is it?", options:['The Theatre of Dreams','The Emirates','The Bridge'], answer:0},
+    {id:'md_epl_1992_01', q:"In what year did the Premier League begin?", options:['1992','1985','2000'], answer:0},
+    {id:'md_epl_thierryhenry_01', q:"Which legendary French striker is Arsenal's all-time record goalscorer?", options:['Thierry Henry','Alan Shearer','Wayne Rooney'], answer:0},
+    {id:'md_epl_everton_91', q:'The "Merseyside derby" is the famous match between Liverpool and which other team?', options:['Everton','Manchester City','Chelsea'], answer:0},
+    {id:'md_epl_blue_01', q:"What color shirts does Chelsea wear for home matches?", options:['Blue','Red','Green'], answer:0},
   ]},
   {id:'ucl', label:'🏆 Champions League', questions:[
-    {q:"Which club has won the UEFA Champions League the most times in history?", options:['Real Madrid','Bayern Munich','Chelsea'], answer:0},
-    {q:"Who has scored the most goals in the history of the Champions League?", options:['Lionel Messi','Cristiano Ronaldo','Kylian Mbappé'], answer:1},
-    {q:"Before 1992, the competition had a different name. What was it called?", options:['The European Cup','The World Cup','The Euro Trophy'], answer:0},
-    {q:"Which club won the very first European Cup final, back in 1956?", options:['Real Madrid','Liverpool','AC Milan'], answer:0},
-    {q:"Which club has won the competition 7 times, the second-highest total in history?", options:['AC Milan','Arsenal','Ajax'], answer:0},
-    {q:'What famous piece of classical music was the UEFA Champions League anthem based on?', options:["Handel's \"Zadok the Priest\"","Beethoven's \"Ode to Joy\"","Mozart's \"Eine kleine Nachtmusik\""], answer:0},
-    {q:'What is the nickname of the Champions League trophy, because of its two big handles?', options:['"Big Ears"','"The Golden Cup"','"The Silver Star"'], answer:0},
-    {q:"In the famous 2005 final in Istanbul, which team came back from 3-0 down at half-time to win the trophy?", options:['Liverpool','AC Milan','Real Madrid'], answer:0},
-    {q:"In the 1999 final, which team scored two goals in the last minutes to beat Bayern Munich?", options:['Manchester United','Juventus','Arsenal'], answer:0},
-    {q:"In the 1970s, which Dutch club, led by star player Johan Cruyff, won the European Cup three times in a row?", options:['Ajax','PSV Eindhoven','Feyenoord'], answer:0},
-    {q:"Which club became the first English team ever to win the European Cup, in 1968?", options:['Manchester United','Liverpool','Chelsea'], answer:0},
-    {q:"In the 2002 final, French star Zinedine Zidane scored an amazing goal for Real Madrid. How did he score it?", options:['A powerful volley with his weaker foot','A header from a corner kick','A penalty kick'], answer:0},
-    {q:"Since 2001, which sportswear brand has made the official Champions League match ball, decorated with stars?", options:['Adidas','Nike','Puma'], answer:0},
-    {q:'The Champions League\'s famous "starball" logo, made of a football covered in stars, was first introduced in which year?', options:['1992','1985','2001'], answer:0},
-    {q:"Legendary Spanish goalkeeper Iker Casillas holds the record for winning the Champions League more times than any other goalkeeper. How many times did he win it?", options:['3 times','2 times','5 times'], answer:0},
+    {id:'md_ucl_realmadrid_01', q:"Which club has won the UEFA Champions League the most times in history?", options:['Real Madrid','Bayern Munich','Chelsea'], answer:0},
+    {id:'md_ucl_lionelmessi_01', q:"Who has scored the most goals in the history of the Champions League?", options:['Lionel Messi','Cristiano Ronaldo','Kylian Mbappé'], answer:1},
+    {id:'md_ucl_europeancup_01', q:"Before 1992, the competition had a different name. What was it called?", options:['The European Cup','The World Cup','The Euro Trophy'], answer:0},
+    {id:'md_ucl_realmadrid_02', q:"Which club won the very first European Cup final, back in 1956?", options:['Real Madrid','Liverpool','AC Milan'], answer:0},
+    {id:'md_ucl_acmilan_01', q:"Which club has won the competition 7 times, the second-highest total in history?", options:['AC Milan','Arsenal','Ajax'], answer:0},
+    {id:'md_ucl_handelszadok_91', q:'What famous piece of classical music was the UEFA Champions League anthem based on?', options:["Handel's \"Zadok the Priest\"","Beethoven's \"Ode to Joy\"","Mozart's \"Eine kleine Nachtmusik\""], answer:0},
+    {id:'md_ucl_bigears_91', q:'What is the nickname of the Champions League trophy, because of its two big handles?', options:['"Big Ears"','"The Golden Cup"','"The Silver Star"'], answer:0},
+    {id:'md_ucl_liverpool_01', q:"In the famous 2005 final in Istanbul, which team came back from 3-0 down at half-time to win the trophy?", options:['Liverpool','AC Milan','Real Madrid'], answer:0},
+    {id:'md_ucl_manchesterunited_01', q:"In the 1999 final, which team scored two goals in the last minutes to beat Bayern Munich?", options:['Manchester United','Juventus','Arsenal'], answer:0},
+    {id:'md_ucl_ajax_01', q:"In the 1970s, which Dutch club, led by star player Johan Cruyff, won the European Cup three times in a row?", options:['Ajax','PSV Eindhoven','Feyenoord'], answer:0},
+    {id:'md_ucl_manchesterunited_02', q:"Which club became the first English team ever to win the European Cup, in 1968?", options:['Manchester United','Liverpool','Chelsea'], answer:0},
+    {id:'md_ucl_powerfulvolleywith_01', q:"In the 2002 final, French star Zinedine Zidane scored an amazing goal for Real Madrid. How did he score it?", options:['A powerful volley with his weaker foot','A header from a corner kick','A penalty kick'], answer:0},
+    {id:'md_ucl_adidas_01', q:"Since 2001, which sportswear brand has made the official Champions League match ball, decorated with stars?", options:['Adidas','Nike','Puma'], answer:0},
+    {id:'md_ucl_1992_91', q:'The Champions League\'s famous "starball" logo, made of a football covered in stars, was first introduced in which year?', options:['1992','1985','2001'], answer:0},
+    {id:'md_ucl_3times_01', q:"Legendary Spanish goalkeeper Iker Casillas holds the record for winning the Champions League more times than any other goalkeeper. How many times did he win it?", options:['3 times','2 times','5 times'], answer:0},
   ]},
   {id:'crossborder', label:'🌍 Players Abroad', questions:[
-    {q:"In 2023, Harry Kane left Tottenham Hotspur to join a big club. Which country is that club from?", options:['Germany','Spain','France'], answer:0},
-    {q:"Jude Bellingham is English. Before joining Real Madrid, he played for a German club. What was it called?", options:['Borussia Dortmund','Bayern Munich','Schalke 04'], answer:0},
-    {q:"David Beckham was a famous English player. After leaving Manchester United, which Spanish club did he join?", options:['Real Madrid','Barcelona','Atletico Madrid'], answer:0},
-    {q:"Alexis Sánchez, from Chile, played for Arsenal in England. Which other English club did he join after leaving Arsenal?", options:['Manchester United','Liverpool','Chelsea'], answer:0},
-    {q:"Claudio Bravo is a goalkeeper from Chile. Which English club did he play for?", options:['Manchester City','Everton','Tottenham'], answer:0},
-    {q:"Wayne Rooney was a famous English striker. In 2018, he left England to join a club in the USA. What was that club called?", options:['DC United','LA Galaxy','New York City FC'], answer:0},
-    {q:"Steven Gerrard played for Liverpool his whole career in England. In 2015, he moved to the USA to join a new club. What was it called?", options:['LA Galaxy','DC United','Inter Miami'], answer:0},
-    {q:"Michael Owen was a top English striker for Liverpool. In 2004, he moved to Spain to join a big club. Which club was it?", options:['Real Madrid','FC Barcelona','Atletico Madrid'], answer:0},
-    {q:"Gary Lineker was a famous English striker in the 1980s. He played for a Spanish club from 1986 to 1989. Which club was it?", options:['FC Barcelona','Real Madrid','Valencia CF'], answer:0},
-    {q:"Gary Medel is a Chilean defender. In 2013, he joined an English Premier League club. Which club was it?", options:['Cardiff City','Everton','West Ham'], answer:0},
-    {q:"Mark González is a Chilean winger. In 2006, he signed for a famous English club. Which one?", options:['Liverpool','Chelsea','Arsenal'], answer:0},
-    {q:"Ben Brereton Díaz was born in England but plays for the Chilean national team. Which English club did he play for many years?", options:['Blackburn Rovers','Leeds United','Everton'], answer:0},
-    {q:'Paul Gascoigne, nicknamed "Gazza", was an English midfielder. In 1992, he left Tottenham to play in Italy. Which Italian club did he join?', options:['Lazio','AC Milan','Juventus'], answer:0},
-    {q:"Jean Beausejour is a Chilean winger. He was part of an English club's squad that won the FA Cup in 2013. Which club was it?", options:['Wigan Athletic','Manchester City','Sunderland'], answer:0},
-    {q:"David Pizarro was the first Chilean player ever to play for this English club, joining on loan in 2012. Which club was it?", options:['Manchester City','Manchester United','Liverpool'], answer:0},
+    {id:'md_crossborder_germany_01', q:"In 2023, Harry Kane left Tottenham Hotspur to join a big club. Which country is that club from?", options:['Germany','Spain','France'], answer:0},
+    {id:'md_crossborder_borussiadortmund_01', q:"Jude Bellingham is English. Before joining Real Madrid, he played for a German club. What was it called?", options:['Borussia Dortmund','Bayern Munich','Schalke 04'], answer:0},
+    {id:'md_crossborder_realmadrid_01', q:"David Beckham was a famous English player. After leaving Manchester United, which Spanish club did he join?", options:['Real Madrid','Barcelona','Atletico Madrid'], answer:0},
+    {id:'md_crossborder_manchesterunited_01', q:"Alexis Sánchez, from Chile, played for Arsenal in England. Which other English club did he join after leaving Arsenal?", options:['Manchester United','Liverpool','Chelsea'], answer:0},
+    {id:'md_crossborder_manchestercity_01', q:"Claudio Bravo is a goalkeeper from Chile. Which English club did he play for?", options:['Manchester City','Everton','Tottenham'], answer:0},
+    {id:'md_crossborder_dcunited_01', q:"Wayne Rooney was a famous English striker. In 2018, he left England to join a club in the USA. What was that club called?", options:['DC United','LA Galaxy','New York City FC'], answer:0},
+    {id:'md_crossborder_lagalaxy_01', q:"Steven Gerrard played for Liverpool his whole career in England. In 2015, he moved to the USA to join a new club. What was it called?", options:['LA Galaxy','DC United','Inter Miami'], answer:0},
+    {id:'md_crossborder_realmadrid_02', q:"Michael Owen was a top English striker for Liverpool. In 2004, he moved to Spain to join a big club. Which club was it?", options:['Real Madrid','FC Barcelona','Atletico Madrid'], answer:0},
+    {id:'md_crossborder_fcbarcelona_01', q:"Gary Lineker was a famous English striker in the 1980s. He played for a Spanish club from 1986 to 1989. Which club was it?", options:['FC Barcelona','Real Madrid','Valencia CF'], answer:0},
+    {id:'md_crossborder_cardiffcity_01', q:"Gary Medel is a Chilean defender. In 2013, he joined an English Premier League club. Which club was it?", options:['Cardiff City','Everton','West Ham'], answer:0},
+    {id:'md_crossborder_liverpool_01', q:"Mark González is a Chilean winger. In 2006, he signed for a famous English club. Which one?", options:['Liverpool','Chelsea','Arsenal'], answer:0},
+    {id:'md_crossborder_blackburnrovers_01', q:"Ben Brereton Díaz was born in England but plays for the Chilean national team. Which English club did he play for many years?", options:['Blackburn Rovers','Leeds United','Everton'], answer:0},
+    {id:'md_crossborder_lazio_91', q:'Paul Gascoigne, nicknamed "Gazza", was an English midfielder. In 1992, he left Tottenham to play in Italy. Which Italian club did he join?', options:['Lazio','AC Milan','Juventus'], answer:0},
+    {id:'md_crossborder_wiganathletic_01', q:"Jean Beausejour is a Chilean winger. He was part of an English club's squad that won the FA Cup in 2013. Which club was it?", options:['Wigan Athletic','Manchester City','Sunderland'], answer:0},
+    {id:'md_crossborder_manchestercity_02', q:"David Pizarro was the first Chilean player ever to play for this English club, joining on loan in 2012. Which club was it?", options:['Manchester City','Manchester United','Liverpool'], answer:0},
   ]},
   {id:'england', label:'🦁 England', questions:[
-    {q:"What is the nickname of the England national football team?", options:['The Three Lions','The Red Devils','The Eagles'], answer:0},
-    {q:"What is the name of England's most famous football stadium?", options:['Wembley Stadium','Old Trafford','Anfield'], answer:0},
-    {q:"In which year did England win their only football World Cup?", options:['1966','1986','2006'], answer:0},
-    {q:"Which country did England beat in the 1966 World Cup final?", options:['West Germany','Brazil','France'], answer:0},
-    {q:"Who is the captain of the England men's football team?", options:['Harry Kane','Wayne Rooney','Jordan Henderson'], answer:0},
-    {q:"What color shirt does the England team traditionally wear at home?", options:['White','Red','Blue'], answer:0},
-    {q:"Who scored a hat-trick for England in the 1966 World Cup Final?", options:['Geoff Hurst','Bobby Moore','Bobby Charlton'], answer:0},
-    {q:"Who was the captain of England's 1966 World Cup winning team?", options:['Bobby Moore','Geoff Hurst','Alf Ramsey'], answer:0},
-    {q:"How many lions appear on England's football team badge?", options:['Three','Two','Four'], answer:0},
-    {q:"Which England player was famous for his free kicks, including a last-minute goal against Greece that sent England to the 2002 World Cup?", options:['David Beckham','Wayne Rooney','Michael Owen'], answer:0},
-    {q:"Before Harry Kane, who was England's all-time top goalscorer?", options:['Wayne Rooney','David Beckham','Bobby Charlton'], answer:0},
-    {q:"In the 1966 World Cup Final, England did NOT wear their usual white shirts. What color did they wear instead?", options:['Red','Yellow','Green'], answer:0},
-    {q:"What is the national anthem played for the England football team before matches?", options:['God Save the King','Jerusalem','Rule Britannia'], answer:0},
-    {q:"What does the gold star above the three lions on England's badge represent?", options:['Winning the 1966 World Cup','100 years of football','Winning the Euros'], answer:0},
+    {id:'md_england_threelions_01', q:"What is the nickname of the England national football team?", options:['The Three Lions','The Red Devils','The Eagles'], answer:0},
+    {id:'md_england_wembleystadium_01', q:"What is the name of England's most famous football stadium?", options:['Wembley Stadium','Old Trafford','Anfield'], answer:0},
+    {id:'md_england_1966_01', q:"In which year did England win their only football World Cup?", options:['1966','1986','2006'], answer:0},
+    {id:'md_england_westgermany_01', q:"Which country did England beat in the 1966 World Cup final?", options:['West Germany','Brazil','France'], answer:0},
+    {id:'md_england_harrykane_01', q:"Who is the captain of the England men's football team?", options:['Harry Kane','Wayne Rooney','Jordan Henderson'], answer:0},
+    {id:'md_england_white_01', q:"What color shirt does the England team traditionally wear at home?", options:['White','Red','Blue'], answer:0},
+    {id:'md_england_geoffhurst_01', q:"Who scored a hat-trick for England in the 1966 World Cup Final?", options:['Geoff Hurst','Bobby Moore','Bobby Charlton'], answer:0},
+    {id:'md_england_bobbymoore_01', q:"Who was the captain of England's 1966 World Cup winning team?", options:['Bobby Moore','Geoff Hurst','Alf Ramsey'], answer:0},
+    {id:'md_england_three_01', q:"How many lions appear on England's football team badge?", options:['Three','Two','Four'], answer:0},
+    {id:'md_england_davidbeckham_01', q:"Which England player was famous for his free kicks, including a last-minute goal against Greece that sent England to the 2002 World Cup?", options:['David Beckham','Wayne Rooney','Michael Owen'], answer:0},
+    {id:'md_england_waynerooney_01', q:"Before Harry Kane, who was England's all-time top goalscorer?", options:['Wayne Rooney','David Beckham','Bobby Charlton'], answer:0},
+    {id:'md_england_red_01', q:"In the 1966 World Cup Final, England did NOT wear their usual white shirts. What color did they wear instead?", options:['Red','Yellow','Green'], answer:0},
+    {id:'md_england_godsaveking_01', q:"What is the national anthem played for the England football team before matches?", options:['God Save the King','Jerusalem','Rule Britannia'], answer:0},
+    {id:'md_england_winning1966world_01', q:"What does the gold star above the three lions on England's badge represent?", options:['Winning the 1966 World Cup','100 years of football','Winning the Euros'], answer:0},
   ]},
 ];
 // Categoría especial por tema — solo aparece si RK_ACTIVE_THEME tiene una entrada acá.
@@ -6524,12 +6524,12 @@ const RK_MATCHDAY_CATEGORIES = [
 // (11 feb 1998, Wembley, 0-2, doblete de Salas, debut de Michael Owen).
 const RK_MATCHDAY_SPECIAL = {
   fiestas_patrias: {id:'chile1998', label:'🇨🇱 Chile 2-0 England (1998)', questions:[
-    {q:"What was the final score when Chile played England at Wembley in 1998?", options:['England 0-2 Chile','England 2-0 Chile','England 1-1 Chile'], answer:0},
-    {q:"Who scored both of Chile's goals in that match?", options:['Marcelo Salas','Iván Zamorano','Claudio Bravo'], answer:0},
-    {q:"Where was the match played?", options:['Wembley Stadium, London','Old Trafford, Manchester','Anfield, Liverpool'], answer:0},
-    {q:"This match was a warm-up before a big tournament. Which one?", options:['The 1998 World Cup in France','The 2002 World Cup in Japan and Korea','Euro 1996'], answer:0},
-    {q:"An 18-year-old English striker made his very first appearance for England in this match. Who was he?", options:['Michael Owen','Wayne Rooney','Harry Kane'], answer:0},
-    {q:"This match was played at the OLD Wembley Stadium, famous for its Twin Towers. What happened to that stadium later?", options:["It was demolished and rebuilt as the new Wembley (2000s)","It's still standing exactly the same today","It was moved to a different city"], answer:0},
+    {id:'md_chile1998_england02_01', q:"What was the final score when Chile played England at Wembley in 1998?", options:['England 0-2 Chile','England 2-0 Chile','England 1-1 Chile'], answer:0},
+    {id:'md_chile1998_marcelosalas_02', q:"Who scored both of Chile's goals in that match?", options:['Marcelo Salas','Iván Zamorano','Claudio Bravo'], answer:0},
+    {id:'md_chile1998_wembleystadiumlondon_03', q:"Where was the match played?", options:['Wembley Stadium, London','Old Trafford, Manchester','Anfield, Liverpool'], answer:0},
+    {id:'md_chile1998_1998worldcup_04', q:"This match was a warm-up before a big tournament. Which one?", options:['The 1998 World Cup in France','The 2002 World Cup in Japan and Korea','Euro 1996'], answer:0},
+    {id:'md_chile1998_michaelowen_05', q:"An 18-year-old English striker made his very first appearance for England in this match. Who was he?", options:['Michael Owen','Wayne Rooney','Harry Kane'], answer:0},
+    {id:'md_chile1998_itdemolishedrebuilt_06', q:"This match was played at the OLD Wembley Stadium, famous for its Twin Towers. What happened to that stadium later?", options:["It was demolished and rebuilt as the new Wembley (2000s)","It's still standing exactly the same today","It was moved to a different city"], answer:0},
   ]},
 };
 function _rkMatchAllCategories(){
@@ -6648,7 +6648,13 @@ function rkRenderMatchResult(){
     <div class="rk-sk-actions">
       <button class="rk-sk-primary-btn" onclick="rkStartMatchQuiz('${cat.id}')">🔄 Play again</button>
       <button class="rk-sk-secondary-btn" onclick="rkRenderMatchDay()">← Back to topics</button>
-    </div>`;
+    </div>
+    <div id="rk-match-payout"></div>`;
+  if(!s.pagada){
+    s.pagada = true;
+    rkEarnShillings('match_day', RK_PAY.match_day.porPregunta * s.pool.length, 'md_round_' + s.catId)
+      .then(d => rkShowPayout('rk-match-payout', d));
+  }
 }
 
 // ══════════════════════════════════════════════════════════════════════════
@@ -6675,42 +6681,42 @@ const RK_GAP_CONTENT = {
   neutral: {
     title: '📮 Mind the Gap',
     postcards: [
-      {from: 'Emma, a traveller in London',
+      {id:'gap_london_01', from: 'Emma, a traveller in London',
        text: 'Dear friend, Greetings from London! Today I rode the giant wheel called the London ___1___. Then I walked by the river and saw a famous clock tower called Big ___2___. The city is full of red double-decker ___3___ and black taxis. Wish you were here! Emma',
        gaps: [
          {n:1, accept:['eye'], img:'London Eye ferris wheel'},
          {n:2, accept:['ben'], img:'Big Ben clock tower London'},
          {n:3, accept:['buses','bus'], img:'red double-decker bus London'},
        ]},
-      {from: 'Emma, a traveller in London',
+      {id:'gap_stonehenge_01', from: 'Emma, a traveller in London',
        text: 'Dear friend, Today I travelled outside London to see an amazing ancient monument made of huge grey ___1___. The whole circle is called ___2___, and it\'s thousands of years old! I stood in a big green ___3___ and watched the sun go down behind the stones. Wish you were here! Emma',
        gaps: [
          {n:1, accept:['stones','stone'], img:'Stonehenge stones close up'},
          {n:2, accept:['stonehenge'], img:'Stonehenge England'},
          {n:3, accept:['field','fields'], img:'green field Stonehenge'},
        ]},
-      {from: 'Emma, a traveller in London',
+      {id:'gap_wembley_01', from: 'Emma, a traveller in London',
        text: 'Dear friend, Yesterday I watched a football match at a huge stadium called ___1___. Thousands of fans were singing in the ___2___, waving flags and scarves. At the end, the winning team lifted a golden ___3___ high in the air. What an atmosphere! Emma',
        gaps: [
          {n:1, accept:['wembley','wembley stadium'], img:'Wembley Stadium London'},
          {n:2, accept:['stands','stand'], img:'football stadium stands crowd'},
          {n:3, accept:['trophy','cup'], img:'football trophy gold cup'},
        ]},
-      {from: 'Emma, a traveller in London',
+      {id:'gap_warnerbros_01', from: 'Emma, a traveller in London',
        text: 'Dear friend, Today I visited the film studio where they made the Harry Potter movies! It\'s called ___1___. I saw real costumes, magic ___2___, and even walked through the Great Hall set with long wooden tables and floating ___3___. It felt like real magic! Emma',
        gaps: [
          {n:1, accept:['warner bros studios','warner bros','warner brothers studios'], img:'Warner Bros Studio Tour London Harry Potter'},
          {n:2, accept:['wands','wand'], img:'Harry Potter magic wand'},
          {n:3, accept:['candles','candle'], img:'floating candles Great Hall Harry Potter'},
        ]},
-      {from: 'Emma, a traveller in London',
+      {id:'gap_towerbridge_01', from: 'Emma, a traveller in London',
        text: 'Dear friend, Today I walked across a famous bridge with two tall towers, right next to the Tower of London. It\'s called ___1___. Sometimes the middle of the bridge lifts up to let tall ___2___ pass underneath on the ___3___. Wish you were here! Emma',
        gaps: [
          {n:1, accept:['tower bridge'], img:'Tower Bridge London'},
          {n:2, accept:['ships','boats','ship','boat'], img:'ship passing under Tower Bridge'},
          {n:3, accept:['river','thames'], img:'River Thames London'},
        ]},
-      {from: 'Emma, a traveller in London',
+      {id:'gap_tube_01', from: 'Emma, a traveller in London',
        text: 'Dear friend, Today I travelled around London using the famous underground train system called the ___1___. I went down a long moving ___2___ and waited on the platform for the next ___3___ to arrive. It\'s the fastest way to get around the city! Emma',
        gaps: [
          {n:1, accept:['tube','underground'], img:'London Underground Tube sign'},
@@ -6721,7 +6727,7 @@ const RK_GAP_CONTENT = {
   fiestas_patrias: {
     title: '📮 Mind the Gap — Fiestas Patrias Special',
     postcards: [
-      {from: "Lucy, Fernando and Rodrigo's pen-pal in London",
+      {id:'gap_cueca_01', from: "Lucy, Fernando and Rodrigo's pen-pal in London",
        text: 'Dear Rodrigo, Happy birthday! I heard it\'s Fiestas Patrias in Chile today too — how exciting! People dance a traditional dance called the ___1___, everyone flies the Chilean ___2___ with pride, and there\'s a party tent called a ___3___ with music and food. I really want to try a pastry called an ___4___ — I heard it\'s filled with meat and onion! Happy 18th of September! Love, Lucy',
        gaps: [
          {n:1, accept:['cueca'], img:'cueca dance Chile'},
@@ -6729,21 +6735,21 @@ const RK_GAP_CONTENT = {
          {n:3, accept:['fonda','fondas'], img:'fonda Fiestas Patrias Chile'},
          {n:4, accept:['empanada','empanadas'], img:'empanada de pino Chile'},
        ]},
-      {from: "Lucy, Fernando and Rodrigo's pen-pal in London",
+      {id:'gap_lamoneda_01', from: "Lucy, Fernando and Rodrigo's pen-pal in London",
        text: "Dear Fernando and Rodrigo, I've been reading about Chile! I learned that the president works in a white government palace called ___1___, right in the middle of Santiago. Every day, guards in smart ___2___ march outside and change shifts, like a little ___3___. I'd love to see it one day! Love, Lucy",
        gaps: [
          {n:1, accept:['la moneda'], img:'Palacio La Moneda Santiago Chile'},
          {n:2, accept:['uniforms','uniform'], img:'Chilean presidential guard uniform'},
          {n:3, accept:['ceremony'], img:'changing of the guard ceremony La Moneda'},
        ]},
-      {from: "Lucy, Fernando and Rodrigo's pen-pal in London",
+      {id:'gap_cerrosancristobal_01', from: "Lucy, Fernando and Rodrigo's pen-pal in London",
        text: "Dear Fernando and Rodrigo, Someone told me about a big hill in Santiago called ___1___, with an enormous white statue of the Virgin Mary right at the top! You can take a cable car or a funicular up the ___2___ to reach her, and from there you can see the whole ___3___ below. It sounds incredible! Love, Lucy",
        gaps: [
          {n:1, accept:['cerro san cristobal','san cristobal'], img:'Cerro San Cristobal Virgin Mary statue Santiago'},
          {n:2, accept:['hill','mountain'], img:'funicular Cerro San Cristobal'},
          {n:3, accept:['city'], img:'Santiago Chile city view from above'},
        ]},
-      {from: "Lucy, Fernando and Rodrigo's pen-pal in London",
+      {id:'gap_costanera_01', from: "Lucy, Fernando and Rodrigo's pen-pal in London",
        text: "Dear Fernando and Rodrigo, I saw a photo of the tallest building in South America - it's called the ___1___! There's a viewpoint near the top called Sky Costanera where you can look through the ___2___ and see the Andes ___3___ in the distance. I'd love to go up there! Love, Lucy",
        gaps: [
          {n:1, accept:['costanera','torre costanera','gran torre costanera'], img:'Torre Costanera Santiago Chile'},
@@ -6754,35 +6760,35 @@ const RK_GAP_CONTENT = {
   halloween: {
     title: '🎃 Mind the Gap — Halloween Special',
     postcards: [
-      {from: 'Alex, a pen-pal who loves spooky legends',
+      {id:'gap_brancastle_01', from: 'Alex, a pen-pal who loves spooky legends',
        text: "Dear Fernando, Happy birthday for the 29th of October — and happy almost-Halloween! I've been reading about a spooky castle in Romania called ___1___, which people say inspired the story of Count Dracula. It sits on top of a tall ___2___, surrounded by a dark ___3___. I wonder if it's really haunted... Love, Alex",
        gaps: [
          {n:1, accept:['bran castle','bran'], img:'Bran Castle Dracula Romania'},
          {n:2, accept:['hill','hills'], img:'Bran Castle hill Transylvania'},
          {n:3, accept:['forest','forests','woods'], img:'dark forest Transylvania'},
        ]},
-      {from: 'Alex, a pen-pal who loves spooky legends',
+      {id:'gap_derry_01', from: 'Alex, a pen-pal who loves spooky legends',
        text: "Dear Fernando and Rodrigo, Did you know Halloween might be even bigger in Northern Ireland than in the USA? A city called ___1___ holds the biggest Halloween festival in the world! Thousands of people walk through the streets in amazing ___2___, and at night there's a huge firework ___3___ over the old city walls. I'd love to go! Love, Alex",
        gaps: [
          {n:1, accept:['derry','londonderry'], img:'Derry Halloween festival Northern Ireland'},
          {n:2, accept:['costumes','costume'], img:'Halloween costumes parade Derry'},
          {n:3, accept:['display','show'], img:'Halloween fireworks Derry city walls'},
        ]},
-      {from: 'Alex, a pen-pal who loves spooky legends',
+      {id:'gap_bramstoker_01', from: 'Alex, a pen-pal who loves spooky legends',
        text: "Dear Fernando and Rodrigo, Dublin has a spooky festival named after Bram Stoker, the writer who created Dracula. It's called the ___1___! Every Halloween, the city fills with actors, live music, and ghost ___2___ through the old streets. There's even a huge outdoor screening where people watch spooky films under the night ___3___. Love, Alex",
        gaps: [
          {n:1, accept:['bram stoker festival','bram stoker'], img:'Bram Stoker Festival Dublin Ireland'},
          {n:2, accept:['tours','tour'], img:'ghost tour Dublin'},
          {n:3, accept:['sky'], img:'night sky Dublin Halloween'},
        ]},
-      {from: 'Alex, a pen-pal who loves spooky legends',
+      {id:'gap_islandofdolls_01', from: 'Alex, a pen-pal who loves spooky legends',
        text: "Dear Fernando and Rodrigo, In Mexico there's a strange, spooky place called the ___1___, in the canals near Mexico City. Hundreds of old, dirty ___2___ hang from the trees, tied there over many years. Local legend says the dolls keep a lost girl's spirit ___3___ so she's never alone. Would you dare to visit? Love, Alex",
        gaps: [
          {n:1, accept:['island of the dolls','isla de las munecas','isla de las muñecas'], img:'Isla de las Munecas Island of the Dolls Mexico'},
          {n:2, accept:['dolls','doll'], img:'dolls hanging trees Island of the Dolls Mexico'},
          {n:3, accept:['company'], img:'creepy doll Mexico canal'},
        ]},
-      {from: 'Alex, a pen-pal who loves spooky legends',
+      {id:'gap_edinburghvaults_01', from: 'Alex, a pen-pal who loves spooky legends',
        text: "Dear Fernando and Rodrigo, People say ___1___, the capital of Scotland, is one of the most haunted cities in the world! Under the old streets there are hidden underground ___2___ where guides take visitors on spooky night ___3___, telling true ghost stories from hundreds of years ago. Would you be brave enough? Love, Alex",
        gaps: [
          {n:1, accept:['edinburgh'], img:'Edinburgh Scotland old town'},
@@ -6811,6 +6817,7 @@ function rkRenderGap(){
       <button class="rk-sk-secondary-btn" onclick="rkGapNext()">🔄 Another postcard</button>
     </div>`;
 }
+const _rkGapPagadas = new Set();   // postales ya pagadas en esta sesión
 function rkGapCheck(){
   const c = RK_GAP_CONTENT[RK_ACTIVE_THEME] || RK_GAP_CONTENT.neutral;
   const p = c.postcards[_rkGapIdx];
@@ -6836,6 +6843,13 @@ function rkGapCheck(){
   });
   const fb = document.getElementById('rk-gap-feedback');
   if(fb) fb.textContent = `${correct}/${p.gaps.length} correct.`;
+  // Se paga por completar la postal, no por los aciertos, y una sola vez por postal: "Check"
+  // se puede apretar muchas veces y no es una actividad nueva cada vez.
+  if(!_rkGapPagadas.has(p.id)){
+    _rkGapPagadas.add(p.id);
+    rkEarnShillings('mind_the_gap', RK_PAY.mind_the_gap.porHueco * p.gaps.length, p.id)
+      .then(d => rkShowPayout('rk-gap-feedback', d));
+  }
 }
 function rkGapNext(){
   _rkGapIdx++;
@@ -6865,23 +6879,73 @@ function rkGapNext(){
 // (ej. "Red" aparece en 5 pares distintos), así que cada palabra se escribe una sola vez acá
 // y se referencia por key en múltiples puzzles — así el banco escala sin escribir 2x el texto.
 const RK_HUNT_WORDS = {
-  bear: {label:'Bear', clues:['I am an animal.','I love honey, and sometimes marmalade sandwiches.','Animal, forest, teddy...'], clue4:'Big, furry, and I sleep all winter. What am I?', options:['Bear','Wolf','Fox'], answer:0, accept:['bear']},
-  marmalade: {label:'Marmalade', clues:['I am a type of food.',"I'm sweet, made from oranges, and you spread me on toast.",'Orange, jam, breakfast...'], clue4:'A famous London bear loves me on his sandwiches. What am I?', options:['Marmalade','Butter','Honey'], answer:0, accept:['marmalade']},
-  detective: {label:'Detective', clues:['I am a job — a person who has this job.','I solve mysteries and look for clues.','Mystery, clues, magnifying glass...'], clue4:'I wear a special hat and smoke a pipe while solving crimes in London. What am I?', options:['Detective','Police officer','Spy'], answer:0, accept:['detective']},
-  pipe: {label:'Pipe', clues:['I am an object.',"You can smoke me, and I'm often seen in old detective stories.",'Smoke, tobacco, old-fashioned...'], clue4:'Sherlock Holmes is famous for holding one of me in his mouth. What am I?', options:['Pipe','Cigar','Hat'], answer:0, accept:['pipe']},
-  abbey: {label:'Abbey', clues:['I am a type of building.',"I'm a place of worship, often very old, connected to monks or a church.",'Church, old, monastery...'], clue4:'A famous London street and a Beatles album share my name. What am I?', options:['Abbey','Cathedral','Castle'], answer:0, accept:['abbey']},
-  road: {label:'Road', clues:['I am something you walk or drive on.','Cars, bikes and buses travel along me every day.','Street, path, travel...'], clue4:'The Beatles crossed a famous one of me in London for an album cover. What am I?', options:['Road','Bridge','Path'], answer:0, accept:['road']},
-  red: {label:'Red', clues:['I am a color.',"I'm the color of love, and also of London's buses and phone boxes.",'Color, love, London...'], clue4:"Roses are this color, and so is a stripe on the Chilean flag. What color am I?", options:['Red','Blue','Green'], answer:0, accept:['red']},
-  bus: {label:'Bus', clues:['I am a type of vehicle.','I carry many passengers, and in London I\'m famously red with two floors.','Vehicle, passengers, wheels...'], clue4:'I drive around London and you can sit upstairs for the best view. What am I?', options:['Bus','Taxi','Train'], answer:0, accept:['bus']},
-  crown: {label:'Crown', clues:['I am an object.','I\'m made of gold and jewels, and a king or queen wears me on their head.','Gold, jewels, royalty...'], clue4:"You'd see me on the King's or Queen's head during a coronation. What am I?", options:['Crown','Hat','Ring'], answer:0, accept:['crown']},
-  palace: {label:'Palace', clues:['I am a type of building.','I\'m huge and fancy, and a royal family lives inside me.','Royal, huge, fancy...'], clue4:'Buckingham is a famous one of me in London, home to the King. What am I?', options:['Palace','Castle','Mansion'], answer:0, accept:['palace']},
+  bear: {label:'Bear', clues:[
+    'I am an animal.',
+    'I love honey more than anything, and I will raid a beehive to get it.',
+    'Animal, forest, teddy...',
+  ], clue4:'Big, furry, and I sleep all winter. What am I?',
+     options:['Bear', 'Wolf', 'Fox'], answer:0, accept:['bear']},
+  marmalade: {label:'Marmalade', clues:[
+    'I am a type of food.',
+    'I\'m sweet, made from oranges, and you spread me on toast.',
+    'Orange, jam, breakfast...',
+  ], clue4:'I am bitter-sweet, I come in a jar, and the British eat me at breakfast. What am I?',
+     options:['Marmalade', 'Butter', 'Honey'], answer:0, accept:['marmalade']},
+  detective: {label:'Detective', clues:[
+    'I am a job — a person who has this job.',
+    'I solve mysteries and look for clues.',
+    'Mystery, clues, magnifying glass...',
+  ], clue4:'I wear a deerstalker hat and solve crimes in London using logic. What am I?',
+     options:['Detective', 'Police officer', 'Spy'], answer:0, accept:['detective']},
+  pipe: {label:'Pipe', clues:[
+    'I am an object.',
+    'You can smoke me, and I am often seen in old-fashioned portraits.',
+    'Smoke, tobacco, old-fashioned...',
+  ], clue4:'I am made of wood, I hold tobacco, and smoke comes out of my end. What am I?',
+     options:['Pipe', 'Cigar', 'Hat'], answer:0, accept:['pipe']},
+  abbey: {label:'Abbey', clues:[
+    'I am a type of building.',
+    'I\'m a place of worship, often very old, connected to monks or a church.',
+    'Church, old, monastery...',
+  ], clue4:'I am a very old church building, and monks used to live inside me. What am I?',
+     options:['Abbey', 'Cathedral', 'Castle'], answer:0, accept:['abbey']},
+  road: {label:'Road', clues:[
+    'I am something you walk or drive on.',
+    'Cars, bikes and buses travel along me every day.',
+    'Street, path, travel...',
+  ], clue4:'I am long and hard, cars drive along me, and I have a zebra crossing. What am I?',
+     options:['Road', 'Bridge', 'Path'], answer:0, accept:['road']},
+  red: {label:'Red', clues:[
+    'I am a colour.',
+    'I am the colour of love, of strawberries and of a London phone box.',
+    'Colour, love, fire...',
+  ], clue4:'Roses are this colour, and so is a stripe on the Chilean flag. What colour am I?',
+     options:['Red', 'Blue', 'Green'], answer:0, accept:['red']},
+  bus: {label:'Bus', clues:[
+    'I am a type of vehicle.',
+    'I carry many passengers at once, and in London I famously have two floors.',
+    'Vehicle, passengers, wheels...',
+  ], clue4:'I drive around London and you can sit upstairs for the best view. What am I?',
+     options:['Bus', 'Taxi', 'Train'], answer:0, accept:['bus']},
+  crown: {label:'Crown', clues:[
+    'I am an object.',
+    'I\'m made of gold and jewels, and a king or queen wears me on their head.',
+    'Gold, jewels, royalty...',
+  ], clue4:'You\'d see me on the King\'s or Queen\'s head during a coronation. What am I?',
+     options:['Crown', 'Hat', 'Ring'], answer:0, accept:['crown']},
+  palace: {label:'Palace', clues:[
+    'I am a type of building.',
+    'I\'m huge and fancy, and a royal family lives inside me.',
+    'Royal, huge, fancy...',
+  ], clue4:'I am far grander than a house, I have hundreds of rooms, and a king lives in me. What am I?',
+     options:['Palace', 'Castle', 'Mansion'], answer:0, accept:['palace']},
 };
 const RK_HUNT_PUZZLES = [
-  {wordA:'bear', wordB:'marmalade', answer:'Paddington', accept:['paddington','paddington bear'], oliverLine:'Bear + Marmalade... Paddington! The bear who loves marmalade sandwiches.'},
-  {wordA:'detective', wordB:'pipe', answer:'Sherlock Holmes', accept:['sherlock holmes','sherlock'], oliverLine:'Detective + Pipe... Sherlock Holmes! The famous detective who solves mysteries with his pipe.'},
-  {wordA:'abbey', wordB:'road', answer:'The Beatles', accept:['the beatles','beatles'], oliverLine:'Abbey + Road... The Beatles! Abbey Road is their famous album, named after a street in London.'},
-  {wordA:'red', wordB:'bus', answer:'London double-decker bus', accept:['double-decker bus','double decker bus','bus','london bus','double-decker','double decker','the london bus'], oliverLine:"Red + Bus... London's famous double-decker bus!"},
-  {wordA:'crown', wordB:'palace', answer:'Buckingham Palace', accept:['buckingham palace','buckingham'], oliverLine:"Crown + Palace... Buckingham Palace! Home of the King."},
+  {id:'hunt_paddington_01', wordA:'bear', wordB:'marmalade', answer:'Paddington', accept:['paddington','paddington bear'], oliverLine:'Bear + Marmalade... Paddington! The bear who loves marmalade sandwiches.'},
+  {id:'hunt_sherlockholmes_01', wordA:'detective', wordB:'pipe', answer:'Sherlock Holmes', accept:['sherlock holmes','sherlock'], oliverLine:'Detective + Pipe... Sherlock Holmes! The famous detective who solves mysteries with his pipe.'},
+  {id:'hunt_beatles_01', wordA:'abbey', wordB:'road', answer:'The Beatles', accept:['the beatles','beatles'], oliverLine:'Abbey + Road... The Beatles! Abbey Road is their famous album, named after a street in London.'},
+  {id:'hunt_doubledeckerbus_01', wordA:'red', wordB:'bus', answer:'Double-decker', accept:['double-decker','double decker','doubledecker','double-decker bus','double decker bus'], oliverLine:"Red + Bus... the double-decker! Two floors, and the best seats are upstairs at the front."},
+  {id:'hunt_buckinghampalace_01', wordA:'crown', wordB:'palace', answer:'Buckingham Palace', accept:['buckingham palace','buckingham'], oliverLine:"Crown + Palace... Buckingham Palace! Home of the King."},
 ];
 let _rkHuntState = null;
 function rkRenderHunt(){
@@ -6967,6 +7031,10 @@ function rkHuntAskOliver(){
 }
 function rkHuntWordSolved(wordLabel){
   const s = _rkHuntState;
+  // Cuánto valió esta palabra depende de la ayuda que usó, no de si se equivocó antes.
+  const pg = RK_PAY.scavenger_hunt;
+  s.ganado = (s.ganado || 0) +
+    (s.oliverUsed ? pg.palabraConOliver : s.mcAnswered ? pg.palabraConMc : pg.palabra);
   if(s.who === 'Rodrigo'){
     s.wordAResult = wordLabel;
     const wrap = document.getElementById('rk-info-wrap');
@@ -7008,6 +7076,7 @@ function rkHuntCheckFinal(){
   if(isOk){
     if(fb) fb.innerHTML = `<div class="rk-info-blurb" style="color:#0d7a5f;font-weight:700;margin-top:8px">🎉 Correct! It's ${rkEscapeHtml(p.answer)}!</div>
       <div class="rk-sk-actions"><button class="rk-sk-primary-btn" onclick="rkHuntStart()">🔄 Another puzzle</button></div>`;
+    rkHuntPagar(RK_PAY.scavenger_hunt.concepto);
   } else if(!s.phase2OliverUsed){
     if(fb) fb.innerHTML = `<div class="rk-info-blurb" style="color:#b91c1c;font-weight:700;margin-top:8px">🤔 Not quite... are you sure? Think, think!</div>
       <div class="rk-sk-actions"><button class="rk-sk-secondary-btn" onclick="rkHuntAskOliverFinal()">📞 Ask Oliver</button></div>`;
@@ -7021,6 +7090,17 @@ function rkHuntAskOliverFinal(){
   const fb = document.getElementById('rk-hunt-final-feedback');
   if(fb) fb.innerHTML = `<div class="rk-info-blurb" style="font-style:italic;margin-top:8px">📞 Oliver: "${rkEscapeHtml(p.oliverLine)}"</div>
     <div class="rk-sk-actions"><button class="rk-sk-primary-btn" onclick="rkHuntStart()">🔄 Another puzzle</button></div>`;
+  rkHuntPagar(RK_PAY.scavenger_hunt.conceptoConOliver);
+}
+
+// El `seen` del Hunt va sobre el PAR, no sobre la respuesta (sección 15.6 del documento de
+// mecánica): marcar la respuesta quemaría todas sus puertas de entrada de una vez.
+function rkHuntPagar(porElConcepto){
+  const s = _rkHuntState;
+  if(s.pagada) return;
+  s.pagada = true;
+  rkEarnShillings('scavenger_hunt', (s.ganado || 0) + porElConcepto, s.puzzle.id)
+    .then(d => rkShowPayout('rk-hunt-final-feedback', d));
 }
 
 // ══════════════════════════════════════════════════════════════════════════
@@ -7046,7 +7126,7 @@ const RK_MYSTERY_BANKS = {
   // curadas por Angel. Método completo en "JTL - Metodo de revision de contenido.md".
   // Los ids son estables: nombran la respuesta y NO se renombran nunca (ver plantillas).
   full: [
-    {id:'myst_paddington', answer:'Paddington', accept:['paddington'], clues:[
+    {id:'myst_paddington', answer:'Paddington', accept:['paddington'], bridge:'high', clues:[
       'I travelled a very long way from South America to reach Britain.',
       'My journey ended at a busy railway station in central London.',
       'A kind family found me sitting on my suitcase and took me home.',
@@ -7054,23 +7134,28 @@ const RK_MYSTERY_BANKS = {
       'I have a small tag around my neck asking people to look after me.',
       'I love marmalade sandwiches more than any other food.',
       'I am a polite little brown bear who lives with the Brown family.']},
-    {id:'myst_matilda', answer:'Matilda', accept:['matilda'], clues:[
-      'This story was written by a famous British author named Roald Dahl.',
+    {id:'myst_matilda', answer:'Matilda', accept:['matilda'], bridge:'high', clues:[
+      'This story was written by one of the most famous British children\'s authors of all time.',
       'It is about a very clever little girl who loves reading library books.',
       'Her parents do not appreciate her talents and treat her poorly.',
       'She meets a kind teacher named Miss Honey at her primary school.',
       'The headmistress of her school, Miss Trunchbull, is scary and cruel.',
       'The young girl discovers she has secret powers to move objects with her mind.',
       'This famous book became a hit film and a popular West End musical.']},
-    {id:'myst_sherlock', answer:'Sherlock', accept:['sherlock', 'sherlock holmes'], clues:[
+    {id:'myst_sherlock', answer:'Sherlock', accept:['sherlock', 'sherlock holmes'], bridge:'medium',
+     category:'A fictional character',
+     hint:'You might know his younger sister Enola from the recent Netflix films, or you have seen him played by Robert Downey Jr at the cinema.',
+     hook:'The famous phrase "Elementary, my dear Watson" never actually appears in any of the original stories written by his creator.', clues:[
       'This famous character lived at 221B Baker Street in London.',
-      'He solved mysteries in Victorian London alongside his trusted friend, Dr Watson.',
+      'He solved mysteries in Victorian London alongside his trusted friend, a medical doctor.',
       'He noticed tiny details on pavements and clothes that everyone else missed.',
       'He often wore a tweed cap and used a magnifying glass to inspect clues.',
       'His main enemy was a clever mastermind named Moriarty.',
       'He used pure logic and science to solve the most difficult crimes.',
       'He is the most famous fictional private detective in British literature.']},
-    {id:'myst_stonehenge', answer:'Stonehenge', accept:['stonehenge'], clues:[
+    {id:'myst_stonehenge', answer:'Stonehenge', accept:['stonehenge'], bridge:'medium',
+     category:'An ancient monument',
+     hook:'The massive stones used to build it were somehow transported from mountains in Wales, which are over two hundred and fifty kilometres away.', clues:[
       'I am located in the quiet countryside of southern England.',
       'I was built by ancient people thousands of years ago.',
       'Nobody knows exactly how people moved my heavy materials without modern machines.',
@@ -7078,7 +7163,9 @@ const RK_MYSTERY_BANKS = {
       'People visit me during the longest and shortest days of the year to watch the sunrise.',
       'Scientists believe I was used as an ancient calendar to track the sun and stars.',
       'I am Britain\'s most famous pre-historic monument made of massive standing rocks.']},
-    {id:'myst_isaac_newton', answer:'Isaac Newton', accept:['isaac newton', 'newton'], clues:[
+    {id:'myst_isaac_newton', answer:'Isaac Newton', accept:['isaac newton', 'newton'], bridge:'medium',
+     category:'A historical scientist',
+     hook:'He was so obsessed with understanding how the human eye perceives light that he once carefully slid a blunt needle behind his own eyeball to see what would happen.', clues:[
       'I was a famous scientist born in Lincolnshire, England long ago.',
       'I spent many years studying math, light and how things move.',
       'I studied at Cambridge University and became one of the greatest minds in history.',
@@ -7086,7 +7173,7 @@ const RK_MYSTERY_BANKS = {
       'My work on light showed that white light is made of all the colours of the rainbow.',
       'A famous story says I thought about gravity after watching an apple fall from a tree.',
       'I am the historic English scientist who discovered the laws of motion and gravity.']},
-    {id:'myst_robin_hood', answer:'Robin Hood', accept:['robin hood'], clues:[
+    {id:'myst_robin_hood', answer:'Robin Hood', accept:['robin hood'], bridge:'high', clues:[
       'I am a famous character from ancient English legends.',
       'I lived outdoors in a huge green forest with my group of loyal friends.',
       'My best friends were a giant man called Little John and a cheerful monk.',
@@ -7094,7 +7181,10 @@ const RK_MYSTERY_BANKS = {
       'My main enemy was the greedy Sheriff of Nottingham.',
       'I took gold from rich people and gave it to poor families.',
       'I am the legendary hero of Sherwood Forest who wore green.']},
-    {id:'myst_mary_poppins', answer:'Mary Poppins', accept:['mary poppins'], clues:[
+    {id:'myst_mary_poppins', answer:'Mary Poppins', accept:['mary poppins'], bridge:'medium',
+     category:'A fictional character',
+     hint:'You have probably seen the classic Disney film where she jumps into chalk drawings, or the modern cinema sequel starring Emily Blunt.',
+     hook:'The author of the original books strongly disliked the famous Disney film adaptation, and was especially furious about the animated dancing penguins.', clues:[
       'This famous story takes place in a grand house in London.',
       'A mysterious woman arrives to take care of two young children named Jane and Michael.',
       'She carries a carpet bag that holds far more things than should fit inside.',
@@ -7102,7 +7192,9 @@ const RK_MYSTERY_BANKS = {
       'She floats over the rooftops of London alongside a friendly chimney sweep.',
       'She sings a famous song with a super long word that is fun to say.',
       'She is the magical nanny who uses her umbrella to fly over London.']},
-    {id:'myst_william_shakespeare', answer:'William Shakespeare', accept:['william shakespeare', 'shakespeare'], clues:[
+    {id:'myst_william_shakespeare', answer:'William Shakespeare', accept:['william shakespeare', 'shakespeare'], bridge:'low',
+     category:'An English writer',
+     hook:'When he died, he left his wife exactly one specific item in his official will: his "second-best bed".', clues:[
       'I was born in a quiet town called Stratford-upon-Avon long ago.',
       'I moved to London to work as an actor and write for the stage.',
       'I wrote dozens of famous plays and over a hundred poems.',
@@ -7110,7 +7202,7 @@ const RK_MYSTERY_BANKS = {
       'I wrote a famous play about two young lovers from Verona named Romeo and Juliet.',
       'Many English words and phrases we use today were invented in my writing.',
       'I am considered the greatest playwright and writer in the English language.']},
-    {id:'myst_james_bond', answer:'James Bond', accept:['james bond', '007'], clues:[
+    {id:'myst_james_bond', answer:'James Bond', accept:['james bond', '007'], bridge:'high', clues:[
       'I am a fictional secret agent who works for the British government.',
       'My secret code number has two zeros and a seven.',
       'I wear elegant suits and drive fast sports cars filled with hidden gadgets.',
@@ -7118,7 +7210,7 @@ const RK_MYSTERY_BANKS = {
       'I travel all over the world to save the day from clever villains.',
       'I introduce myself by saying my last name first, then my full name.',
       'I am Britain\'s most famous fictional spy, also known as agent 007.']},
-    {id:'myst_peter_pan', answer:'Peter Pan', accept:['peter pan'], clues:[
+    {id:'myst_peter_pan', answer:'Peter Pan', accept:['peter pan'], bridge:'high', clues:[
       'This famous character visits a house in London to find his lost shadow.',
       'He teaches three children named Wendy, John and Michael how to fly.',
       'All you need to fly with him is happy thoughts and a little fairy dust.',
@@ -7126,7 +7218,9 @@ const RK_MYSTERY_BANKS = {
       'His best friend is a tiny, sassy fairy who glows in the dark.',
       'His main enemy is a pirate captain with an iron hook for a hand.',
       'He is the famous fictional boy who refused to ever grow up.']},
-    {id:'myst_charles_darwin', answer:'Charles Darwin', accept:['charles darwin', 'darwin'], clues:[
+    {id:'myst_charles_darwin', answer:'Charles Darwin', accept:['charles darwin', 'darwin'], bridge:'low',
+     category:'A historical scientist',
+     hook:'He actually ate many of the exotic animals he discovered on his travels, including a giant tortoise and a puma.', clues:[
       'I was an English scientist who loved collecting plants, rocks and insects.',
       'I went on a famous five-year ocean voyage around the world on a ship called the HMS Beagle.',
       'I spent time studying giant tortoises and unusual birds on distant islands.',
@@ -7134,7 +7228,9 @@ const RK_MYSTERY_BANKS = {
       'I wrote a world-changing book about how living things evolve over time.',
       'My ideas about natural selection explained how different species developed.',
       'I am the famous British naturalist who explained the theory of evolution.']},
-    {id:'myst_yellow_submarine', answer:'Yellow Submarine', accept:['yellow submarine'], clues:[
+    {id:'myst_yellow_submarine', answer:'Yellow Submarine', accept:['yellow submarine'], bridge:'low',
+     category:'A music album and film',
+     hook:'The famous title track was actually written as a simple nonsense song for children, and the band recorded real bubbles in a bucket of water for the sound effects.', clues:[
       'This creative work was created by four famous musicians from Liverpool.',
       'It tells a cheerful story about sailing through colorful seas to a magical land.',
       'The main vehicle in the story is an underwater boat painted a bright sunny colour.',
@@ -7142,7 +7238,9 @@ const RK_MYSTERY_BANKS = {
       'The catchy title song was sung by Ringo Starr and enjoyed by children worldwide.',
       'It became both a hit pop song and a famous animated cartoon film.',
       'It is the famous Beatles song and film about a colourful underwater boat.']},
-    {id:'myst_highland_games', answer:'Highland Games', accept:['highland games'], clues:[
+    {id:'myst_highland_games', answer:'Highland Games', accept:['highland games'], bridge:'low',
+     category:'A sporting event',
+     hook:'Hundreds of years ago, these gatherings were originally used by Scottish clan chieftains to select their fastest messengers and strongest bodyguards.', clues:[
       'I am an outdoor cultural event held across Scotland every summer.',
       'Musicians play bagpipes and dancers perform traditional dances on stage.',
       'Athletes demonstrate their strength in unique traditional physical tests.',
@@ -7150,7 +7248,9 @@ const RK_MYSTERY_BANKS = {
       'Men and women wear traditional tartan clothing while competing.',
       'Members of the Royal Family often attend my main event at Braemar.',
       'I am the famous Scottish tradition of outdoor sports, bagpipes and heavy throwing contests.']},
-    {id:'myst_oliver_twist', answer:'Oliver Twist', accept:['oliver twist'], clues:[
+    {id:'myst_oliver_twist', answer:'Oliver Twist', accept:['oliver twist'], bridge:'low',
+     category:'A fictional character',
+     hook:'The author based the terrible workhouse conditions on an actual facility that was located just down the street from his own home in London.', clues:[
       'This famous story takes place in Victorian London.',
       'It follows a young orphan boy who grows up in a poor workhouse.',
       'He famously holds out his empty wooden bowl and asks for more food.',
@@ -7158,7 +7258,10 @@ const RK_MYSTERY_BANKS = {
       'He gets taken in by an old man named Fagin who runs a group of young thieves.',
       'The story was written by the famous English author Charles Dickens.',
       'It is the famous book about a poor orphan boy who famously asks, "Please, sir, I want some more."']},
-    {id:'myst_kilt', answer:'Kilt', accept:['kilt'], clues:[
+    {id:'myst_kilt', answer:'Kilt', accept:['kilt'], bridge:'medium',
+     category:'An item of clothing',
+     hint:'You have probably seen cartoon characters from Scotland wearing me, like the warriors in the Disney animated film Brave.',
+     hook:'True traditional Scottish military regiments were historically strictly forbidden from wearing any underwear beneath it.', clues:[
       'I am a traditional item of clothing connected to Scotland.',
       'I am made from heavy woven wool cloth with colourful criss-cross patterns.',
       'My criss-cross pattern is called tartan, and different families have different patterns.',
@@ -7166,7 +7269,10 @@ const RK_MYSTERY_BANKS = {
       'People wear a small leather pouch called a sporran in front of me.',
       'I am worn with pride during Scottish weddings, dances and grand celebrations.',
       'I am the famous traditional Scottish woollen garment worn around the waist.']},
-    {id:'myst_beatrix_potter', answer:'Beatrix Potter', accept:['beatrix potter'], clues:[
+    {id:'myst_beatrix_potter', answer:'Beatrix Potter', accept:['beatrix potter'], bridge:'low',
+     category:'A children\'s author',
+     hint:'You might know my work from the recent live-action comedy films where my most famous rabbit steals vegetables from a garden.',
+     hook:'As a child, she actually kept bats, frogs, and hedgehogs hidden in her bedroom, secretly studying and drawing them.', clues:[
       'I was a British author and illustrator who loved animals and nature.',
       'I grew up in London but loved spending holidays in the Lake District.',
       'I painted beautiful watercolour pictures of small woodland creatures.',
@@ -7174,7 +7280,9 @@ const RK_MYSTERY_BANKS = {
       'I wrote charming small books about Peter Rabbit and Benjamin Bunny.',
       'I used the money from my books to buy farms and preserve the English countryside.',
       'I am the famous British children\'s author who created Peter Rabbit.']},
-    {id:'myst_victoria', answer:'Victoria', accept:['victoria'], clues:[
+    {id:'myst_victoria', answer:'Victoria', accept:['victoria'], bridge:'low',
+     category:'A British monarch',
+     hook:'She survived at least seven separate assassination attempts during her reign, often by people firing pistols at her royal carriage in the streets.', clues:[
       'I was born in Kensington Palace in London a long time ago.',
       'I became monarch at just 18 years old and ruled for more than 63 years.',
       'I was the very first monarch to live in Buckingham Palace.',
@@ -7182,7 +7290,10 @@ const RK_MYSTERY_BANKS = {
       'During my reign, railways, steamships and industrial factories changed Britain.',
       'My husband was Prince Albert, and a famous London museum bears our names.',
       'I am the famous 19th-century female monarch who gave her name to a great historic era.']},
-    {id:'myst_arthur', answer:'Arthur', accept:['arthur'], clues:[
+    {id:'myst_arthur', answer:'Arthur', accept:['arthur'], bridge:'medium',
+     category:'A legendary king',
+     hint:'You might have seen the classic Disney animated film The Sword in the Stone, where a young boy pulls a sword out of an anvil to become king.',
+     hook:'Despite being the most famous English hero today, the earliest historical texts actually describe him fighting against the English to defend the native Britons.', clues:[
       'I am a legendary British leader from ancient Celtic stories.',
       'I became leader after pulling a magical sword out of a solid stone.',
       'My magical sword was given to me by a mysterious lady in a lake.',
@@ -7190,15 +7301,19 @@ const RK_MYSTERY_BANKS = {
       'My legendary castle and court was called Camelot.',
       'A powerful wizard named Merlin acted as my trusted advisor.',
       'I am the legendary hero of the Knights of the Round Table.']},
-    {id:'myst_belfast', answer:'Belfast', accept:['belfast'], clues:[
+    {id:'myst_belfast', answer:'Belfast', accept:['belfast'], bridge:'low',
+     category:'A capital city',
+     hook:'The city features a massive Victorian clock tower that leans heavily to one side, just like the Leaning Tower of Pisa, because it was built on soft marshland.', clues:[
       'I am a major port city located on the eastern coast of an island.',
       'My historic shipyards were once among the largest and busiest in the world.',
       'The world\'s most famous passenger liner was built in my docks in 1911.',
       'I am surrounded by green hills and sit right beside a large bay.',
       'A famous modern museum shaped like four ship hulls stands in my docklands.',
       'I am the vibrant capital city of Northern Ireland.',
-      'I am the Northern Irish capital city where the Titanic was built.']},
-    {id:'myst_ben_nevis', answer:'Ben Nevis', accept:['ben nevis'], clues:[
+      'I am the Northern Irish capital city where the most famous ocean liner in history was built.']},
+    {id:'myst_ben_nevis', answer:'Ben Nevis', accept:['ben nevis'], bridge:'low',
+     category:'A mountain',
+     hook:'There are ruins of an old Victorian observatory right at the very top, where scientists used to live year-round just to study the severe weather.', clues:[
       'I am located in the wild Highlands of western Scotland.',
       'Ancient forces formed my steep rocky slopes millions of years ago.',
       'My peak is often hidden inside thick white clouds and cold mist.',
@@ -7206,7 +7321,9 @@ const RK_MYSTERY_BANKS = {
       'Walkers and climbers travel from everywhere to reach my high summit.',
       'My summit stands at more than 1,300 metres above sea level.',
       'I am the highest outdoor peak in the entire United Kingdom.']},
-    {id:'myst_snowdonia', answer:'Snowdonia', accept:['snowdonia'], clues:[
+    {id:'myst_snowdonia', answer:'Snowdonia', accept:['snowdonia'], bridge:'low',
+     category:'A national park',
+     hook:'Sir Edmund Hillary and his team actually used the rugged, freezing terrain here to train for the very first successful human expedition to the summit of Mount Everest.', clues:[
       'I am a large protected region of wild nature in northern Wales.',
       'My landscape features clear lakes, deep valleys and high rocky peaks.',
       'A famous mountain railway carries visitors all the way up to my highest summit.',
@@ -7214,7 +7331,9 @@ const RK_MYSTERY_BANKS = {
       'Hikers love exploring my scenic paths and stone castles.',
       'My highest mountain peak is called Yr Wyddfa in the Welsh language.',
       'I am the famous national park that contains the highest mountains in Wales.']},
-    {id:'myst_loch_lomond', answer:'Loch Lomond', accept:['loch lomond'], clues:[
+    {id:'myst_loch_lomond', answer:'Loch Lomond', accept:['loch lomond'], bridge:'low',
+     category:'A Scottish lake',
+     hook:'One of the islands in the middle of the water is actually home to a colony of wild wallabies that bounce through the forest, introduced there in the 1940s.', clues:[
       'I am a large body of clear freshwater in southern Scotland.',
       'Green hills and ancient oak woodlands surround my peaceful shores.',
       'More than thirty small islands are scattered across my calm waters.',
@@ -7222,7 +7341,9 @@ const RK_MYSTERY_BANKS = {
       'People love sailing boats and kayaking across my wide surface.',
       'I am the largest inland body of water by surface area in Great Britain.',
       'I am Scotland\'s most famous southern lake, celebrated in a famous traditional song.']},
-    {id:'myst_piccadilly', answer:'Piccadilly', accept:['piccadilly'], clues:[
+    {id:'myst_piccadilly', answer:'Piccadilly', accept:['piccadilly'], bridge:'low',
+     category:'A public square',
+     hook:'The famous glowing advertising signs were turned off completely for nearly ten years during and after the Second World War to comply with city-wide blackouts.', clues:[
       'I am a famous public space located in the West End of London.',
       'Giant illuminated advertising screens have brightened my buildings for decades.',
       'A famous bronze statue of an archer stands above a fountain in my centre.',
@@ -7230,7 +7351,9 @@ const RK_MYSTERY_BANKS = {
       'Busy streets filled with shops and theatres meet at my round junction.',
       'People love sitting around my central fountain to meet up with friends.',
       'I am the famous London plaza known worldwide for its giant glowing advertisement screens.']},
-    {id:'myst_florence_nightingale', answer:'Florence Nightingale', accept:['florence nightingale', 'nightingale'], clues:[
+    {id:'myst_florence_nightingale', answer:'Florence Nightingale', accept:['florence nightingale', 'nightingale'], bridge:'low',
+     category:'A historical nurse',
+     hook:'She was also a pioneering mathematician who invented the "polar area diagram", a type of pie chart she designed to easily explain medical statistics to politicians.', clues:[
       'I was a famous British woman who lived during the Victorian era.',
       'I travelled abroad to help sick and injured soldiers during a war.',
       'I carried a small oil lamp at night while checking on patients in hospital wards.',
@@ -7238,7 +7361,9 @@ const RK_MYSTERY_BANKS = {
       'I opened the very first professional training school for hospital nurses in London.',
       'People affectionately called me The Lady with the Lamp.',
       'I am the historic British founder of modern professional nursing.']},
-    {id:'myst_jane_austen', answer:'Jane Austen', accept:['jane austen', 'austen'], clues:[
+    {id:'myst_jane_austen', answer:'Jane Austen', accept:['jane austen', 'austen'], bridge:'low',
+     category:'An English writer',
+     hook:'She brewed her own beer at home and was strictly in charge of the family\'s morning tea supplies, which had to be locked away because tea was extremely expensive.', clues:[
       'I was a famous English author who lived in the countryside long ago.',
       'I wrote clever stories about family life, romance and social manners.',
       'My books were published anonymously during my lifetime without my real name.',
@@ -7246,15 +7371,17 @@ const RK_MYSTERY_BANKS = {
       'My novel Pride and Prejudice became one of the most loved books in history.',
       'My portrait appears on the British ten-pound banknote.',
       'I am the classic English female author who wrote Pride and Prejudice.']},
-    {id:'myst_roald_dahl', answer:'Roald Dahl', accept:['roald dahl', 'dahl'], clues:[
+    {id:'myst_roald_dahl', answer:'Roald Dahl', accept:['roald dahl', 'dahl'], bridge:'high', clues:[
       'I was a famous British author who wrote amazing children\'s books.',
       'I served as a fighter pilot during the Second World War before writing stories.',
       'I invented funny made-up words like snozzcumbers and frobscottle.',
-      'I created a boy who travelled inside a giant peach, and a chocolate maker whose factory nobody could enter.',
+      'I created a boy who travelled inside a giant peach, a fox outwitting three farmers, and a friendly giant who catches dreams in a jar.',
       'My stories were illustrated by my talented friend Quentin Blake.',
       'I wrote my famous books inside a small wooden shed at the end of my garden.',
       'I am the beloved British author who wrote Charlie and the Chocolate Factory.']},
-    {id:'myst_ada_lovelace', answer:'Ada Lovelace', accept:['ada lovelace', 'lovelace'], clues:[
+    {id:'myst_ada_lovelace', answer:'Ada Lovelace', accept:['ada lovelace', 'lovelace'], bridge:'low',
+     category:'A historical mathematician',
+     hook:'In the 1980s, the United States Department of Defense named an entire military computer programming language after her to honour her legacy.', clues:[
       'I was a brilliant English mathematician born in London in 1815.',
       'My father was the famous Romantic poet Lord Byron.',
       'I worked alongside a clever inventor named Charles Babbage on a mechanical computer.',
@@ -7262,7 +7389,10 @@ const RK_MYSTERY_BANKS = {
       'I wrote a detailed set of instructions for a mechanical calculating machine.',
       'Historians consider my instruction set to be the first computer program ever written.',
       'I am celebrated in history as the world\'s very first computer programmer.']},
-    {id:'myst_gulliver', answer:'Gulliver', accept:['gulliver'], clues:[
+    {id:'myst_gulliver', answer:'Gulliver', accept:['gulliver'], bridge:'medium',
+     category:'A fictional character',
+     hint:'You might have seen the live-action comedy film where this character is played by the actor Jack Black.',
+     hook:'In the original book, the author accurately guessed that the planet Mars had two small moons, more than a century before astronomers actually discovered them through telescopes.', clues:[
       'I am a fictional ship\'s doctor who sets sail on long ocean voyages.',
       'A stormy sea wrecks my ship and washes me ashore on an unknown island.',
       'I wake up tied to the ground by hundreds of tiny threads.',
@@ -7270,15 +7400,18 @@ const RK_MYSTERY_BANKS = {
       'I later travel to another island where the residents are giant human beings.',
       'My famous travel adventures were written by Jonathan Swift.',
       'I am the fictional traveller who woke up tied down on the island of Lilliput.']},
-    {id:'myst_mr_bean', answer:'Mr Bean', accept:['mr bean'], clues:[
+    {id:'myst_mr_bean', answer:'Mr Bean', accept:['mr bean'], bridge:'high', clues:[
       'I am a famous comedic character who lives in a small flat in London.',
-      'I drive a bright lime-green mini car with a padlock on the door.',
+      'I drive a bright lime-green little car with a padlock on the door.',
       'I rarely speak words out loud and communicate through funny noises and gestures.',
       'My best friend in the world is a small brown knitted teddy bear.',
       'I wear a tweed jacket and a red tie while getting into silly everyday troubles.',
       'I was created and played by the talented British actor Rowan Atkinson.',
       'I am the hilarious silent British comedy character who loves his teddy bear.']},
-    {id:'myst_excalibur', answer:'Excalibur', accept:['excalibur'], clues:[
+    {id:'myst_excalibur', answer:'Excalibur', accept:['excalibur'], bridge:'medium',
+     category:'A mythical weapon',
+     hint:'You will have seen my name used for powerful, high-level weapons in countless fantasy video games and animated series.',
+     hook:'In the earliest Welsh legends, this famous weapon was originally called Caledfwlch, which translates roughly to "hard lightning".', clues:[
       'I am a legendary object from ancient British myths and folklore.',
       'I was forged by magical realm skilled craftsmen long ago.',
       'A mysterious woman living beneath calm waters offered me to a great leader.',
@@ -7286,7 +7419,10 @@ const RK_MYSTERY_BANKS = {
       'I shone so brightly in battle that enemies were blinded by my gleam.',
       'When my owner died, a loyal knight threw me back into the deep lake.',
       'I am the legendary sword of the king who led the Knights of the Round Table.']},
-    {id:'myst_bilbo', answer:'Bilbo', accept:['bilbo', 'bilbo baggins'], clues:[
+    {id:'myst_bilbo', answer:'Bilbo', accept:['bilbo', 'bilbo baggins'], bridge:'medium',
+     category:'A fictional character',
+     hint:'You have probably seen the massive fantasy films where this character travels alongside a wizard played by Ian McKellen.',
+     hook:'The author came up with the idea for this character while marking boring exam papers, writing the very first sentence of the story on a blank page just to entertain himself.', clues:[
       'I am a fictional character who lives in a comfortable underground home with a round door.',
       'I belong to a peaceful race of small people with hairy feet who love eating meals.',
       'A wise wizard with a pointed hat visits my home and invites me on an adventure.',
@@ -7294,7 +7430,10 @@ const RK_MYSTERY_BANKS = {
       'I find a magical gold ring in a dark cave that makes its wearer invisible.',
       'My creator was the Oxford professor and author J.R.R. Tolkien.',
       'I am the small adventurer from a comfortable home who travelled to the Lonely Mountain with thirteen dwarves.']},
-    {id:'myst_dr_watson', answer:'Dr Watson', accept:['dr watson', 'watson'], clues:[
+    {id:'myst_dr_watson', answer:'Dr Watson', accept:['dr watson', 'watson'], bridge:'medium',
+     category:'A fictional character',
+     hint:'You have seen him played by actor Jude Law in the cinema, or by Martin Freeman in a famous modern television series.',
+     hook:'Even though he is famous for being a medical professional, he only actually treats a patient a handful of times across all sixty original stories.', clues:[
       'I am a fictional doctor who served as an army officer before returning to London.',
       'I moved into a flat at 221B Baker Street to share living expenses.',
       'I accompanied my brilliant room-mate on mysteries across Victorian England.',
@@ -7302,15 +7441,18 @@ const RK_MYSTERY_BANKS = {
       'I published our adventures so the public could read about my friend\'s genius.',
       'Doctors like me were trained to observe carefully, which is exactly what made me useful to my friend.',
       'I am the loyal friend and biographer of the world\'s greatest detective.']},
-    {id:'myst_macbeth', answer:'Macbeth', accept:['macbeth'], clues:[
+    {id:'myst_macbeth', answer:'Macbeth', accept:['macbeth'], bridge:'low',
+     category:'A tragic play',
+     hint:'You might know my name from the famous theatre superstition which claims that speaking my title aloud on a stage brings terrible bad luck.',
+     hook:'In the real world, the historical Scottish king who inspired this story actually ruled peacefully for seventeen years, completely unlike the murderous tyrant in the play.', clues:[
       'This famous literary work takes place in medieval Scotland.',
       'It tells the story of a brave general who receives a mysterious prophecy.',
       'Three weird witches on a dark heath predict that he will become a leader.',
       'His ambitious wife encourages him to do a terrible deed to take power.',
       'He meets his dramatic end at a historic fortress called Dunsinane Castle.',
-      'The tragic play was written by William Shakespeare around 1606.',
+      'The tragic play was written by the most famous English playwright of all time, around 1606.',
       'It is Shakespeare\'s famous Scottish tragedy about an ambitious general and three witches.']},
-    {id:'myst_harry_potter', answer:'Harry Potter', accept:['harry potter'], clues:[
+    {id:'myst_harry_potter', answer:'Harry Potter', accept:['harry potter'], bridge:'high', clues:[
       'I grew up living in a small cupboard under the stairs in Surrey.',
       'I received a secret letter delivered by an owl on my eleventh birthday.',
       'I caught a special train from Platform 9 3/4 at King\'s Cross Station.',
@@ -7318,7 +7460,10 @@ const RK_MYSTERY_BANKS = {
       'My best friends at magical school are Ron and Hermione.',
       'I play a fast flying sport on broomsticks called Quidditch.',
       'I am the famous fictional boy wizard who survived the dark lord.']},
-    {id:'myst_braveheart', answer:'Braveheart', accept:['braveheart'], clues:[
+    {id:'myst_braveheart', answer:'Braveheart', accept:['braveheart'], bridge:'medium',
+     category:'A historical film',
+     hint:'You might have heard your parents quoting the famous scene where the main character shouts the word "Freedom!" just before a battle.',
+     hook:'Many of the background soldiers fighting in the massive, brutal battle scenes were actually played by off-duty members of the Irish national army.', clues:[
       'This famous creative work tells the story of medieval Scottish history.',
       'It follows a brave warrior who leads his people in a fight for freedom.',
       'The hero paints his face blue with woad dye before heading into battle.',
@@ -7326,15 +7471,18 @@ const RK_MYSTERY_BANKS = {
       'The hero\'s real historic name was Sir William Wallace.',
       'The film won five Academy Awards including Best Picture in 1996.',
       'It is the famous epic film about the Scottish hero William Wallace.']},
-    {id:'myst_fish_and_chips', answer:'Fish and Chips', accept:['fish and chips', 'fish n chips', 'fish & chips'], clues:[
+    {id:'myst_fish_and_chips', answer:'Fish and Chips', accept:['fish and chips', 'fish n chips', 'fish & chips'], bridge:'high', clues:[
       'I am a world-famous traditional hot meal originating in Britain.',
       'My two main ingredients are cooked in bubbling hot oil until crispy.',
       'One part is made from white Atlantic fillets dipped in light batter.',
       'The other part is made from fresh potatoes cut into thick warm batons.',
-      'People love sprinkling salt and malt vinegar over me at seaside towns.',
+      'During the Second World War the British government refused to ration me, because they believed it would ruin the country\'s morale.',
       'I am traditionally wrapped in paper and eaten outdoors on coastal benches.',
       'I am the classic British takeaway meal of battered white fillets and thick potato slices.']},
-    {id:'myst_haggis', answer:'Haggis', accept:['haggis'], clues:[
+    {id:'myst_haggis', answer:'Haggis', accept:['haggis'], bridge:'low',
+     category:'A traditional food',
+     hint:'You might have seen this dish being eaten as a daring culinary challenge on internet travel and food shows.',
+     hook:'For over fifty years, it has been completely illegal to import this traditional dish into the United States because of a strict food safety law.', clues:[
       'I am a famous savoury dish connected to Scottish culinary culture.',
       'I am made by mixing minced meats with oatmeal, onions and warm spices.',
       'I am traditionally cooked inside a casing and served steaming hot.',
@@ -7342,7 +7490,9 @@ const RK_MYSTERY_BANKS = {
       'A piper plays bagpipes while I am carried into the room during celebrations.',
       'A famous Scottish poet wrote an entire poem in my honour, and it is read aloud before I am eaten.',
       'I am the traditional Scottish dish of minced meat and oats served with neeps and tatties.']},
-    {id:'myst_eisteddfod', answer:'Eisteddfod', accept:['eisteddfod'], clues:[
+    {id:'myst_eisteddfod', answer:'Eisteddfod', accept:['eisteddfod'], bridge:'low',
+     category:'A cultural festival',
+     hook:'During the main ceremonies, a massive ceremonial sword is partially drawn from its sheath, and the entire crowd must shout "Peace!" before it is put away again.', clues:[
       'I am a historic festival of music, literature and performance held in Wales.',
       'My origins go all the way back to the twelfth century in Welsh castles.',
       'Performers compete in singing, harp playing and poetry readings on stage.',
@@ -7350,7 +7500,10 @@ const RK_MYSTERY_BANKS = {
       'All official events and performances are conducted in the Welsh language.',
       'I am held in a different town in Wales every summer.',
       'I am the famous Welsh national festival of music, poetry and performing arts.']},
-    {id:'myst_cricket', answer:'Cricket', accept:['cricket'], clues:[
+    {id:'myst_cricket', answer:'Cricket', accept:['cricket'], bridge:'low',
+     category:'A traditional sport',
+     hint:'You might have seen highlights of this sport on television networks when national teams from India or Australia are playing.',
+     hook:'The longest recorded match in history took place in 1939 between England and South Africa, lasting for twelve whole days before they had to stop just so the English team could catch their boat home.', clues:[
       'I am a traditional summer sport that originated in England centuries ago.',
       'Matches are played outdoors on a green grass field with a central pitch.',
       'Players wear white trousers and shirts while competing under the sun.',
@@ -7358,7 +7511,10 @@ const RK_MYSTERY_BANKS = {
       'Two wooden structures with three vertical stumps stand at each end of the pitch.',
       'Matches can last for several hours or even over multiple days.',
       'I am the classic British summer sport played with wooden bats and wickets.']},
-    {id:'myst_porridge', answer:'Porridge', accept:['porridge'], clues:[
+    {id:'myst_porridge', answer:'Porridge', accept:['porridge'], bridge:'medium',
+     category:'A breakfast food',
+     hint:'You almost certainly know me from the classic nursery tale about a girl with golden hair who breaks into a house owned by three bears.',
+     hook:'There is an annual world championship in Scotland dedicated entirely to making this dish, where the winner is awarded a trophy shaped like a giant wooden stirring stick.', clues:[
       'I am a traditional warm dish eaten for breakfast across Great Britain.',
       'I am made by simmering crushed oat grains in hot milk or water.',
       'I have been a staple food in Scotland and Northern England for centuries.',
@@ -7366,7 +7522,7 @@ const RK_MYSTERY_BANKS = {
       'In a famous children\'s fairytale, a young girl tries three bowls of me in a bear house.',
       'I am served hot in a bowl to provide long-lasting morning energy.',
       'I am the classic British breakfast dish made from cooked oat grains and milk.']},
-    {id:'myst_freddie_mercury', answer:'Freddie Mercury', accept:['freddie mercury'], clues:[
+    {id:'myst_freddie_mercury', answer:'Freddie Mercury', accept:['freddie mercury'], bridge:'high', clues:[
       'I am a legendary performer who filled stadiums all over the world with energy and power.',
       'I took my stage name from the smallest planet in the solar system.',
       'Millions of fans used to stamp their feet and clap their hands to my famous rhythm.',
@@ -7374,7 +7530,7 @@ const RK_MYSTERY_BANKS = {
       'I sang about champions and breaking free with my incredible rock band.',
       'My band was named after a royal title, and I played the piano while hitting notes few singers could reach.',
       'I was the lead singer of Queen who commanded the crowd at Live Aid in 1985.']},
-    {id:'myst_harry_kane', answer:'Harry Kane', accept:['harry kane'], clues:[
+    {id:'myst_harry_kane', answer:'Harry Kane', accept:['harry kane'], bridge:'high', clues:[
       'I am a professional athlete who plays at the highest level of European football.',
       'I am known for shooting accurately with both feet and scoring goals from far away.',
       'I spent many years playing for a famous team in North London before moving to Germany.',
@@ -7382,15 +7538,18 @@ const RK_MYSTERY_BANKS = {
       'Football fans know me as one of the most reliable penalty takers in the game.',
       'I led the attack for my country in two European finals without ever lifting the trophy.',
       'I am the all-time top goalscorer for the England national team and striker for Bayern Munich.']},
-    {id:'myst_kitkat', answer:'KitKat', accept:['kitkat'], clues:[
+    {id:'myst_kitkat', answer:'KitKat', accept:['kitkat'], bridge:'high', clues:[
       'I am a sweet treat sold in shops, supermarkets and kiosks across the world.',
       'I came out of a chocolate factory in Yorkshire almost a hundred years ago.',
       'I come wrapped in a bright red package that you split open to share.',
       'My famous motto tells people to have a break whenever they eat me.',
-      'Inside my chocolate coating you will find light, crispy wafer fingers.',
+      'The soft filling between my wafers is made by crushing up imperfect, broken versions of myself from the factory line.',
       'People love to snap my four long bars apart with their fingers before eating.',
       'I am the four-fingered chocolate wafer snack made by Nestle with a red wrapper.']},
-    {id:'myst_mini', answer:'Mini', accept:['mini'], clues:[
+    {id:'myst_mini', answer:'Mini', accept:['mini'], bridge:'medium',
+     category:'A motor car',
+     hint:'You have probably seen modern versions of me on city streets, or watched the film The Italian Job where three of us are used to steal gold in a traffic jam.',
+     hook:'The engineer who designed it was famous for sketching ideas on whatever was at hand, and the story goes that the very first drawing of this car was made on a restaurant napkin.', clues:[
       'I am a famous motor car known for being small, stylish and easy to park.',
       'A clever engineer designed me so four adults could fit inside a very short body.',
       'Drivers loved my small wheels because I felt like driving a go-kart on city streets.',
@@ -7398,7 +7557,7 @@ const RK_MYSTERY_BANKS = {
       'My roof is often painted in a different colour from the rest of my body.',
       'Racing drivers won the famous Monte Carlo Rally driving tuned versions of my small frame.',
       'I am the classic two-door British compact car originally built by the British Motor Corporation.']},
-    {id:'myst_adele', answer:'Adele', accept:['adele'], clues:[
+    {id:'myst_adele', answer:'Adele', accept:['adele'], bridge:'high', clues:[
       'I am an internationally famous singer who started writing songs as a teenager in London.',
       'My soulful voice and emotional ballads have won dozens of global music awards.',
       'I named my most famous albums after the ages I was when I wrote them, like 19, 21 and 25.',
@@ -7406,7 +7565,7 @@ const RK_MYSTERY_BANKS = {
       'I sang the theme song for a spy film set in the Scottish Highlands, and it won an Oscar.',
       'My music video opens with me making a phone call and saying hello from the other side.',
       'I am the British superstar who sang Skyfall and Someone Like You.']},
-    {id:'myst_aston_martin', answer:'Aston Martin', accept:['aston martin'], clues:[
+    {id:'myst_aston_martin', answer:'Aston Martin', accept:['aston martin'], bridge:'high', clues:[
       'I am a high-performance sports car built for extreme speed and luxury.',
       'Mechanical engineers craft my powerful engines by hand near Birmingham.',
       'Formula One fans watch my dark green race cars compete on tracks around the world.',
@@ -7414,7 +7573,7 @@ const RK_MYSTERY_BANKS = {
       'My silver wings logo sits on the bonnet of some of the most expensive cars in Britain.',
       'My most famous road model is the DB5, fitted with special gadgets on screen.',
       'I am the luxury British car maker whose silver DB5 became the most famous car in film history.']},
-    {id:'myst_fall_guys', answer:'Fall Guys', accept:['fall guys'], clues:[
+    {id:'myst_fall_guys', answer:'Fall Guys', accept:['fall guys'], bridge:'high', clues:[
       'I am a video game where colourful bean-shaped figures run through chaotic obstacle courses.',
       'Players compete online in rounds until only one survivor claims the golden crown.',
       'My developers created me in game studios based in London and Brighton.',
@@ -7422,7 +7581,7 @@ const RK_MYSTERY_BANKS = {
       'You have to dodge giant swinging hammers, rolling logs and slippery slime without falling off.',
       'Hundreds of stream hosts and YouTubers made my colourful knockout rounds go viral.',
       'I am the multiplayer battle royale game filled with tumbling jellybeans created by Mediatonic.']},
-    {id:'myst_ed_sheeran', answer:'Ed Sheeran', accept:['ed sheeran'], clues:[
+    {id:'myst_ed_sheeran', answer:'Ed Sheeran', accept:['ed sheeran'], bridge:'high', clues:[
       'I am a musician who started playing guitar on city streets with just a microphone and a loop pedal.',
       'My bright red hair and acoustic guitar make me easy to spot on any stage.',
       'I write global pop hits using mathematical symbols like Plus, Multiply and Divide for album titles.',
@@ -7430,7 +7589,7 @@ const RK_MYSTERY_BANKS = {
       'I sang a romantic ballad called Thinking Out Loud that played at thousands of weddings.',
       'I filled Wembley Stadium for three nights in a row playing all the music by myself.',
       'I am the British singer-songwriter with red hair who sang Shape of You and Perfect.']},
-    {id:'myst_voldemort', answer:'Voldemort', accept:['voldemort'], clues:[
+    {id:'myst_voldemort', answer:'Voldemort', accept:['voldemort'], bridge:'high', clues:[
       'I am a dark wizard who tried to conquer the magical world through fear and power.',
       'People were so terrified of me that they refused to speak my actual name out loud.',
       'My pale face, red eyes and flat nose make me look like a dangerous snake.',
@@ -7438,7 +7597,10 @@ const RK_MYSTERY_BANKS = {
       'I carried a wand made of yew wood with a feather from a phoenix at its core.',
       'My loyal followers wear dark cloaks and call me the Dark Lord.',
       'I am the wizard whose name most people are too frightened to say out loud.']},
-    {id:'myst_gorillaz', answer:'Gorillaz', accept:['gorillaz'], clues:[
+    {id:'myst_gorillaz', answer:'Gorillaz', accept:['gorillaz'], bridge:'medium',
+     category:'A virtual music band',
+     hint:'You have probably heard our music on Spotify or seen our animated music videos trending on YouTube.',
+     hook:'The creators came up with the idea for the band while sitting on a sofa watching MTV, deciding they wanted to make fun of how fake pop stars seemed on television.', clues:[
       'We are a famous virtual band made up of four animated cartoon members.',
       'A musician and an illustrator created us in a London studio at the end of the nineties.',
       'Our animated band members are named 2D, Murdoc, Noodle and Russel.',
@@ -7446,7 +7608,7 @@ const RK_MYSTERY_BANKS = {
       'Our giant hit song features a laughing chorus and a bassline about feeling good.',
       'We mix hip hop, rock and pop music behind the faces of drawing-style musicians.',
       'We are the virtual cartoon band created by Damon Albarn and Jamie Hewlett who sang Feel Good Inc.']},
-    {id:'myst_wonka', answer:'Wonka', accept:['wonka'], clues:[
+    {id:'myst_wonka', answer:'Wonka', accept:['wonka'], bridge:'high', clues:[
       'I am an eccentric inventor who created the most extraordinary sweet shop in fictional history.',
       'I built a giant factory hidden behind massive gates that remained locked for years.',
       'Inside my factory stands a chocolate river driven by a roaring waterfall.',
@@ -7454,17 +7616,20 @@ const RK_MYSTERY_BANKS = {
       'I hid five golden tickets inside ordinary chocolate bars for lucky children to find.',
       'A young boy named Charlie Bucket inherited my entire business because of his kind heart.',
       'I am the eccentric chocolatier who created Everlasting Gobstoppers and fizzy lifting drinks.']},
-    {id:'myst_tom_holland', answer:'Tom Holland', accept:['tom holland', 'holland'], clues:[
+    {id:'myst_tom_holland', answer:'Tom Holland', accept:['tom holland', 'holland'], bridge:'high', clues:[
       'I am an actor who trained as a dancer long before I ever appeared in a film.',
       'I grew up in south-west London and studied at a school for performing arts.',
       'My first big role was on a West End stage, playing a boy who dances instead of boxing.',
-      'I perform many of my own stunts thanks to years of gymnastics and acrobatics.',
+      'I found out I had got my biggest role by reading a post on Instagram, before the studio even rang me.',
       'Millions of people have watched me swinging between skyscrapers in a red and blue suit.',
       'Most people are surprised the first time they hear me speak, because on screen I sound American.',
       'I am the English actor who plays the wall-crawling Marvel superhero.']},
     // Las 4 que ya venían en el banco neutral. Se repiten acá porque el motor de temas
     // resuelve con banks[tema] || banks.neutral: si full existe, neutral no se usa.
-    {id:'myst_big_ben', answer:'Big Ben', accept:['big ben'], clues:[
+    {id:'myst_big_ben', answer:'Big Ben', accept:['big ben'], bridge:'medium',
+     category:'A historic bell',
+     hint:'You have seen my clock face in almost every film set in London, often with flying superheroes soaring past my tower.',
+     hook:'The giant clock mechanism is famously kept perfectly accurate by adding or removing old British penny coins on the swinging pendulum.', clues:[
       'I am found in a capital city.',
       'I am very old — more than 160 years old.',
       'I am famous for my sound, which rings out every hour.',
@@ -7472,7 +7637,10 @@ const RK_MYSTERY_BANKS = {
       'Tourists love taking photos of me from Westminster Bridge.',
       'I am actually the nickname of a huge bell inside a clock tower — most people use my name for the whole tower!',
       'I am one of the most famous clock towers in the world, right next to the Houses of Parliament in London.']},
-    {id:'myst_the_loch_ness_monster', answer:'The Loch Ness Monster', accept:['the loch ness monster', 'loch ness monster', 'nessie'], clues:[
+    {id:'myst_the_loch_ness_monster', answer:'The Loch Ness Monster', accept:['the loch ness monster', 'loch ness monster', 'nessie'], bridge:'medium',
+     category:'A mythical creature',
+     hint:'You have probably seen fuzzy, fake photographs of me in internet videos about unexplained mysteries and urban legends.',
+     hook:'In 1934, a famous photograph shocked the world by apparently showing my head and neck, but decades later the photographer admitted it was actually just a toy submarine made of plastic wood.', clues:[
       'I live in the water.',
       'I am famous in Scotland.',
       'Many people say they have seen me, but no one has ever proven I am real.',
@@ -7480,7 +7648,10 @@ const RK_MYSTERY_BANKS = {
       'People sometimes call me by a nickname that sounds like a girl\'s name.',
       'My home is Loch Ness, in the Scottish Highlands.',
       'I am often described as a huge creature with a long neck, like a dinosaur living underwater!']},
-    {id:'myst_winston_churchill', answer:'Winston Churchill', accept:['winston churchill', 'churchill'], clues:[
+    {id:'myst_winston_churchill', answer:'Winston Churchill', accept:['winston churchill', 'churchill'], bridge:'low',
+     category:'A historical politician',
+     hint:'You will have seen my face in history documentaries about the Second World War, or printed on the modern British five-pound banknote.',
+     hook:'Despite being a serious wartime leader, he was absolutely fascinated by bricklaying and actually built many of the brick walls at his country home himself.', clues:[
       'I am a real person from history.',
       'I lived in the 20th century.',
       'I led my country during a very difficult time.',
@@ -7488,7 +7659,10 @@ const RK_MYSTERY_BANKS = {
       'I led the United Kingdom during World War II.',
       'I am often shown smoking a big cigar and making a \'V\' sign with my fingers.',
       'I was the Prime Minister of the United Kingdom, famous for saying "We shall never surrender."']},
-    {id:'myst_wimbledon', answer:'Wimbledon', accept:['wimbledon'], clues:[
+    {id:'myst_wimbledon', answer:'Wimbledon', accept:['wimbledon'], bridge:'medium',
+     category:'A sports tournament',
+     hint:'You might have seen this event on sports news channels, or played it in tennis video games like TopSpin.',
+     hook:'The tournament officially employs a specially trained bird of prey whose only job is to fly around the courts every morning to scare away pigeons.', clues:[
       'I happen every year, usually in the summer.',
       'I take place in London.',
       'I am connected to a sport.',
@@ -7499,7 +7673,9 @@ const RK_MYSTERY_BANKS = {
       // ── Tanda 05, cargada el 30 de septiembre de 2026 ──────────────────────
     // 12 de 13 candidatas. Aslan quedó fuera de esta pasada. Colador: 0 errores
     // tras quitar el 'Shakespeare' de la pista 4 de Hiddleston (punto ciego del script).
-    {id:'myst_rockstar_games', answer:'Rockstar Games', accept:['rockstar games', 'rockstar', 'rockstar north'], clues:[
+    {id:'myst_rockstar_games', answer:'Rockstar Games', accept:['rockstar games', 'rockstar', 'rockstar north'],
+     bridge:'high', category:'Brand / Video Games',
+     hook:'The studio behind the most profitable entertainment product in human history is not based in a massive Hollywood complex, but in a regular office building in Edinburgh, Scotland.', clues:[
       'I am an incredibly famous entertainment company that produces massive digital worlds.',
       'My products are known for letting players explore huge open cities, drive fast cars, and cause absolute chaos.',
       'The headquarters responsible for my biggest hits is located in a normal office building in Edinburgh, Scotland.',
@@ -7508,7 +7684,9 @@ const RK_MYSTERY_BANKS = {
       'My most successful franchise allows you to steal vehicles in fictional cities like Los Santos and Vice City.',
       'My 2013 release featuring three playable criminals broke industry records by earning one billion dollars in just three days.',
     ]},
-    {id:'myst_millie_bobby_brown', answer:'Millie Bobby Brown', accept:['millie bobby brown', 'millie brown'], clues:[
+    {id:'myst_millie_bobby_brown', answer:'Millie Bobby Brown', accept:['millie bobby brown', 'millie brown'],
+     bridge:'high', category:'Actor',
+     hook:'She actually learned how to speak with a flawless American accent by watching the Disney Channel television show Hannah Montana when she was a young child.', clues:[
       'I am a highly successful actor who became a global superstar while still a child.',
       'I am completely deaf in one of my ears, which means I often cannot hear myself when I am performing on set.',
       'I grew up in England, but I became famous for playing an American teenager.',
@@ -7517,7 +7695,9 @@ const RK_MYSTERY_BANKS = {
       'In that same massive television series, I use supernatural powers to fight monsters from a dimension called the Upside Down.',
       'In 2018, Time magazine named me the youngest person ever to be included in their list of the world\'s most influential people.',
     ]},
-    {id:'myst_tom_hardy', answer:'Tom Hardy', accept:['tom hardy', 'hardy'], clues:[
+    {id:'myst_tom_hardy', answer:'Tom Hardy', accept:['tom hardy', 'hardy'],
+     bridge:'high', category:'Actor',
+     hook:'Long before he became a famous Hollywood tough guy, he actually started his career by winning a televised modelling competition on a British morning show when he was twenty-one.', clues:[
       'I am an actor who frequently plays intense, highly aggressive villains on screen.',
       'In real life, I secretly entered a martial arts tournament in England under my legal first name, Edward, and quietly won the gold medal.',
       'I am famous for drastically changing my physical appearance and using very strange voices for my characters.',
@@ -7526,7 +7706,9 @@ const RK_MYSTERY_BANKS = {
       'Currently, I play the human host who shares a body with an alien symbiote made of black liquid.',
       'I received an Academy Award nomination for playing the ruthless fur trapper John Fitzgerald opposite Leonardo DiCaprio.',
     ]},
-    {id:'myst_cadbury', answer:'Cadbury', accept:['cadbury', 'cadburys'], clues:[
+    {id:'myst_cadbury', answer:'Cadbury', accept:['cadbury', 'cadburys'],
+     bridge:'high', category:'Brand / Food',
+     hook:'During the Second World War, the company had to temporarily abandon their famous purple packaging and use plain brown wrappers because the government heavily restricted ink and paper supplies.', clues:[
       'I am a massively successful brand that manufactures sweet treats sold all over the world.',
       'During the nineteenth century, my founders built an entire, beautiful model village in England just to give their factory workers a healthy place to live.',
       'I am instantly recognisable on supermarket shelves because of my trademark dark purple packaging.',
@@ -7535,7 +7717,9 @@ const RK_MYSTERY_BANKS = {
       'People frequently hide those specific foil-wrapped treats in gardens during the spring holidays.',
       'My manufacturing empire began in 1824 when my founder opened a tiny shop in Birmingham selling drinking chocolate and tea.',
     ]},
-    {id:'myst_banksy', answer:'Banksy', accept:['banksy'], clues:[
+    {id:'myst_banksy', answer:'Banksy', accept:['banksy'],
+     bridge:'high', category:'Artist',
+     hook:'He once secretly smuggled his own fake artifact, a rock painted with a prehistoric caveman pushing a supermarket trolley, into the British Museum, and the staff did not notice it for several days.', clues:[
       'I am a globally famous creative figure, yet my true identity remains a complete secret.',
       'Rather than displaying my work in quiet galleries, I usually paint directly onto public walls and buildings during the night.',
       'My work often features rats, police officers, and children, used to make political jokes.',
@@ -7544,7 +7728,9 @@ const RK_MYSTERY_BANKS = {
       'Because of my accent in anonymous interviews, I am believed to have been born in the English city of Bristol.',
       'In 2015, I opened a dark, twisted parody of a family theme park in a British seaside town, featuring miserable staff and ruined fairy tales.',
     ]},
-    {id:'myst_arsenal', answer:'Arsenal', accept:['arsenal', 'arsenal fc'], clues:[
+    {id:'myst_arsenal', answer:'Arsenal', accept:['arsenal', 'arsenal fc'],
+     bridge:'high', category:'Sports',
+     hook:'They are the only football club in the country to have an official London Underground station explicitly named after them, which was changed in 1932 to help fans find the stadium.', clues:[
       'I am a sporting organisation followed by millions of incredibly passionate fans.',
       'My historical origins are tied to a group of munitions workers in late nineteenth-century London, which is why my official logo features a heavy military weapon.',
       'I play my home matches in a massive stadium situated in the northern part of the British capital.',
@@ -7553,7 +7739,9 @@ const RK_MYSTERY_BANKS = {
       'Because of that undefeated record, my squad from that year is still known as "The Invincibles".',
       'In 2020, I secured my fourteenth FA Cup victory by defeating Chelsea in the final match.',
     ]},
-    {id:'myst_dyson', answer:'Dyson', accept:['dyson', 'dyson ltd'], clues:[
+    {id:'myst_dyson', answer:'Dyson', accept:['dyson', 'dyson ltd'],
+     bridge:'high', category:'Brand',
+     hook:'The founder originally came up with the idea for his bagless technology by walking past a local timber factory and noticing the giant industrial exhaust towers spinning sawdust out of the air.', clues:[
       'I am a modern technology brand found in millions of homes worldwide.',
       'My founder spent fifteen years building over five thousand failed prototypes in his backyard shed before his first product actually worked.',
       'I revolutionised household cleaning by inventing a machine that uses spinning cyclones instead of a disposable paper bag.',
@@ -7562,7 +7750,9 @@ const RK_MYSTERY_BANKS = {
       'My machines are easily recognisable by their bright silver, purple, and copper colours.',
       'In 1993, my company opened its own research and manufacturing facility in the English town of Malmesbury to produce the DC01 model.',
     ]},
-    {id:'myst_christian_bale', answer:'Christian Bale', accept:['christian bale', 'bale'], clues:[
+    {id:'myst_christian_bale', answer:'Christian Bale', accept:['christian bale', 'bale'],
+     bridge:'high', category:'Actor',
+     hook:'Even though he is universally known for speaking with a gruff, gravelly American accent in his most famous roles, he was actually born in Wales and naturally speaks with a British accent.', clues:[
       'I am an actor widely known for my intense dedication to my cinematic roles.',
       'I am famous for drastically altering my physical body, once losing over sixty pounds to play a skeletal factory worker.',
       'Immediately after that dramatic weight loss, I had six months to pack on massive amounts of muscle to play a billionaire vigilante.',
@@ -7571,7 +7761,9 @@ const RK_MYSTERY_BANKS = {
       'In those films, I drive an armoured, tank-like vehicle called the Tumbler through the dark streets of Gotham.',
       'I recently played the terrifying villain Gorr the God Butcher, who wields the Necrosword against an Asgardian prince.',
     ]},
-    {id:'myst_bear_grylls', answer:'Bear Grylls', accept:['bear grylls', 'grylls'], clues:[
+    {id:'myst_bear_grylls', answer:'Bear Grylls', accept:['bear grylls', 'grylls'],
+     bridge:'high', category:'TV / Real Person',
+     hook:'During a military parachuting accident in Africa, he broke his back in three places and was told he might never walk again. Just 18 months later, he successfully climbed to the summit of Mount Everest.', clues:[
       'I am an energetic television personality who travels to the most dangerous environments on the planet.',
       'When I was younger, a terrible parachuting accident broke my back in three places, and doctors feared I would never walk again.',
       'Just eighteen months after that devastating injury, I successfully reached the very top of Mount Everest.',
@@ -7580,16 +7772,20 @@ const RK_MYSTERY_BANKS = {
       'The internet frequently uses an image of me as a meme with the caption "Improvise, Adapt, Overcome".',
       'In 2009, I was officially appointed as the youngest-ever Chief Scout of the United Kingdom and Overseas Territories.',
     ]},
-    {id:'myst_elton_john', answer:'Elton John', accept:['elton john', 'sir elton john'], clues:[
+    {id:'myst_elton_john', answer:'Elton John', accept:['elton john', 'sir elton john'],
+     bridge:'high', category:'Music',
+     hook:'When he legally changed his name early in his career, he officially chose the Greek mythological hero Hercules as his new middle name.', clues:[
       'I am a legendary musician who has sold hundreds of millions of records over a fifty-year career.',
       'I own an astonishing personal collection of over two hundred thousand pairs of glasses, kept in special temperature-controlled rooms.',
-      'I frequently collaborate with modern pop stars, including releasing a massive dance remix with Dua Lipa.',
+      'I frequently collaborate with modern pop stars, including a massive dance remix with a much younger British singer.',
       'I composed the beautiful, award-winning original songs for an animated film featuring singing lions in the African savanna.',
       'I perform my incredibly energetic live shows while sitting behind a massive grand piano.',
       'A recent biographical film about my life was titled after my famous song about a lonely astronaut.',
       'In 1997, I performed a rewritten version of "Candle in the Wind" at the funeral of Diana, Princess of Wales.',
     ]},
-    {id:'myst_gareth_bale', answer:'Gareth Bale', accept:['gareth bale', 'bale'], clues:[
+    {id:'myst_gareth_bale', answer:'Gareth Bale', accept:['gareth bale', 'bale'],
+     bridge:'high', category:'Sports',
+     hook:'After winning almost every major trophy in European football, he retired and immediately pursued a career in professional golf, famously holding a banner ranking golf above his football club.', clues:[
       'I am a recently retired professional athlete known for my incredible speed and powerful left foot.',
       'Early in my career, I played in London for a team whose emblem is a cockerel standing on a football.',
       'I eventually moved to a massive Spanish club, where I scored a spectacular overhead kick in a European cup final against Liverpool.',
@@ -7598,7 +7794,9 @@ const RK_MYSTERY_BANKS = {
       'I proudly captained my national team, leading a squad known as the Dragons to multiple major tournaments.',
       'I was born in Cardiff and hold the record as the highest goalscorer in the history of the Welsh national football team.',
     ]},
-    {id:'myst_tom_hiddleston', answer:'Tom Hiddleston', accept:['tom hiddleston', 'hiddleston'], clues:[
+    {id:'myst_tom_hiddleston', answer:'Tom Hiddleston', accept:['tom hiddleston', 'hiddleston'],
+     bridge:'high', category:'Actor',
+     hook:'When he first auditioned for the Marvel universe, he didn\'t want to play the villain; he actually put on twenty pounds of muscle and auditioned to play the heroic god with the hammer, before directors cast him as the brother instead.', clues:[
       'I am an actor best known for playing a highly intelligent, deeply untrustworthy character in a massive cinematic universe.',
       'When I first auditioned for that franchise, I actually tried out for the heroic lead role, packing on muscle to swing a heavy hammer.',
       'The directors decided I was much better suited to play that hero\'s adopted, mischievous brother.',
@@ -7607,9 +7805,292 @@ const RK_MYSTERY_BANKS = {
       'On screen, my character frequently wears a dark green cape and a golden helmet featuring two massive curved horns.',
       'I won a Golden Globe award for playing the hotel night manager Jonathan Pine in a British television adaptation of a John le Carré novel.',
     ]},
+      // ── Tanda 04, cargada el 30 de septiembre de 2026 (11 entradas) ──
+    {id:'myst_dua_lipa', answer:'Dua Lipa', accept:['dua lipa'],
+     bridge:'high', category:'Music',
+     hook:'When she was a child, her primary school music teacher actually refused to let her join the choir, telling her that her voice was far too low and raspy to be a singer.',
+     clues:[
+      'I am a massively successful pop star who performs all over the world.',
+      'I grew up in London, but my family originally comes from Kosovo.',
+      'My unusual first name is not a made-up stage name; it actually means "love" in the Albanian language.',
+      'I am known for my upbeat dance music and highly choreographed live tours.',
+      'In 2023, I recorded a hugely popular original song specifically for the soundtrack of the Barbie film.',
+      'Some of my biggest hit songs include "Don\'t Start Now" and "Levitating".',
+      'My album \'Future Nostalgia\' won the Grammy award for best pop vocal album.',
+    ]},
+    {id:'myst_gordon_ramsay', answer:'Gordon Ramsay', accept:['gordon ramsay', 'ramsay'],
+     bridge:'high', category:'Real Person / TV',
+     hook:'He was originally a serious professional football player in Scotland. He only became a chef because a severe knee injury permanently ended his sporting career.',
+     clues:[
+      'I am a very famous television personality known all over the internet.',
+      'I am particularly famous for losing my temper and shouting at people who make mistakes.',
+      'As a teenager in Scotland, I was a serious football player and played for a professional club.',
+      'I had to completely change my career when a terrible knee injury stopped me from playing sports.',
+      'I decided to learn how to cook instead, eventually opening incredibly expensive restaurants.',
+      'Today, I host television programmes where I judge other people\'s cooking.',
+      'I am the famous British chef who frequently yells in the kitchen.',
+    ]},
+    {id:'myst_lara_croft', answer:'Lara Croft', accept:['lara croft', 'lara'],
+     bridge:'high', category:'Video Games / Fictional Character',
+     hook:'The story goes that her famous braided ponytail had to be dropped from her very first game, because the computers of the early 1990s could not animate swinging hair without crashing.',
+     clues:[
+      'I am a highly athletic fictional character who first appeared in the 1990s.',
+      'The team who created me originally planned to name me "Laura Cruz".',
+      'Because they wanted me to sound more English, they opened a local telephone directory and picked my famous last name at random.',
+      'I live in a massive, ancient English manor house.',
+      'I am very famous for exploring dangerous ruins and avoiding deadly traps.',
+      'I am a legendary video game hero who usually carries two pistols.',
+      'I am the brave British archaeologist who stars in the Tomb Raider games.',
+    ]},
+    {id:'myst_jude_bellingham', answer:'Jude Bellingham', accept:['jude bellingham', 'bellingham'],
+     bridge:'high', category:'Sports',
+     hook:'He actually had zero interest in his sport when he was a young child, preferring to sit on the side of the pitch making daisy chains out of flowers while his father played.',
+     clues:[
+      'I am a professional athlete who plays in front of massive crowds every week.',
+      'I started my career playing for my local team in the English city of Birmingham.',
+      'When I left that first club at just 17 years old, they actually retired my shirt number so no one else could wear it.',
+      'I celebrate scoring by standing completely still with my arms stretched wide open.',
+      'As of 2026, I am a key player for the English national team.',
+      'I wear the famous white shirt of Real Madrid.',
+      'I scored a goal on my very first appearance for Real Madrid, in the opening match of the Spanish league.',
+    ]},
+    {id:'myst_lewis_hamilton', answer:'Lewis Hamilton', accept:['lewis hamilton', 'hamilton'],
+     bridge:'high', category:'Sports',
+     hook:'When he was just ten years old, he walked up to a racing team boss at an awards ceremony, introduced himself, and declared he would drive for them one day. The team signed him three years later.',
+     clues:[
+      'I am a professional athlete who competes at extremely high speeds.',
+      'When I was just ten years old, I walked up to a famous team boss at an awards ceremony and told him I wanted to work for him.',
+      'That boss was so impressed by my confidence that he signed me to his team just three years later.',
+      'I am officially a British knight, meaning people formally call me "Sir".',
+      'I drive incredibly fast, high-tech vehicles on tracks all over the world.',
+      'I share the all-time record for the most world championships in my sport with Michael Schumacher.',
+      'I am the famous British racing driver who dominated Formula One.',
+    ]},
+    {id:'myst_rick_astley', answer:'Rick Astley', accept:['rick astley', 'rick'],
+     bridge:'high', category:'Music',
+     hook:'He had no idea his 1980s pop song had become a massive global internet prank until a friend sent him an email with a disguised link, successfully tricking him with his own song years after it released.',
+     clues:[
+      'I am a musician who recorded a very successful pop song in the 1980s.',
+      'Decades later, the internet turned my music video into a massive global prank.',
+      'Millions of people have been tricked into clicking a link that secretly leads to my video.',
+      'I had no idea this was happening until a friend sent me a fake email, successfully tricking me with my own song.',
+      'In the famous video, I have bright ginger hair and wear a striped shirt with a trench coat.',
+      'The chorus of my song promises that I am never going to give you up, or let you down.',
+      'I am the English singer responsible for the internet\'s favourite musical prank.',
+    ]},
+    {id:'myst_corgi', answer:'Corgi', accept:['corgi', 'corgis'],
+     bridge:'high', category:'Animal',
+     hook:'The name of the breed is completely literal; in the ancient Welsh language, the word cor means dwarf, and gi means dog.',
+     clues:[
+      'I am a very popular animal seen in millions of internet videos.',
+      'I was originally bred to run around farms and chase cows by biting their heels.',
+      'According to old Welsh legends, the markings on my back look like a saddle because fairies used to ride me like a tiny horse.',
+      'I have an incredibly long body but very short, stubby legs.',
+      'I also have large ears that stand straight up on top of my head.',
+      'I am globally famous because the British royal family kept dozens of us as pets for decades.',
+      'I am the adorable breed of dog famously loved by the late Queen.',
+    ]},
+    {id:'myst_simon_cowell', answer:'Simon Cowell', accept:['simon cowell', 'cowell'],
+     bridge:'high', category:'TV / Pop Culture',
+     hook:'Long before he became a famous millionaire television judge, he worked as a low-level assistant on the set of a classic horror film, where his only job was to polish the lead actor axe.',
+     clues:[
+      'I am a very wealthy television personality and music producer.',
+      'I created competition shows where people sing, dance, or perform magic tricks for a panel of experts.',
+      'I am very famous for being brutally honest and giving performers harsh, negative feedback.',
+      'Behind the scenes, I am the person who decided to put five rejected solo singers together to create the band One Direction.',
+      'When I sit at my desk on television, I have a giant red buzzer in front of me.',
+      'I almost always wear a simple plain white or black t-shirt.',
+      'I am the British judge famous for starring on Britain\'s Got Talent.',
+    ]},
+    {id:'myst_harry_styles', answer:'Harry Styles', accept:['harry styles', 'styles'],
+     bridge:'high', category:'Music',
+     hook:'He has a highly unusual but completely harmless physical trait: he was actually born with four nipples, a fact he frequently jokes about during interviews.',
+     clues:[
+      'I am a hugely successful musician who has won multiple Grammy awards.',
+      'Before I was famous, I used to earn just a few pounds an hour working at a local bakery in an English village.',
+      'My career changed forever when I auditioned for a British television competition in 2010.',
+      'I did not win the show, but I was placed into a boy band that became famous all over the world.',
+      'After the band took a break, I started releasing my own solo music, including a massive hit called "As It Was".',
+      'In recent years, I have also started acting, even making a cameo as an alien prince in a Marvel film.',
+      'Before going solo, I played a young soldier in Christopher Nolan\'s war film Dunkirk.',
+    ]},
+    {id:'myst_mclaren', answer:'McLaren', accept:['mclaren'],
+     bridge:'high', category:'Brand / Automotive',
+     hook:'Their legendary 1990s supercar was so meticulously engineered that the inside of the engine bay was lined with pure gold, simply because it was the best material to reflect extreme heat.',
+     clues:[
+      'I am a company that builds incredibly fast, highly advanced vehicles.',
+      'The futuristic factory where I am based is located in Woking, England.',
+      'My factory is built next to a large artificial lake, but the water isn\'t just for decoration.',
+      'The lake water is actually pumped through the building to help cool down the massive wind tunnels used for testing.',
+      'My street-legal supercars are frequently featured in video games like Forza.',
+      'I also run a highly successful Formula One racing team, famous for using a bright "papaya" orange colour.',
+      'I am the famous British automotive brand founded by a man named Bruce.',
+    ]},
+    {id:'myst_titanic', answer:'Titanic', accept:['titanic', 'the titanic'],
+     bridge:'high', category:'History / Transport',
+     hook:'The ship was so luxurious that it possessed its own fully functional printing press, publishing a brand-new daily newspaper for the passengers every single morning.',
+     clues:[
+      'I was a massive marvel of engineering built in the early twentieth century.',
+      'I was constructed in a busy shipyard in Northern Ireland.',
+      'My interior was explicitly designed to look like an expensive London hotel, so wealthy people would forget they were travelling on the ocean.',
+      'I was equipped with a swimming pool, a gymnasium, and luxurious dining rooms.',
+      'People mistakenly believed that my advanced watertight compartments made me completely unsinkable.',
+      'My journey ended tragically in the freezing waters of the North Atlantic Ocean.',
+      'I am the famous passenger ship that famously struck an iceberg in 1912.',
+    ]},
+    // ── Tanda 06, cargada el 30 de septiembre de 2026 (9 entradas) ──
+    {id:'myst_sea_of_thieves', answer:'Sea of Thieves', accept:['sea of thieves'],
+     bridge:'high', category:'Video Game',
+     hook:'The developers secretly build permanent monuments into the game islands to immortalise real players who have done something incredibly heroic or hilarious on the public servers.',
+     clues:[
+      'I am a massively multiplayer video game developed by a studio located in a small English village.',
+      'I drop crews of players into a bright, colourful ocean environment with absolutely no rules or safe zones.',
+      'If you eat too many raw bananas during a battle, your character will actually become sick on the deck.',
+      'Players spend their time digging up buried treasure, fighting skeletons, and trying not to get robbed by other crews.',
+      'The water physics in my engine are so complex that the developers had to calculate the ocean waves completely separately from the rest of the game.',
+      'You must work together to steer a large galleon, adjust the sails to catch the wind, and fire cannons.',
+      'In 2021, my developers released an official expansion that allowed players to sail alongside Disney\'s Captain Jack Sparrow.',
+    ]},
+    {id:'myst_doctor_strange', answer:'Doctor Strange', accept:['doctor strange', 'stephen strange'],
+     bridge:'high', category:'Superhero / Film',
+     hook:'In the original comic books, the magical New York address of his house was the real flat where two of the writers who later wrote his stories actually lived.',
+     clues:[
+      'I am a superhero character currently played in cinemas by a famous British actor.',
+      'Before gaining my powers, I was a wealthy, arrogant surgeon who completely lost the use of his hands in a terrible car crash.',
+      'To perform my complex spellcasting hand gestures on screen, the actor actually had to study an ancient style of finger-tutting dance choreography.',
+      'I travelled to a hidden temple in the mountains of Nepal to search for an experimental medical healing.',
+      'I wear a magical red cloak that has its own personality and can fly around to protect me.',
+      'I live in a massive, ancient building situated right in the middle of New York City.',
+      'In my 2016 origin film, I use a green relic called the Eye of Agamotto to trap a cosmic entity in an endless time loop.',
+    ]},
+    {id:'myst_manchester_united', answer:'Manchester United', accept:['manchester united', 'man utd', 'man united'],
+     bridge:'high', category:'Sports',
+     hook:'During the Second World War, their famous stadium was heavily damaged by a bombing raid, forcing them to rent and share a pitch with their fierce local rivals for several years.',
+     clues:[
+      'I am an incredibly famous sporting organisation that claims to have over a billion supporters worldwide.',
+      'I was originally formed in 1878 by a group of railway workers who just wanted to play matches against other rail depots.',
+      'For my home matches, my players perform in a massive stadium known as the Theatre of Dreams.',
+      'My squad wears bright red shirts, and my official club crest features a yellow ship and a red demon holding a pitchfork.',
+      'I was managed for twenty-six years by an incredibly strict, highly successful Scottish manager.',
+      'I compete in the highest tier of English football against fierce rivals like City and Liverpool.',
+      'In 1999, my squad achieved an unprecedented Treble, winning three major domestic and European trophies in a single season.',
+    ]},
+    {id:'myst_marcus_rashford', answer:'Marcus Rashford', accept:['marcus rashford', 'rashford'],
+     bridge:'high', category:'Sports',
+     hook:'He founded a book club specifically to distribute free reading material to children from poor backgrounds, because his own family could never afford to buy him books when he was young.',
+     clues:[
+      'I am a professional athlete who grew up in the northwest of England.',
+      'As a child, my family relied on charity and free meals to survive, which deeply affected how I view the world today.',
+      'I scored two spectacular goals on my professional debut as a teenager, instantly making me a star.',
+      'During the global pandemic, I wrote an open letter to the UK government that successfully forced them to provide free meals for hungry schoolchildren.',
+      'Because of that charity work, I was awarded a prestigious honour by the Queen, making me a Member of the Order of the British Empire.',
+      'I am a fast, attacking winger who wears the red shirt for my childhood club in Manchester.',
+      'In 2021, I became the youngest person to ever top the Sunday Times Giving List because of my work feeding children.',
+    ]},
+    {id:'myst_erling_haaland', answer:'Erling Haaland', accept:['erling haaland', 'haaland'],
+     bridge:'high', category:'Sports',
+     hook:'Before he dedicated himself entirely to football, he actually set a legitimate athletics world record for a five-year-old in the standing long jump, leaping over one and a half metres.',
+     clues:[
+      'I am a professional athlete widely considered to be one of the best goalscorers on the planet.',
+      'Even though I represent the Norwegian national team, I was actually born in the English city of Leeds because my father was playing professional football there at the time.',
+      'I am famous for my incredible physical strength, my blistering sprinting speed, and my long blonde hair.',
+      'I often celebrate scoring by sitting down on the grass, closing my eyes, and holding my hands in a peaceful meditation pose.',
+      'I currently play my club matches wearing the light blue shirt of Manchester City.',
+      'People often joke that I am actually a cyborg or a robot because my statistics are completely unnatural.',
+      'During my first season playing in England, I shattered the single-season scoring record by netting thirty-six domestic league goals.',
+    ]},
+    {id:'myst_henry_cavill', answer:'Henry Cavill', accept:['henry cavill', 'cavill'],
+     bridge:'high', category:'Actor',
+     hook:'He adopted a massive American Akita dog and officially named him Kal, a direct reference to his famous superhero character original alien birth name.',
+     clues:[
+      'I am a highly muscular actor known for playing intense, physical roles in major blockbuster films.',
+      'I am famously obsessed with video games and building my own computers, which shocks people who only look at my athletic physique.',
+      'I actually missed the life-changing phone call from my director telling me I got my most famous role because I was too busy playing a dungeon in World of Warcraft.',
+      'I spent several seasons on Netflix playing a white-haired monster hunter who carries two swords on his back.',
+      'I was born on the island of Jersey, making me a British citizen, despite playing the ultimate American superhero.',
+      'For nearly a decade, I wore a blue suit with a red cape and a massive symbol across my chest.',
+      'In 2018, I had to digitally erase my real moustache for a superhero film because I had grown it for my role in Mission: Impossible.',
+    ]},
+    {id:'myst_ewan_mcgregor', answer:'Ewan McGregor', accept:['ewan mcgregor', 'mcgregor'],
+     bridge:'high', category:'Actor',
+     hook:'He is an incredibly passionate motorcyclist, once completing a massive journey of over thirty thousand kilometres from London to New York for a television documentary.',
+     clues:[
+      'I am a highly successful actor who grew up in Scotland.',
+      'While filming action scenes for my most famous science fiction role, I kept making weapon sound effects with my mouth out of habit, ruining the audio recording.',
+      'The director had to constantly stop filming to ask me to be quiet so they could add the laser sounds in post-production.',
+      'I starred alongside Nicole Kidman in a massive musical film set inside a famous Parisian cabaret.',
+      'In my youth, I gained critical acclaim for playing a Scottish heroin addict in the gritty independent film Trainspotting.',
+      'In a massive space opera franchise, I wear brown Jedi robes and act as a mentor to a young Anakin Skywalker.',
+      'In 2022, I returned to television to reprise my role as the legendary Jedi master Obi-Wan in my own streaming series.',
+    ]},
+    {id:'myst_range_rover', answer:'Range Rover', accept:['range rover'],
+     bridge:'high', category:'Vehicle',
+     hook:'During early development, the engineers tried to hide the prototype from journalists by registering it under the fake brand name Velar, which roughly translates from Latin as to hide.',
+     clues:[
+      'I am a luxury machine found in wealthy neighbourhoods all over the world.',
+      'Despite being famously expensive today, the very first prototype of my design was built with the steering wheel in the exact centre of the front seat, just like a tractor.',
+      'I was originally created by a British company to be a rugged, hose-down vehicle for farmers who needed to cross muddy fields.',
+      'I am famous for having a distinctive "floating" roof design and a split tailgate at the back.',
+      'I am frequently driven by members of the British royal family when they visit their countryside estates.',
+      'I am a massive, four-wheel-drive SUV that blends off-road survival with luxury leather interiors.',
+      'In 1972, a team of British explorers successfully used two of my early models to drive completely across the treacherous Darién Gap in the Americas.',
+    ]},
+    {id:'myst_dr_martens', answer:'Dr Martens', accept:['dr martens', 'doc martens'],
+     bridge:'high', category:'Brand / Clothing',
+     hook:'British postal workers in the 1970s are said to have loved the boots on their rounds, but to have covered the famous yellow stitching with black polish to get past strict uniform rules.',
+     clues:[
+      'I am a massively popular brand of heavy footwear worn by teenagers, musicians, and factory workers.',
+      'I was originally invented by a German physician who built an air-cushioned sole out of old tires to soothe his foot after a skiing accident.',
+      'An English shoe-making family bought the patent and changed my design, turning me into a massive British fashion icon in the 1960s.',
+      'For decades, I was the required uniform for rebellious punk rockers and grunge musicians.',
+      'I am instantly recognisable by the bright yellow stitching that circles around the outside of my thick rubber soles.',
+      'My most famous classic design is a heavy black leather boot that goes up over the ankle and has exactly eight eyelets for laces.',
+      'In 2003, my brand was officially saved from bankruptcy when global fashion designers began putting my industrial boots on high-fashion runways.',
+    ]},
+      // ── Tanda de 8 (rescatadas y reenviadas), cargadas el 30 de septiembre de 2026 ──
+    // Las tres primeras entradas del banco con `hint`: el apoyo de la Misión 03.
+    {id:'myst_peppa_pig', answer:'Peppa Pig', accept:['peppa pig', 'peppa'], bridge:'high',
+     category:'A fictional character',
+     hint:'You almost certainly watched my cartoons on television when you were much younger, or have seen internet jokes about my family.',
+     hook:'My show is so globally influential that thousands of American toddlers actually developed a temporary British accent, a phenomenon linguists call "The Peppa Effect".',
+     clues:[
+      'I am an animated character recognised by young children all over the globe.',
+      'I live in a yellow house sitting on top of an incredibly steep, green hill.',
+      'My favourite activity in the world is jumping up and down in muddy puddles.',
+      'When my family and I laugh, we usually fall flat on our backs and make a loud snorting sound.',
+      'In my family, the adults don\'t use real names; they are simply called Mummy and Daddy.',
+      'My best friend is a sheep named Suzy, and my little brother is named George.',
+      'I am a cheeky little pink farm animal who always wears a red dress.',
+    ]},
+    {id:'myst_premier_league', answer:'Premier League', accept:['premier league', 'the premier league', 'english premier league', 'epl'], bridge:'high', asOf:'2026',
+     category:'A football competition',
+     hint:'You will have seen my logo constantly if you play EA FC on your console or if you watch weekend sports broadcasts.',
+     hook:'The official champion trophy features a heavy green gemstone base made of malachite, specifically chosen to represent the green grass of the pitch.',
+     clues:[
+      'I am a massive annual competition watched by millions of fans around the world.',
+      'Unlike many American sports, I do not have a big final championship match; the winner is simply whoever has the most points after 38 games.',
+      'At the end of the season, the three worst-performing teams are kicked out and replaced by lower-level teams.',
+      'Every August, exactly twenty professional clubs begin the long campaign to win my title.',
+      'My competition takes place almost entirely within England.',
+      'I feature globally famous teams from cities like Manchester, Liverpool, and London.',
+      'I am the highest and most famous tier of the English football system.',
+    ]},
+    {id:'myst_the_beatles', answer:'The Beatles', accept:['the beatles', 'beatles'], bridge:'medium',
+     category:'A music band',
+     hint:'You have probably heard our most famous songs on Spotify playlists, or encountered our music in animated family films like Minions.',
+     hook:'Despite being the most successful songwriters in history, none of our four members actually knew how to read or write standard sheet music.',
+     clues:[
+      'We are a group of four people who changed global pop culture forever.',
+      'We were formed in a major port city in the north of England.',
+      'When we first started playing together, we spent months performing in small, underground clubs in Germany to improve our skills.',
+      'Fans screamed so loud at our concerts that we eventually got tired of it and stopped playing live in 1966.',
+      'In 1964, we completely conquered the American music charts, a moment often called the British Invasion.',
+      'We were famous for our matching suits and the distinctive mop-top haircuts we wore early in our career.',
+      'We are the four musicians from Liverpool whose zebra crossing photograph became the most imitated album cover in history.',
+    ]},
   ],
   neutral: [
-    {answer:'Big Ben', accept:['big ben'], clues:[
+    {id:'myst_big_ben', answer:'Big Ben', accept:['big ben'], clues:[
       'I am found in a capital city.',
       'I am very old — more than 160 years old.',
       'I am famous for my sound, which rings out every hour.',
@@ -7618,7 +8099,7 @@ const RK_MYSTERY_BANKS = {
       "I am actually the nickname of a huge bell inside a clock tower — most people use my name for the whole tower!",
       'I am one of the most famous clock towers in the world, right next to the Houses of Parliament in London.',
     ]},
-    {answer:'The Loch Ness Monster', accept:['the loch ness monster','loch ness monster','nessie'], clues:[
+    {id:'myst_the_loch_ness_monster', answer:'The Loch Ness Monster', accept:['the loch ness monster','loch ness monster','nessie'], clues:[
       'I live in the water.',
       'I am famous in Scotland.',
       'Many people say they have seen me, but no one has ever proven I am real.',
@@ -7627,7 +8108,7 @@ const RK_MYSTERY_BANKS = {
       'My home is Loch Ness, in the Scottish Highlands.',
       'I am often described as a huge creature with a long neck, like a dinosaur living underwater!',
     ]},
-    {answer:'Winston Churchill', accept:['winston churchill','churchill'], clues:[
+    {id:'myst_winston_churchill', answer:'Winston Churchill', accept:['winston churchill','churchill'], clues:[
       'I am a real person from history.',
       'I lived in the 20th century.',
       'I led my country during a very difficult time.',
@@ -7636,7 +8117,7 @@ const RK_MYSTERY_BANKS = {
       "I am often shown smoking a big cigar and making a 'V' sign with my fingers.",
       'I was the Prime Minister of the United Kingdom, famous for saying "We shall never surrender."',
     ]},
-    {answer:'Wimbledon', accept:['wimbledon'], clues:[
+    {id:'myst_wimbledon', answer:'Wimbledon', accept:['wimbledon'], clues:[
       'I happen every year, usually in the summer.',
       'I take place in London.',
       'I am connected to a sport.',
@@ -7647,7 +8128,7 @@ const RK_MYSTERY_BANKS = {
     ]},
   ],
   halloween: [
-    {answer:'Scooby-Doo', accept:['scooby-doo','scooby doo','scooby'], clues:[
+    {id:'myst_scooby_doo', answer:'Scooby-Doo', accept:['scooby-doo','scooby doo','scooby'], clues:[
       'I am a cartoon character, not a real animal.',
       'I love to eat — especially giant sandwiches and snacks.',
       'I get scared very easily, even though I love solving mysteries.',
@@ -7656,7 +8137,7 @@ const RK_MYSTERY_BANKS = {
       'I am a talking Great Dane dog with a very famous laugh.',
       "My name became famous worldwide thanks to a cartoon show about solving spooky mysteries — 'Scooby-Doo, Where Are You!'",
     ]},
-    {answer:'The Mystery Machine', accept:['the mystery machine','mystery machine'], clues:[
+    {id:'myst_the_mystery_machine', answer:'The Mystery Machine', accept:['the mystery machine','mystery machine'], clues:[
       'I am not alive, but I go on every adventure.',
       'I am painted with bright, groovy colors — mostly green, blue, and orange flowers.',
       'Five friends and a dog travel inside me all the time.',
@@ -7665,7 +8146,7 @@ const RK_MYSTERY_BANKS = {
       'I belong to Scooby-Doo and his friends.',
       'I am the famous van that drives the Scooby-Doo gang from one spooky mystery to the next!',
     ]},
-    {answer:'Dracula', accept:['dracula','count dracula'], clues:[
+    {id:'myst_dracula', answer:'Dracula', accept:['dracula','count dracula'], clues:[
       'I only come out at night.',
       'I have very sharp, pointy teeth.',
       'I wear a long black cape.',
@@ -7674,7 +8155,7 @@ const RK_MYSTERY_BANKS = {
       'I am a count who lives in a castle in Transylvania.',
       'I am the most famous vampire in the world, created by writer Bram Stoker.',
     ]},
-    {answer:"Frankenstein's Monster", accept:['frankenstein','frankensteins monster',"frankenstein's monster",'the monster'], clues:[
+    {id:'myst_frankensteins_monster', answer:"Frankenstein's Monster", accept:['frankenstein','frankensteins monster',"frankenstein's monster",'the monster'], clues:[
       'I am not naturally born — I was created.',
       'I am very tall and strong, with green skin in most pictures.',
       'I have bolts sticking out of my neck.',
@@ -7683,7 +8164,7 @@ const RK_MYSTERY_BANKS = {
       'My creator was Dr. Victor Frankenstein.',
       "I am the famous monster from Mary Shelley's classic novel 'Frankenstein.'",
     ]},
-    {answer:'A Witch', accept:['a witch','witch'], clues:[
+    {id:'myst_a_witch', answer:'A Witch', accept:['a witch','witch'], clues:[
       'I can be good or bad in stories.',
       'I wear a tall, pointy black hat.',
       'I fly using a special object, not a broom at first — can you guess what it is?',
@@ -7748,6 +8229,13 @@ function rkMysteryCheck(){
   if(isOk){
     if(fb) fb.innerHTML = `<div class="rk-info-blurb" style="color:#0d7a5f;font-weight:700;margin-top:8px">🎉 Correct! It's ${rkEscapeHtml(m.answer)}!</div>
       <div class="rk-sk-actions"><button class="rk-sk-primary-btn" onclick="rkStartMystery()">🔄 Another mystery</button></div>`;
+    // 16 − 2 × pistas usadas: acertar en la primera paga 14, agotar las siete paga 2.
+    const p = RK_PAY.mystery_picture;
+    if(!s.pagada){
+      s.pagada = true;
+      rkEarnShillings('mystery_picture', Math.max(p.minimo, p.base - p.porPista * (s.clueIdx + 1)), m.id)
+        .then(d => rkShowPayout('rk-mystery-feedback', d));
+    }
   } else if(s.clueIdx >= m.clues.length - 1){
     if(fb) fb.innerHTML = `<div class="rk-info-blurb" style="color:#b91c1c;font-weight:700;margin-top:8px">Not quite...</div>
       ${!s.oliverUsed ? `<div class="rk-sk-actions"><button class="rk-sk-secondary-btn" onclick="rkMysteryAskOliver()">📞 Ask Oliver</button></div>` : ''}`;
@@ -7763,6 +8251,13 @@ function rkMysteryAskOliver(){
   const fb = document.getElementById('rk-mystery-feedback');
   if(fb) fb.innerHTML = `<div class="rk-info-blurb" style="font-style:italic;margin-top:8px">📞 Oliver: "It's ${rkEscapeHtml(m.answer)}!"</div>
     <div class="rk-sk-actions"><button class="rk-sk-primary-btn" onclick="rkStartMystery()">🔄 Another mystery</button></div>`;
+  // Se jugó la ronda completa aunque la respuesta la dio Oliver: el comodín es gratis y se
+  // quema, no cobra aparte. Igual se paga el piso, nunca cero.
+  if(!s.pagada){
+    s.pagada = true;
+    rkEarnShillings('mystery_picture', RK_PAY.mystery_picture.conOliver, m.id)
+      .then(d => rkShowPayout('rk-mystery-feedback', d));
+  }
 }
 
 // ══════════════════════════════════════════════════════════════════════════
@@ -7788,40 +8283,40 @@ function rkMysteryAskOliver(){
 // principio "sencillo pero extenso" ya aplicado en Match Day/Mystery Box.
 const RK_SLL_CATEGORIES = [
   {id:'movies', icon:'🎬', label:'Movies', q:'Which movie is this describing?', items:[
-    {fragment:"A young bear leaves the deep, dark jungle and travels all the way to London, wearing a red hat and carrying a suitcase. He is taken in by a kind family, and he loves marmalade sandwiches more than anything else in the world.", options:['Paddington','The Iron Giant','Wonder'], answer:0},
-    {fragment:"Based on a true story, this film follows a team of astronauts whose spacecraft is badly damaged on the way to the Moon. Back on Earth, engineers race against time to bring them home safely.", options:['Apollo 13','The Wild Robot','Inside Out'], answer:0},
-    {fragment:"A teenage boy is bullied at his new school, so an older man teaches him martial arts — not just how to fight, but patience and self-respect. His most famous lesson involves painting a fence and waxing a car.", options:['The Karate Kid','Rocky','Michael'], answer:0},
-    {fragment:"An underdog boxer from Philadelphia gets a once-in-a-lifetime shot at the heavyweight title. Nobody expects him to win, but he trains hard, running up the steps of the art museum before dawn.", options:['Rocky','The Karate Kid','The Greatest Showman'], answer:0},
+    {id:'sll_movies_paddington', fragment:"A young bear leaves the deep, dark jungle and travels all the way to London, wearing a red hat and carrying a suitcase. He is taken in by a kind family, and he loves marmalade sandwiches more than anything else in the world.", options:['Paddington','The Iron Giant','Wonder'], answer:0},
+    {id:'sll_movies_apollo13', fragment:"Based on a true story, this film follows a team of astronauts whose spacecraft is badly damaged on the way to the Moon. Back on Earth, engineers race against time to bring them home safely.", options:['Apollo 13','The Wild Robot','Inside Out'], answer:0},
+    {id:'sll_movies_karatekid', fragment:"A teenage boy is bullied at his new school, so an older man teaches him martial arts — not just how to fight, but patience and self-respect. His most famous lesson involves painting a fence and waxing a car.", options:['The Karate Kid','Rocky','Michael'], answer:0},
+    {id:'sll_movies_rocky', fragment:"An underdog boxer from Philadelphia gets a once-in-a-lifetime shot at the heavyweight title. Nobody expects him to win, but he trains hard, running up the steps of the art museum before dawn.", options:['Rocky','The Karate Kid','The Greatest Showman'], answer:0},
   ]},
   {id:'places', icon:'📮', label:'Places', q:'Which place is this describing?', items:[
-    {fragment:"This is a giant wheel on the south bank of the River Thames in London. Visitors ride in glass capsules and get a spectacular view over the whole city, including Big Ben and the Houses of Parliament.", options:['The London Eye','Tower Bridge','Wembley Stadium'], answer:0},
-    {fragment:"This is an ancient circle of huge grey stones, thousands of years old, standing alone in a green field in the English countryside. Nobody is completely sure why it was built.", options:['Stonehenge','Edinburgh Castle','Windsor Castle'], answer:0},
-    {fragment:"This bridge crosses the River Thames right next to the Tower of London. It has two tall towers, and the middle section can lift up to let tall ships pass underneath.", options:['Tower Bridge','The London Eye','Millennium Bridge'], answer:0},
-    {fragment:"This film studio just outside London lets visitors walk through the real sets used to make a famous series of wizard movies — including the Great Hall, with its floating candles.", options:['Warner Bros Studio Tour','Pinewood Studios','The British Museum'], answer:0},
+    {id:'sll_places_londoneye', fragment:"This is a giant wheel on the south bank of the River Thames. Visitors ride in glass capsules and get a spectacular view over the whole city, including Big Ben and the Houses of Parliament.", options:['The London Eye','Tower Bridge','Wembley Stadium'], answer:0},
+    {id:'sll_places_stonehenge', fragment:"This is an ancient circle of huge grey stones, thousands of years old, standing alone in a green field in the English countryside. Nobody is completely sure why it was built.", options:['Stonehenge','Edinburgh Castle','Windsor Castle'], answer:0},
+    {id:'sll_places_towerbridge', asOf:'2026', fragment:"The middle section of this crossing splits in two and rises into the air to let tall ships pass along the Thames underneath. And at the very end of a famous superhero film, the hero fights an enemy made of illusions in the sky right above it.", options:['Tower Bridge','The London Eye','Millennium Bridge'], answer:0},
+    {id:'sll_places_warnerbrosstudio', fragment:"This film studio just outside London lets visitors walk through the real sets used to make a famous series of wizard films — including the Great Hall, with its floating candles.", options:['Warner Bros Studio Tour','Pinewood Studios','The British Museum'], answer:0},
   ]},
   {id:'football', icon:'⚽', label:'Football', q:'What is this describing?', items:[
-    {fragment:"In the 2015-16 season, a small English club that had almost been relegated the year before shocked the entire football world by winning the Premier League title for the very first time.", options:['Leicester City','Everton','West Ham United'], answer:0},
-    {fragment:"In the 2003-04 season, one Premier League club went the whole season without losing a single match — 38 games unbeaten. Fans still call that team by a special nickname.", options:['The Invincibles (Arsenal)','Manchester United','Chelsea'], answer:0},
-    {fragment:"In the 2005 Champions League final, one team was losing 3-0 at half-time — a disaster. But they scored three goals in just six second-half minutes and went on to win the trophy on penalties.", options:['Liverpool (Istanbul, 2005)','AC Milan','Real Madrid'], answer:0},
-    {fragment:"In 1966, this team won its only football World Cup so far, beating West Germany 4-2 in the final at Wembley Stadium — with a hat-trick from striker Geoff Hurst.", options:['England','Brazil','France'], answer:0},
+    {id:'sll_football_leicestercity', fragment:"In 2016, a small English club won the Premier League for the very first time. Just one year before, it had nearly dropped to a lower league. Nobody in football expected it.", options:['Leicester City','Everton','West Ham United'], answer:0},
+    {id:'sll_football_invinciblesarsenal', fragment:"In the 2003-04 season, one Premier League club went the whole season without losing a single match — 38 games unbeaten. Fans still call that team by a special nickname.", options:['The Invincibles','The Red Devils','The Blues'], answer:0},
+    {id:'sll_football_liverpoolistanbul2005', fragment:"In the 2005 Champions League final, one team was losing 3-0 at half-time — a disaster. But they scored three goals in just six second-half minutes and went on to win the trophy on penalties.", options:['Liverpool','AC Milan','Real Madrid'], answer:0},
+    {id:'sll_football_england', fragment:"This team has won the World Cup only once. It happened in 1966, and the final was played at home, at Wembley Stadium in London.", options:['England','Brazil','France'], answer:0},
   ]},
   {id:'books', icon:'📚', label:'Books & Stories', q:'Which story is this?', items:[
-    {fragment:"A curious girl follows a white rabbit down a hole and falls into a strange world full of a grinning cat, a hatter having a never-ending tea party, and a queen who loves to shout \"Off with their heads!\"", options:["Alice's Adventures in Wonderland",'Peter Pan','The Chronicles of Narnia'], answer:0},
-    {fragment:"A poor boy finds a golden ticket hidden inside a chocolate bar wrapper, winning him a tour of the strangest, most magical chocolate factory in the world, run by a mysterious and eccentric owner.", options:["Charlie and the Chocolate Factory",'Matilda','James and the Giant Peach'], answer:0},
-    {fragment:"A boy who never wants to grow up flies out of his bedroom window and leads three children to a magical island full of pirates, mermaids, and a ticking crocodile.", options:['Peter Pan','Alice in Wonderland','The Wind in the Willows'], answer:0},
-    {fragment:"A gentle, honey-loving bear lives in a forest with his animal friends, including an anxious piglet, a bouncy tiger, and a gloomy donkey. He often gets stuck when he eats too much honey.", options:['Winnie-the-Pooh','Paddington','The Wind in the Willows'], answer:0},
+    {id:'sll_books_alicesadventures', fragment:"A curious girl follows a white rabbit down a hole and falls into a strange world full of a grinning cat, a hatter having a never-ending tea party, and a queen who loves to shout \"Off with their heads!\"", options:["Alice's Adventures in Wonderland",'Peter Pan','The Chronicles of Narnia'], answer:0},
+    {id:'sll_books_charliechocolatefactory', fragment:"A poor boy finds a golden ticket hidden inside a sweet wrapper, winning him a tour of the strangest and most magical sweet-making place in the world, run by a mysterious and eccentric owner.", options:["Charlie and the Chocolate Factory",'Matilda','James and the Giant Peach'], answer:0},
+    {id:'sll_books_peterpan', fragment:"A boy who never wants to grow up flies out of his bedroom window and leads three children to a magical island full of pirates, mermaids, and a ticking crocodile.", options:['Peter Pan','Alice in Wonderland','The Wind in the Willows'], answer:0},
+    {id:'sll_books_winniepooh', fragment:"A gentle, honey-loving bear lives in a forest with his animal friends, including an anxious piglet, a bouncy tiger, and a gloomy donkey. He often gets stuck when he eats too much honey.", options:['Winnie-the-Pooh','Paddington','The BFG'], answer:0},
   ]},
   {id:'characters', icon:'👤', label:'Characters', q:'Who is this describing?', items:[
-    {fragment:"This English scientist described the force of gravity after supposedly watching an apple fall from a tree. He is buried in Westminster Abbey, and a unit of force is named after him.", options:['Isaac Newton','Charles Darwin','Alexander Fleming'], answer:0},
-    {fragment:"This fictional detective lives on Baker Street in London, is famous for his deerstalker hat and pipe, and solves impossible mysteries using logic and careful observation. His loyal friend is a doctor.", options:['Sherlock Holmes','James Bond','Peter Pan'], answer:0},
-    {fragment:"This woman became Queen of the United Kingdom in 1952 and reigned for over 70 years, longer than any other British monarch. She was famous for her love of corgi dogs.", options:['Queen Elizabeth II','Queen Victoria','Queen Anne'], answer:0},
-    {fragment:"This playwright, born in the town of Stratford-upon-Avon, wrote plays like Romeo and Juliet and Hamlet, and is often considered the greatest writer in the English language.", options:['William Shakespeare','Charles Dickens','J.R.R. Tolkien'], answer:0},
+    {id:'sll_characters_isaacnewton', fragment:"This English scientist described the force of gravity after supposedly watching an apple fall from a tree. He is buried in Westminster Abbey, and a unit of force is named after him.", options:['Isaac Newton','Charles Darwin','Alexander Fleming'], answer:0},
+    {id:'sll_characters_sherlockholmes', fragment:"This fictional detective lives on Baker Street in London, is famous for his deerstalker hat and pipe, and solves impossible mysteries using logic and careful observation. His loyal friend is a doctor.", options:['Sherlock Holmes','James Bond','Peter Pan'], answer:0},
+    {id:'sll_characters_queenelizabethii', fragment:"This woman became Queen of the United Kingdom in 1952 and reigned for over 70 years, longer than any other British monarch. She was famous for her love of corgi dogs.", options:['Queen Elizabeth II','Queen Victoria','Queen Anne'], answer:0},
+    {id:'sll_characters_williamshakespeare', fragment:"This playwright, born in the town of Stratford-upon-Avon, wrote plays like Romeo and Juliet and A Midsummer Night's Dream, and is often considered the greatest writer in the English language.", options:['William Shakespeare','Charles Dickens','J.R.R. Tolkien'], answer:0},
   ]},
   {id:'quotes', icon:'💬', label:'Famous Quotes', q:'Who said this, or where is it from?', items:[
-    {fragment:"During the Second World War, a British Prime Minister gave a famous speech that included the line: \"We shall fight on the beaches, we shall fight on the landing grounds...\"", options:['Winston Churchill','King George VI','Margaret Thatcher'], answer:0},
-    {fragment:"A scientist once wrote in a letter: \"If I have seen further, it is by standing on the shoulders of giants\" — meaning his discoveries built on the work of scientists before him.", options:['Isaac Newton','Charles Darwin','Michael Faraday'], answer:0},
-    {fragment:"Before a famous naval battle in 1805, a British admiral sent a signal to his fleet that read: \"England expects that every man will do his duty.\"", options:['Admiral Nelson (Battle of Trafalgar)','Admiral Drake','Winston Churchill'], answer:0},
-    {fragment:"In a famous play, a prince stands alone on stage and asks the audience: \"To be, or not to be, that is the question.\"", options:['Hamlet (by Shakespeare)','Romeo and Juliet','Macbeth'], answer:0},
+    {id:'sll_quotes_winstonchurchill', fragment:"During the Second World War, a British Prime Minister gave a famous speech that included the line: \"We shall fight on the beaches, we shall fight on the landing grounds...\"", options:['Winston Churchill','King George VI','Margaret Thatcher'], answer:0},
+    {id:'sll_quotes_isaacnewton', fragment:"A scientist once wrote in a letter: \"If I have seen further, it is by standing on the shoulders of giants\" — meaning his discoveries built on the work of scientists before him.", options:['Isaac Newton','Charles Darwin','Michael Faraday'], answer:0},
+    {id:'sll_quotes_admiralnelsonbattle', fragment:"Before a famous naval battle in 1805, a British admiral sent a signal to his fleet that read: \"England expects that every man will do his duty.\"", options:['Admiral Nelson','Admiral Drake','Winston Churchill'], answer:0},
+    {id:'sll_quotes_hamletbyshakespeare', fragment:"In a famous play, a prince stands alone on stage and asks the audience: \"To be, or not to be, that is the question.\"", options:['Hamlet','Romeo and Juliet','Macbeth'], answer:0},
   ]},
 ];
 // Dialogues — la única categoría con DOS voces (RK_SLL_VOICE_A / B), reproducidas en
@@ -7829,25 +8324,25 @@ const RK_SLL_CATEGORIES = [
 // index.html) para cuando se amplíe el pool — en las primeras la información está explícita,
 // en las últimas hay que inferir el lugar sin que nadie lo diga.
 const RK_SLL_DIALOGUES = {id:'dialogues', icon:'🗣️', label:'Dialogues', q:'Where are they, or what is happening?', items:[
-  {level:'A1', lines:[
+  {id:'sll_dialog_trainstation', level:'A1', lines:[
     {v:'A', t:"Excuse me, is this the train to Oxford?"},
     {v:'B', t:"No, I think that one goes to Cambridge."},
     {v:'A', t:"Oh! So where should I go?"},
     {v:'B', t:"Platform six."},
   ], options:['At a train station','At an airport','At a bus stop'], answer:0},
-  {level:'A2', lines:[
+  {id:'sll_dialog_cafe', level:'A2', lines:[
     {v:'A', t:"Hi there, what can I get you today?"},
     {v:'B', t:"Could I have a cup of tea and a slice of that chocolate cake, please?"},
     {v:'A', t:"Of course. Eating in or taking away?"},
     {v:'B', t:"Eating in, thank you."},
   ], options:['At a café','At a supermarket','At a train station'], answer:0},
-  {level:'B1', lines:[
+  {id:'sll_dialog_museum', level:'B1', lines:[
     {v:'A', t:"Sorry to bother you — I'm a bit lost. I'm trying to find the dinosaur skeletons."},
     {v:'B', t:"Ah, you want the Blue Zone. Go through those big doors and turn left at the giant whale."},
     {v:'A', t:"A giant whale?"},
     {v:'B', t:"You can't miss it — it hangs from the ceiling."},
   ], options:['At a natural history museum','At a zoo','At an aquarium'], answer:0},
-  {level:'B1+', lines:[
+  {id:'sll_dialog_passportcontrol', level:'B1+', lines:[
     {v:'A', t:"Name?"},
     {v:'B', t:"Rodrigo Pérez."},
     {v:'A', t:"Purpose of your visit?"},
@@ -7856,7 +8351,62 @@ const RK_SLL_DIALOGUES = {id:'dialogues', icon:'🗣️', label:'Dialogues', q:'
     {v:'B', t:"About sixteen hours, with a stop in Madrid."},
   ], options:['At passport control','At a hotel check-in','At a job interview'], answer:0},
 ]};
-function _rkSLLAllCategories(){ return [...RK_SLL_CATEGORIES, RK_SLL_DIALOGUES]; }
+// ── Taxonomía nueva de SLL — cerrada el 2 de octubre (Angel + Chatty) ──────────────────────
+// Ocho categorías. La categoría no es una etiqueta: es el universo de donde salen los
+// distractores. Hoy la usan sólo las entradas del piloto, que traen su `cat`. Las 28 del banco
+// pasan a estas categorías con migrar_sll.js DESPUÉS del piloto, para no migrar dos veces.
+const RK_SLL_TAXONOMY = {
+  movies:   {icon:'🎬', label:'Movies & TV',         q:'Which film or series is this about?'},
+  places:   {icon:'🗺️', label:'Places & Wonders',    q:'Which place is this describing?'},
+  sports:   {icon:'⚽', label:'Sports',              q:'Who or what is this about?'},
+  stories:  {icon:'📚', label:'Stories & Worlds',    q:'Which story or character is this about?'},
+  people:   {icon:'👤', label:'People & Characters', q:'Who is this describing?'},
+  games:    {icon:'🎮', label:'Games & Gaming',      q:'Which game or character is this about?'},
+  music:    {icon:'🎵', label:'Music',               q:'Who or what is this about?'},
+  everyday: {icon:'🗣️', label:'Everyday English',    q:'Where are they, or what is happening?'},
+};
+// Piloto de 8 (Misión 04). Lo llena convertir_gemini_sll.js: cada entrada nace con su id
+// (congelado, nunca se renombra), su `cat` de la taxonomía nueva, su `level` y su `hook`.
+const RK_SLL_PILOT = [
+  {id:"sll_games_clashroyale", cat:"games", level:"A1", fragment:"In this mobile game you drop your troops into an arena to destroy the enemy king. You have exactly three minutes to win the battle using drops of pink elixir.", options:["Clash Royale", "Brawl Stars", "Minecraft"], answer:0, hook:"In 2017, this mobile game actually won a British Academy Games Award for being the best esports game of the year."},
+  {id:"sll_games_legogames", cat:"games", level:"A2", fragment:"A British video game studio makes these famous adventures where the whole world is built of plastic bricks. If your character loses all their health they do not die, they simply break into tiny pieces.", options:["Lego games", "Roblox", "Minecraft"], answer:0, hook:"The very first of these games started as an adventure about Lego knights, but it was turned into Lego Star Wars before it ever came out."},
+  {id:"sll_music_moonwalk", cat:"music", level:"B1", fragment:"A famous pop singer performed this dance move on television in the nineteen eighties. It creates an optical illusion where it looks like the person is walking forwards but they are actually gliding smoothly backwards across the floor.", options:["The Moonwalk", "The Robot", "The Worm"], answer:0, hook:"Michael Jackson did not invent this move: he learned it from young dancers, including dancers from the American TV show Soul Train."},
+  {id:"sll_music_abbeyroad", cat:"music", level:"A2", fragment:"There is a street crossing in London that became famous because four musicians walked across it for their album cover. Today people constantly stop the traffic to take the exact same photograph.", options:["Abbey Road", "Penny Lane", "Carnaby Street"], answer:0, hook:"The band hired a policeman to stop the traffic so the photographer could stand on a small ladder in the middle of the street."},
+  {id:"sll_sports_yellowredcards", cat:"sports", level:"B1", fragment:"An English referee got this idea while driving his car. He saw traffic lights change colour and realised he could hold up something small and brightly coloured to give players a warning before sending them off the pitch.", options:["Yellow and red cards", "The referee's whistle", "The vanishing spray"], answer:0, hook:"These cards were used for the very first time at the nineteen seventy World Cup in Mexico."},
+  {id:"sll_movies_tomcruise", cat:"movies", level:"B1+", q:"Who is this about?", fragment:"This famous actor refuses to use a stunt double for his most dangerous scenes. In the seventh film of his spy series he actually rode a motorcycle off a mountain cliff and opened a parachute in the air.", options:["Tom Cruise", "Jackie Chan", "Keanu Reeves"], answer:0, hook:"He filmed this dangerous stunt on the very first day of production so he would not have to worry about it for the rest of the shoot."},
+  {id:"sll_places_marianatrench", cat:"places", level:"B1", fragment:"This is the deepest known place on Earth hiding at the bottom of the Pacific Ocean. It is so deep that if you dropped the tallest mountain in the world inside it the peak would still be completely underwater.", options:["The Mariana Trench", "The Great Barrier Reef", "The Bermuda Triangle"], answer:0, hook:"Despite the freezing water and crushing pressure scientists have actually found small shrimp and sea cucumbers living at the very bottom."},
+  {id:"sll_everyday_chemist", cat:"everyday", level:"A1", lines:[{v:"A", t:"Hello. Can I collect a prescription for my aunt?"}, {v:"B", t:"Of course. I just need her name and address."}, {v:"A", t:"Yes. And do you sell plasters for a cut on my finger?"}, {v:"B", t:"Yes, they are right there next to the vitamins."}], options:["At a chemist", "At a doctor's surgery", "At a dentist's"], answer:0, hook:"The largest and most famous chain of these shops in the UK, Boots, was started in eighteen forty-nine by a man who only sold herbal medicines."},
+];
+// Las 5 del demo de Halloween, en el orden en que se juegan. Las eligen Angel y Chatty entre
+// las 8 del piloto. Con el tema 'halloween' y esta lista llena, SLL muestra sólo esas cinco en
+// una ronda; con la lista vacía, SLL funciona igual que siempre.
+const RK_SLL_DEMO_IDS = [
+  // ESCUCHA DEL PILOTO: las 8, para oírlas con la voz del juego (?sll=preview). Después quedan las 5 elegidas.
+  'sll_everyday_chemist', 'sll_games_clashroyale', 'sll_games_legogames', 'sll_music_abbeyroad',
+  'sll_music_moonwalk', 'sll_sports_yellowredcards', 'sll_places_marianatrench', 'sll_movies_tomcruise',
+];
+// Vista previa para el equipo: rubberneckin.html?sll=preview muestra la ronda del demo sin cambiar
+// el tema que ven los niños. Sirve para escuchar las entradas con la voz del juego antes de elegir.
+const _RK_SLL_PREVIEW = (() => { try { return new URLSearchParams(location.search).get('sll') === 'preview'; } catch(e){ return false; } })();
+function _rkSLLDemoMode(){ return (RK_ACTIVE_THEME === 'halloween' || _RK_SLL_PREVIEW) && RK_SLL_DEMO_IDS.length > 0; }
+function _rkSLLAllCategories(){
+  if(_rkSLLDemoMode()){
+    // Se buscan en el piloto y en el banco: después de la migración las del piloto viven en sus
+    // categorías, y el demo tiene que seguir encontrándolas por id.
+    const todas = [...RK_SLL_PILOT, ...RK_SLL_CATEGORIES.flatMap(c => c.items), ...RK_SLL_DIALOGUES.items];
+    const items = RK_SLL_DEMO_IDS.map(id => todas.find(e => e.id === id)).filter(Boolean);
+    return [{id:'demo', icon:'🎃', label:'Sneak Preview', q:'', fixedOrder:true, items}];
+  }
+  // Una categoría vacía no se muestra (Games y Music parten de cero hasta la migración).
+  return [...RK_SLL_CATEGORIES, RK_SLL_DIALOGUES].filter(c => c.items && c.items.length);
+}
+// Etiqueta y pregunta: las de la categoría nueva de la entrada si la trae, y si no las de la
+// categoría donde vive. Así una ronda mezclada (el demo) dice en cada pregunta de qué
+// universo es, y las 28 de siempre se ven exactamente igual que antes.
+function _rkSLLItemMeta(cat, item){
+  const t = item && item.cat && RK_SLL_TAXONOMY[item.cat];
+  return { icon: t ? t.icon : cat.icon, label: t ? t.label : cat.label, q: (item && item.q) || (t ? t.q : cat.q) };
+}
 let _rkSLLState = null; // {catId, pool, qIdx, score, answered, used5050, usedOliver, eliminated, playing}
 function rkRenderSLL(){
   rkStopAllTts(); // "← Back to topics" puede tocarse a mitad de un fragmento/diálogo sonando
@@ -7876,7 +8426,8 @@ const RK_SLL_QUIZ_LENGTH = 4; // piloto: pool chico (4 por categoría), se juega
 function rkStartSLLQuiz(catId){
   const cat = _rkSLLAllCategories().find(c => c.id === catId);
   if(!cat) return;
-  const pool = rkShuffle(cat.items).slice(0, Math.min(RK_SLL_QUIZ_LENGTH, cat.items.length)).map(rkShuffleMCOptions);
+  // El demo se juega completo y en el orden elegido; el resto, barajado y de a RK_SLL_QUIZ_LENGTH.
+  const pool = (cat.fixedOrder ? [...cat.items] : rkShuffle(cat.items).slice(0, Math.min(RK_SLL_QUIZ_LENGTH, cat.items.length))).map(rkShuffleMCOptions);
   _rkSLLState = {catId, pool, qIdx:0, score:0, answered:false, used5050:false, usedOliver:false, eliminated:null, playing:false};
   rkRenderSLLQuiz();
 }
@@ -7884,15 +8435,16 @@ function rkRenderSLLQuiz(){
   const s = _rkSLLState;
   const cat = _rkSLLAllCategories().find(c => c.id === s.catId);
   const item = s.pool[s.qIdx];
+  const meta = _rkSLLItemMeta(cat, item);
   const wrap = document.getElementById('rk-info-wrap');
   wrap.innerHTML = `
     <div class="rk-sk-card">
-      <div class="rk-info-title">${cat.icon} ${rkEscapeHtml(cat.label)}</div>
+      <div class="rk-info-title">${meta.icon} ${rkEscapeHtml(meta.label)}</div>
       <div class="rk-info-blurb" style="font-size:12px">Question ${s.qIdx+1} of ${s.pool.length} · Score: ${s.score}</div>
       <div class="rk-sk-actions" style="margin-top:6px">
         <button class="rk-sk-primary-btn" id="rk-sll-play-btn" onclick="rkSLLPlayFragment()">▶ Listen</button>
       </div>
-      <div class="rk-info-blurb" style="font-weight:700;margin-top:10px">${rkEscapeHtml(cat.q)}</div>
+      <div class="rk-info-blurb" style="font-weight:700;margin-top:10px">${rkEscapeHtml(meta.q)}</div>
       <div id="rk-sll-oliver-note"></div>
     </div>
     <div id="rk-sll-options">
@@ -7964,9 +8516,24 @@ function rkSLLAnswer(oi){
   });
   const wrap = document.getElementById('rk-info-wrap');
   const label = (s.qIdx + 1 < s.pool.length) ? 'Next question →' : 'See final score';
+  // El discovery hook: el premio después de responder, acierte o no. Nunca repite el
+  // fragmento (lo controla check_sll.js). Sólo lo traen las entradas nuevas.
+  if(item.hook){
+    wrap.insertAdjacentHTML('beforeend', `
+      <div class="rk-sk-card" id="rk-sll-hook">
+        <div class="rk-info-blurb"><b>💡 Did you know?</b> ${rkEscapeHtml(item.hook)}</div>
+        <div class="rk-sk-actions" style="margin-top:6px"><button class="rk-sk-secondary-btn" onclick="rkSLLReadHook()">🔊 Read it to me</button></div>
+      </div>`);
+  }
   wrap.insertAdjacentHTML('beforeend', `<div class="rk-sk-actions"><button class="rk-sk-primary-btn" onclick="rkSLLNextQuestion()">${label}</button></div>`);
 }
+function rkSLLReadHook(){
+  const s = _rkSLLState;
+  const item = s && s.pool[s.qIdx];
+  if(item && item.hook) rkTtsSpeakVoice(item.hook, 'onyx', RK_NARRATOR_TTS_INSTRUCTIONS);
+}
 function rkSLLNextQuestion(){
+  rkStopAllTts(); // que el hook o el fragmento no sigan sonando sobre la pregunta siguiente
   const s = _rkSLLState;
   s.qIdx++;
   s.answered = false;
@@ -7986,7 +8553,15 @@ function rkRenderSLLResult(){
     <div class="rk-sk-actions">
       <button class="rk-sk-primary-btn" onclick="rkStartSLLQuiz('${cat.id}')">🔄 Play again</button>
       <button class="rk-sk-secondary-btn" onclick="rkRenderSLL()">← Back to topics</button>
-    </div>`;
+    </div>
+    <div id="rk-sll-payout"></div>`;
+  // La ronda es la unidad, igual que en Survival Kit (criterio de Angel, opción A).
+  // La vista previa del equipo (?sll=preview) nunca paga: es para escuchar, no para jugar.
+  if(!s.pagada && !_RK_SLL_PREVIEW){
+    s.pagada = true;
+    rkEarnShillings('stop_look_and_listen', RK_PAY.stop_look_and_listen.porItem * s.pool.length, 'sll_round_' + s.catId)
+      .then(d => rkShowPayout('rk-sll-payout', d));
+  }
 }
 
 // ══════════════════════════════════════════════════════════════════════════
@@ -8034,63 +8609,63 @@ function rkRenderSLLResult(){
 // ══════════════════════════════════════════════════════════════════════════
 const RK_SK_SCENARIOS = [
   {id:'hello', icon:'👋', label:'Say hello', variants:[
-    {context:'You just landed at Heathrow Airport. A friendly local smiles at you — say hello and introduce yourself!',
+    {id:'sk_hello_01', context:'You just landed at Heathrow Airport. A friendly local smiles at you — say hello and introduce yourself!',
       target:'Hello! My name is ___. Nice to meet you!'},
-    {context:"Someone at the airport asks you: 'Where are you from?' Answer them.",
+    {id:'sk_hello_02', context:"Someone at the airport asks you: 'Where are you from?' Answer them.",
       target:"I'm from Chile."},
-    {context:"Someone asks you: 'Who are you travelling with?' Answer them.",
+    {id:'sk_hello_03', context:"Someone asks you: 'Who are you travelling with?' Answer them.",
       target:"I'm travelling with my family."},
-    {context:"Someone asks you: 'Is this your first time in the UK?' Answer them.",
+    {id:'sk_hello_04', context:"Someone asks you: 'Is this your first time in the UK?' Answer them.",
       target:"Yes, it's my first time here!"},
-    {context:"You're arriving at your homestay family's house for the first time. Someone opens the door — say hello and introduce yourself!",
+    {id:'sk_hello_05', context:"You're arriving at your homestay family's house for the first time. Someone opens the door — say hello and introduce yourself!",
       target:"Hi! I'm ___, nice to meet you!"},
   ]},
   {id:'time', icon:'🕐', label:'Ask the time', variants:[
-    {context:"You're standing next to Big Ben, but you forgot your watch. Ask someone what time it is.",
+    {id:'sk_time_01', context:"You're standing next to Big Ben, but you forgot your watch. Ask someone what time it is.",
       target:'Excuse me, what time is it, please?'},
-    {context:"You're waiting for a bus near Piccadilly Circus and you're not sure if you'll make it in time. Ask someone what time it is.",
+    {id:'sk_time_02', context:"You're waiting for a bus near Piccadilly Circus and you're not sure if you'll make it in time. Ask someone what time it is.",
       target:'Excuse me, do you know what time it is?'},
-    {context:"You're at Covent Garden and you want to know if the shops are still open. Ask someone the time.",
+    {id:'sk_time_03', context:"You're at Covent Garden and you want to know if the shops are still open. Ask someone the time.",
       target:'Excuse me, what time is it? I want to know if the shops are still open.'},
-    {context:"You're meeting a friend at Trafalgar Square in a few minutes, but you're not sure how much time you have. Ask someone the time.",
+    {id:'sk_time_04', context:"You're meeting a friend at Trafalgar Square in a few minutes, but you're not sure how much time you have. Ask someone the time.",
       target:'Excuse me, could you tell me the time, please?'},
-    {context:"You're at King's Cross Station and you're worried about missing your train. Ask someone the time.",
+    {id:'sk_time_05', context:"You're at King's Cross Station and you're worried about missing your train. Ask someone the time.",
       target:"Excuse me, what's the time? I don't want to miss my train."},
   ]},
   {id:'directions', icon:'🧭', label:'Ask for directions', variants:[
-    {context:"You're trying to find Abbey Road, but the streets are confusing. Ask someone for directions.",
+    {id:'sk_directions_01', context:"You're trying to find Abbey Road, but the streets are confusing. Ask someone for directions.",
       target:'Excuse me, how do I get to Abbey Road, please?'},
-    {context:"You want to watch a movie tonight, but you don't know where the nearest cinema is. Ask someone for directions.",
+    {id:'sk_directions_02', context:"You want to watch a movie tonight, but you don't know where the nearest cinema is. Ask someone for directions.",
       target:'Excuse me, how do I get to the nearest cinema, please?'},
-    {context:"You think you're walking the right way to Piccadilly Circus, but you're not sure. Ask someone to confirm.",
+    {id:'sk_directions_03', context:"You think you're walking the right way to Piccadilly Circus, but you're not sure. Ask someone to confirm.",
       target:'Excuse me, is this the way to Piccadilly Circus?'},
-    {context:"You're at a bus stop and you're not sure if this bus goes to Camden Town. Ask the driver.",
+    {id:'sk_directions_04', context:"You're at a bus stop and you're not sure if this bus goes to Camden Town. Ask the driver.",
       target:'Excuse me, does this bus go to Camden Town?'},
-    {context:"You want to visit the London Eye, but you're a bit lost. Ask someone for directions.",
+    {id:'sk_directions_05', context:"You want to visit the London Eye, but you're a bit lost. Ask someone for directions.",
       target:'Excuse me, how do I get to the London Eye, please?'},
   ]},
   {id:'food', icon:'🍟', label:'Order food', variants:[
-    {context:"You're hungry! You're at a small café near Camden Market. Order something to eat and drink.",
+    {id:'sk_food_01', context:"You're hungry! You're at a small café near Camden Market. Order something to eat and drink.",
       target:'Hello! Can I have a chicken sandwich and a lemonade, please?'},
-    {context:"You've just finished your meal at a café near Camden Market and you're still a bit hungry for something sweet. Order a dessert.",
+    {id:'sk_food_02', context:"You've just finished your meal at a café near Camden Market and you're still a bit hungry for something sweet. Order a dessert.",
       target:'Could I have a slice of chocolate cake, please?'},
-    {context:"The waiter brings you the wrong dish at a café near Camden Market. Politely ask to change it.",
+    {id:'sk_food_03', context:"The waiter brings you the wrong dish at a café near Camden Market. Politely ask to change it.",
       target:"Sorry, I think this isn't what I ordered — could I change it, please?"},
-    {context:"You're at a café with your brother and you're ordering for both of you. Order two sandwiches and two drinks.",
+    {id:'sk_food_04', context:"You're at a café with your brother and you're ordering for both of you. Order two sandwiches and two drinks.",
       target:'Can we have two sandwiches and two lemonades, please?'},
-    {context:"You've finished eating at a café near Camden Market and you want to pay. Ask for the bill.",
+    {id:'sk_food_05', context:"You've finished eating at a café near Camden Market and you want to pay. Ask for the bill.",
       target:'Excuse me, could I have the bill, please?'},
   ]},
   {id:'airport', icon:'🛂', label:'At the airport', variants:[
-    {context:'An officer at passport control asks why you are visiting the UK. Answer them.',
+    {id:'sk_airport_01', context:'An officer at passport control asks why you are visiting the UK. Answer them.',
       target:"I'm here on holiday, for two weeks, with my family."},
-    {context:'An officer at passport control asks how long you are staying in the UK. Answer them.',
+    {id:'sk_airport_02', context:'An officer at passport control asks how long you are staying in the UK. Answer them.',
       target:"I'm staying for two weeks."},
-    {context:"The officer asks: 'Where are you staying in the UK?' Answer them.",
+    {id:'sk_airport_03', context:"The officer asks: 'Where are you staying in the UK?' Answer them.",
       target:"I'm staying at a hotel in London."},
-    {context:"The officer asks: 'Do you have anything to declare?' Answer them.",
+    {id:'sk_airport_04', context:"The officer asks: 'Do you have anything to declare?' Answer them.",
       target:"No, I don't have anything to declare."},
-    {context:"The officer asks: 'Is this your first time visiting the UK?' Answer them.",
+    {id:'sk_airport_05', context:"The officer asks: 'Is this your first time visiting the UK?' Answer them.",
       target:"Yes, it's my first time here."},
   ]},
 ];
@@ -8654,6 +9229,34 @@ const RK_PRICE_MAX = {
   match_day: 7,            // 7 preguntas x 1
 };
 
+// Cómo se traduce una actividad a shillings, estación por estación. Todo junto y acá a
+// propósito: son los números de Angel, y tienen que poder cambiarse en un solo lugar sin
+// leer el resto del archivo. El principio que los ordena está cerrado desde el diseño:
+// **se paga por completar, no por acertar** — el niño juega para practicar, no para rendir.
+// Donde hay variación es por la ayuda que usó, no por el error.
+const RK_PAY = {
+  mystery_picture:      {base:16, porPista:2, minimo:2, conOliver:1},
+  mind_the_gap:         {porHueco:3},
+  stop_look_and_listen: {porItem:2},
+  match_day:            {porPregunta:1},
+  // Scavenger Hunt es la única que interpreté yo: la tabla dice 3+3+6 con piso 1 y "varianza,
+  // no techo", y la única fuente de varianza es la ayuda. Si Angel lo quería de otra forma,
+  // se cambia acá y en ningún otro lado.
+  scavenger_hunt:       {palabra:3, palabraConMc:2, palabraConOliver:1, concepto:6, conceptoConOliver:1},
+};
+
+// Cuelga el pago real —el del servidor, no el que suponíamos— al final de un contenedor.
+function rkShowPayout(elId, data){
+  const el = document.getElementById(elId);
+  if(!el || !data) return;
+  const div = document.createElement('div');
+  div.className = 'rk-info-blurb';
+  div.style.fontWeight = '700';
+  div.textContent = `💰 ${data.paid} shilling${data.paid === 1 ? '' : 's'} earned` +
+                    (data.repeat ? ' (half pay — you have played this one before)' : '');
+  el.appendChild(div);
+}
+
 async function rkPassportLoad(){
   try {
     const r = await fetch('/api/passport');
@@ -8674,7 +9277,28 @@ async function rkPassportLoad(){
 // NUNCA interrumpe el juego: se pierden esos shillings y se vuelven a ganar jugando.
 // Los sellos, que son lo único irrecuperable, no dependen de esta llamada — los otorga
 // el servidor con el estado que ya tiene grabado.
+// Los temas de admin abuse —Fiestas Patrias, Halloween— y el `neutral` de maqueta NO llevan
+// puntaje: son demos de cómo va el producto, no el producto (decisión de Angel, confirmada el 2
+// de octubre). Si pagaran, una tarde de Halloween dejaría shillings y hasta un sello ganados con
+// contenido que no es el del verano.
+//
+// El filtro va acá, en el único cuello de botella por donde pasan las seis estaciones, y no en
+// cada una: así una estación nueva no puede olvidarse de aplicarlo.
+const RK_THEMES_CON_PUNTAJE = ['full'];
+
 async function rkEarnShillings(station, earned, itemId){
+  if(!RK_THEMES_CON_PUNTAJE.includes(RK_ACTIVE_THEME)){
+    console.log(`[passport] tema "${RK_ACTIVE_THEME}": sin puntaje, no se registra (${station} ${earned})`);
+    return null;   // null = el llamador no muestra línea de pago, y el juego sigue igual
+  }
+  // Red de seguridad: ninguna estación puede pagar más que su máximo teórico. Si un día una
+  // postal trae cuatro huecos en vez de tres, el pago no se infla en silencio — se tapa acá y
+  // el número raro queda a la vista en la consola.
+  const tope = RK_PRICE_MAX[station];
+  if(tope != null && earned > tope){
+    console.warn(`[passport] ${station} intentó pagar ${earned}, tope ${tope}`);
+    earned = tope;
+  }
   try {
     const r = await fetch('/api/passport/earn', {
       method: 'POST',
