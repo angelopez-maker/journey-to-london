@@ -8381,9 +8381,9 @@ const RK_SLL_PILOT = [
 // las 8 del piloto. Con el tema 'halloween' y esta lista llena, SLL muestra sólo esas cinco en
 // una ronda; con la lista vacía, SLL funciona igual que siempre.
 const RK_SLL_DEMO_IDS = [
-  // ESCUCHA DEL PILOTO: las 8, para oírlas con la voz del juego (?sll=preview). Después quedan las 5 elegidas.
-  'sll_everyday_chemist', 'sll_games_clashroyale', 'sll_games_legogames', 'sll_music_abbeyroad',
-  'sll_music_moonwalk', 'sll_sports_yellowredcards', 'sll_places_marianatrench', 'sll_movies_tomcruise',
+  // Las 5 del demo, en orden — elegidas por Angel el 2 de octubre después de escuchar las 8.
+  'sll_games_clashroyale', 'sll_games_legogames', 'sll_music_moonwalk',
+  'sll_sports_yellowredcards', 'sll_movies_tomcruise',
 ];
 // Vista previa para el equipo: rubberneckin.html?sll=preview muestra la ronda del demo sin cambiar
 // el tema que ven los niños. Sirve para escuchar las entradas con la voz del juego antes de elegir.
@@ -8530,10 +8530,16 @@ function rkSLLAnswer(oi){
 function rkSLLReadHook(){
   const s = _rkSLLState;
   const item = s && s.pool[s.qIdx];
+  // Leer el hook corta el fragmento si todavía sonaba, y un audio cortado nunca avisa que terminó:
+  // hay que soltar la marca a mano o el botón ▶ Listen queda muerto (bug del 2 de octubre).
+  if(s){ s.playing = false; const b = document.getElementById('rk-sll-play-btn'); if(b){ b.disabled = false; b.textContent = '🔁 Listen again'; } }
   if(item && item.hook) rkTtsSpeakVoice(item.hook, 'onyx', RK_NARRATOR_TTS_INSTRUCTIONS);
 }
 function rkSLLNextQuestion(){
   rkStopAllTts(); // que el hook o el fragmento no sigan sonando sobre la pregunta siguiente
+  // Un audio cortado nunca dispara su "terminó", así que la marca de reproducción se suelta acá.
+  // Sin esto, avanzar con el audio sonando dejaba ▶ Listen muerto el resto de la ronda.
+  if(_rkSLLState) _rkSLLState.playing = false;
   const s = _rkSLLState;
   s.qIdx++;
   s.answered = false;
