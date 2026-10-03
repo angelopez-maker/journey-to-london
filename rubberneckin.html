@@ -6532,7 +6532,16 @@ const RK_MATCHDAY_SPECIAL = {
     {id:'md_chile1998_itdemolishedrebuilt_06', q:"This match was played at the OLD Wembley Stadium, famous for its Twin Towers. What happened to that stadium later?", options:["It was demolished and rebuilt as the new Wembley (2000s)","It's still standing exactly the same today","It was moved to a different city"], answer:0},
   ]},
 };
+// Demo de Halloween (3 de octubre): Players Abroad, elegida por Angel y Chatty — es la que trae a
+// los chilenos que jugaron en Inglaterra. Con el tema 'halloween' o con ?demo=preview, Match Day
+// muestra sólo esa categoría.
+const RK_MATCHDAY_DEMO_CAT = 'crossborder';
+function _rkDemoActivo(){ return RK_ACTIVE_THEME === 'halloween' || (typeof _RK_DEMO_PREVIEW !== 'undefined' && _RK_DEMO_PREVIEW); }
 function _rkMatchAllCategories(){
+  if(_rkDemoActivo() && RK_MATCHDAY_DEMO_CAT){
+    const c = RK_MATCHDAY_CATEGORIES.find(x => x.id === RK_MATCHDAY_DEMO_CAT);
+    if(c) return [c];
+  }
   const extra = RK_MATCHDAY_SPECIAL[RK_ACTIVE_THEME];
   return extra ? [...RK_MATCHDAY_CATEGORIES, extra] : RK_MATCHDAY_CATEGORIES;
 }
@@ -6703,9 +6712,9 @@ const RK_GAP_CONTENT = {
          {n:3, accept:['trophy','cup'], img:'football trophy gold cup'},
        ]},
       {id:'gap_warnerbros_01', from: 'Emma, a traveller in London',
-       text: 'Dear friend, Today I visited the film studio where they made the Harry Potter movies! It\'s called ___1___. I saw real costumes, magic ___2___, and even walked through the Great Hall set with long wooden tables and floating ___3___. It felt like real magic! Emma',
+       text: 'Dear friend, Today I visited the film studio where they made the Harry Potter films! It\'s called ___1___. I saw real costumes, magic ___2___, and even walked through the Great Hall set with long wooden tables and floating ___3___. It felt like real magic! Emma',
        gaps: [
-         {n:1, accept:['warner bros studios','warner bros','warner brothers studios'], img:'Warner Bros Studio Tour London Harry Potter'},
+         {n:1, accept:['warner bros studios','warner bros','warner brothers studios','warner bros studio','warner brothers','warner bros.','warner bros. studios'], img:'Warner Bros Studio Tour London Harry Potter'},
          {n:2, accept:['wands','wand'], img:'Harry Potter magic wand'},
          {n:3, accept:['candles','candle'], img:'floating candles Great Hall Harry Potter'},
        ]},
@@ -6797,9 +6806,19 @@ const RK_GAP_CONTENT = {
        ]},
     ]},
 };
+// Demo de Halloween (3 de octubre): las 5 postales del tema de verano, sin Wembley — el demo ya
+// tiene Match Day, Premier League en Mystery Box y Manchester United en el Hunt.
+const RK_GAP_DEMO_IDS = ['gap_london_01', 'gap_stonehenge_01', 'gap_warnerbros_01', 'gap_towerbridge_01', 'gap_tube_01'];
+function _rkGapContent(){
+  if(_rkDemoActivo() && RK_GAP_DEMO_IDS.length){
+    const base = RK_GAP_CONTENT.neutral;
+    return {title: base.title, postcards: RK_GAP_DEMO_IDS.map(id => base.postcards.find(p => p.id === id)).filter(Boolean)};
+  }
+  return RK_GAP_CONTENT[RK_ACTIVE_THEME] || RK_GAP_CONTENT.neutral;
+}
 let _rkGapIdx = 0;
 function rkRenderGap(){
-  const c = RK_GAP_CONTENT[RK_ACTIVE_THEME] || RK_GAP_CONTENT.neutral;
+  const c = _rkGapContent();
   _rkGapIdx = _rkGapIdx % c.postcards.length;
   const p = c.postcards[_rkGapIdx];
   const textHtml = rkEscapeHtml(p.text).replace(/___(\d+)___/g, (_, n) =>
@@ -6819,7 +6838,7 @@ function rkRenderGap(){
 }
 const _rkGapPagadas = new Set();   // postales ya pagadas en esta sesión
 function rkGapCheck(){
-  const c = RK_GAP_CONTENT[RK_ACTIVE_THEME] || RK_GAP_CONTENT.neutral;
+  const c = _rkGapContent();
   const p = c.postcards[_rkGapIdx];
   let correct = 0;
   p.gaps.forEach(g => {
@@ -7230,11 +7249,12 @@ const RK_MYSTERY_BANKS = {
       'I am the famous British naturalist who explained the theory of evolution.']},
     {id:'myst_yellow_submarine', answer:'Yellow Submarine', accept:['yellow submarine'], bridge:'low',
      category:'A music album and film',
+     hint:'You may have heard this song on a Beatles playlist, in an animated film, or during a school singalong.',
      hook:'The famous title track was actually written as a simple nonsense song for children, and the band recorded real bubbles in a bucket of water for the sound effects.', clues:[
       'This creative work was created by four famous musicians from Liverpool.',
-      'It tells a cheerful story about sailing through colorful seas to a magical land.',
+      'It tells a cheerful story about sailing through colourful seas to a magical land.',
       'The main vehicle in the story is an underwater boat painted a bright sunny colour.',
-      'The inhabitants of the magical world are saved from group of music-hating creatures.',
+      'The inhabitants of the magical world are saved from a group of music-hating creatures.',
       'The catchy title song was sung by Ringo Starr and enjoyed by children worldwide.',
       'It became both a hit pop song and a famous animated cartoon film.',
       'It is the famous Beatles song and film about a colourful underwater boat.']},
@@ -7549,7 +7569,7 @@ const RK_MYSTERY_BANKS = {
     {id:'myst_mini', answer:'Mini', accept:['mini'], bridge:'medium',
      category:'A motor car',
      hint:'You have probably seen modern versions of me on city streets, or watched the film The Italian Job where three of us are used to steal gold in a traffic jam.',
-     hook:'The engineer who designed it was famous for sketching ideas on whatever was at hand, and the story goes that the very first drawing of this car was made on a restaurant napkin.', clues:[
+     hook:'The engineer who designed it was famous for sketching ideas on whatever was at hand, and the very first drawing of this car was made on a restaurant tablecloth.', clues:[
       'I am a famous motor car known for being small, stylish and easy to park.',
       'A clever engineer designed me so four adults could fit inside a very short body.',
       'Drivers loved my small wheels because I felt like driving a go-kart on city streets.',
@@ -8052,7 +8072,7 @@ const RK_MYSTERY_BANKS = {
     {id:'myst_peppa_pig', answer:'Peppa Pig', accept:['peppa pig', 'peppa'], bridge:'high',
      category:'A fictional character',
      hint:'You almost certainly watched my cartoons on television when you were much younger, or have seen internet jokes about my family.',
-     hook:'My show is so globally influential that thousands of American toddlers actually developed a temporary British accent, a phenomenon linguists call "The Peppa Effect".',
+     hook:'There is a whole theme park built just for me and my family in the south of England, and it opened in 2011.',
      clues:[
       'I am an animated character recognised by young children all over the globe.',
       'I live in a yellow house sitting on top of an incredibly steep, green hill.',
@@ -8178,6 +8198,26 @@ const RK_MYSTERY_BANKS = {
 function rkCurrentMysteryBank(){
   return RK_MYSTERY_BANKS[RK_ACTIVE_THEME] || RK_MYSTERY_BANKS.neutral;
 }
+// ── Demo de Halloween (3 de octubre) ────────────────────────────────────────────────────────
+// Las 5 del demo, en el orden en que se juegan, elegidas por Angel y Chatty del banco `full`.
+// Con el tema 'halloween' (o con ?demo=preview en la dirección) Mystery Box juega sólo éstas,
+// una detrás de otra; con la lista vacía funciona como siempre. Orden: abre y cierra con una
+// High, la Low al medio, y The Beatles antes que Yellow Submarine (su pista 7 nombra a la banda).
+const RK_MYSTERY_DEMO_IDS = [
+  'myst_premier_league', 'myst_the_beatles', 'myst_yellow_submarine', 'myst_mini', 'myst_peppa_pig',
+];
+const _RK_DEMO_PREVIEW = (() => { try { const q = new URLSearchParams(location.search); return q.get('demo') === 'preview'; } catch(e){ return false; } })();
+function _rkMysteryDemoMode(){ return (RK_ACTIVE_THEME === 'halloween' || _RK_DEMO_PREVIEW) && RK_MYSTERY_DEMO_IDS.length > 0; }
+let _rkMysteryDemoIdx = 0;
+function _rkMysteryNext(){
+  if(_rkMysteryDemoMode()){
+    const lista = RK_MYSTERY_DEMO_IDS.map(id => RK_MYSTERY_BANKS.full.find(e => e.id === id)).filter(Boolean);
+    const m = lista[_rkMysteryDemoIdx % lista.length];
+    _rkMysteryDemoIdx++;
+    return m;
+  }
+  return rkShuffle(rkCurrentMysteryBank())[0]; // aleatoriedad controlada (Fisher-Yates)
+}
 let _rkMysteryState = null;
 function rkRenderMysteryBox(){
   _rkMysteryState = null;
@@ -8190,8 +8230,8 @@ function rkRenderMysteryBox(){
     <div class="rk-sk-actions"><button class="rk-sk-primary-btn" onclick="rkStartMystery()">🔍 Start</button></div>`;
 }
 function rkStartMystery(){
-  const m = rkShuffle(rkCurrentMysteryBank())[0]; // aleatoriedad controlada (Fisher-Yates)
-  _rkMysteryState = {mystery:m, clueIdx:0, oliverUsed:false};
+  const m = _rkMysteryNext();
+  _rkMysteryState = {mystery:m, clueIdx:0, oliverUsed:false, hintUsed:false};
   rkRenderMysteryStep();
 }
 function rkRenderMysteryStep(){
@@ -8206,6 +8246,7 @@ function rkRenderMysteryStep(){
       <div class="rk-info-title">📦 Mystery Box</div>
       <div class="rk-mystery-fuse"><div class="rk-mystery-fuse-fill" style="width:${pct}%"></div></div>
       <div class="rk-info-blurb" style="font-size:12px;margin-top:4px">${s.clueIdx + 1} of ${total} clues</div>
+      ${m.category && m.bridge !== 'high' ? `<div class="rk-info-blurb" style="margin-top:8px;font-weight:700">🏷️ ${rkEscapeHtml(m.category)}</div>` : ''}
       <div id="rk-mystery-clues">${cluesShown.map((c,i) => `<div class="rk-info-blurb" style="margin-top:6px"><b>Clue ${i+1}:</b> ${rkEscapeHtml(c)}</div>`).join('')}</div>
       <input type="text" class="rk-hunt-input" id="rk-mystery-guess" placeholder="Know it? Type your guess..." style="margin-top:10px">
     </div>
@@ -8213,7 +8254,28 @@ function rkRenderMysteryStep(){
       ${s.clueIdx < total - 1 ? `<button class="rk-sk-secondary-btn" onclick="rkMysteryNextClue()">Next clue →</button>` : ''}
       <button class="rk-sk-primary-btn" onclick="rkMysteryCheck()">✓ Check</button>
     </div>
+    ${m.hint ? `<div class="rk-sk-actions"><button class="rk-sk-secondary-btn" onclick="rkMysteryHint()"${s.hintUsed ? ' disabled style="opacity:.4"' : ''}>💡 Oliver's hint</button></div>
+    <div id="rk-mystery-hint">${s.hintUsed ? _rkMysteryHintHtml(m) : ''}</div>` : ''}
     <div id="rk-mystery-feedback"></div>`;
+}
+// El hint de Oliver: escrito y revisado de antemano, no generado, para que llegue al instante
+// ("todo por la fluidez"). Apunta a dónde lo vieron, no a qué es. No gasta el comodín ni cambia
+// lo que se paga — eso depende sólo de cuántas pistas se usaron.
+function _rkMysteryHintHtml(m){
+  return `<div class="rk-sk-card" style="margin-top:6px"><div class="rk-info-blurb" style="font-style:italic">📞 Oliver: "${rkEscapeHtml(m.hint)}"</div></div>`;
+}
+function rkMysteryHint(){
+  const s = _rkMysteryState;
+  if(!s || !s.mystery.hint || s.hintUsed) return;
+  s.hintUsed = true;
+  const guess = (document.getElementById('rk-mystery-guess') || {}).value || '';
+  rkRenderMysteryStep();
+  const inp = document.getElementById('rk-mystery-guess'); if(inp) inp.value = guess;
+  rkTtsSpeak(s.mystery.hint);
+}
+// El hook: el premio después de responder, acierte o no — una Low fallada también deja algo.
+function _rkMysteryHookHtml(m){
+  return m.hook ? `<div class="rk-sk-card" style="margin-top:8px"><div class="rk-info-blurb"><b>💡 Did you know?</b> ${rkEscapeHtml(m.hook)}</div></div>` : '';
 }
 function rkMysteryNextClue(){
   _rkMysteryState.clueIdx++;
@@ -8228,10 +8290,11 @@ function rkMysteryCheck(){
   const fb = document.getElementById('rk-mystery-feedback');
   if(isOk){
     if(fb) fb.innerHTML = `<div class="rk-info-blurb" style="color:#0d7a5f;font-weight:700;margin-top:8px">🎉 Correct! It's ${rkEscapeHtml(m.answer)}!</div>
+      ${_rkMysteryHookHtml(m)}
       <div class="rk-sk-actions"><button class="rk-sk-primary-btn" onclick="rkStartMystery()">🔄 Another mystery</button></div>`;
     // 16 − 2 × pistas usadas: acertar en la primera paga 14, agotar las siete paga 2.
     const p = RK_PAY.mystery_picture;
-    if(!s.pagada){
+    if(!s.pagada && !_RK_DEMO_PREVIEW){
       s.pagada = true;
       rkEarnShillings('mystery_picture', Math.max(p.minimo, p.base - p.porPista * (s.clueIdx + 1)), m.id)
         .then(d => rkShowPayout('rk-mystery-feedback', d));
@@ -8250,10 +8313,11 @@ function rkMysteryAskOliver(){
   const m = s.mystery;
   const fb = document.getElementById('rk-mystery-feedback');
   if(fb) fb.innerHTML = `<div class="rk-info-blurb" style="font-style:italic;margin-top:8px">📞 Oliver: "It's ${rkEscapeHtml(m.answer)}!"</div>
+    ${_rkMysteryHookHtml(m)}
     <div class="rk-sk-actions"><button class="rk-sk-primary-btn" onclick="rkStartMystery()">🔄 Another mystery</button></div>`;
   // Se jugó la ronda completa aunque la respuesta la dio Oliver: el comodín es gratis y se
   // quema, no cobra aparte. Igual se paga el piso, nunca cero.
-  if(!s.pagada){
+  if(!s.pagada && !_RK_DEMO_PREVIEW){
     s.pagada = true;
     rkEarnShillings('mystery_picture', RK_PAY.mystery_picture.conOliver, m.id)
       .then(d => rkShowPayout('rk-mystery-feedback', d));
@@ -8387,7 +8451,7 @@ const RK_SLL_DEMO_IDS = [
 ];
 // Vista previa para el equipo: rubberneckin.html?sll=preview muestra la ronda del demo sin cambiar
 // el tema que ven los niños. Sirve para escuchar las entradas con la voz del juego antes de elegir.
-const _RK_SLL_PREVIEW = (() => { try { return new URLSearchParams(location.search).get('sll') === 'preview'; } catch(e){ return false; } })();
+const _RK_SLL_PREVIEW = (() => { try { const q = new URLSearchParams(location.search); return q.get('sll') === 'preview' || q.get('demo') === 'preview'; } catch(e){ return false; } })();
 function _rkSLLDemoMode(){ return (RK_ACTIVE_THEME === 'halloween' || _RK_SLL_PREVIEW) && RK_SLL_DEMO_IDS.length > 0; }
 function _rkSLLAllCategories(){
   if(_rkSLLDemoMode()){
@@ -9293,6 +9357,12 @@ async function rkPassportLoad(){
 const RK_THEMES_CON_PUNTAJE = ['full'];
 
 async function rkEarnShillings(station, earned, itemId){
+  // La vista previa del equipo (?demo=preview / ?sll=preview) es para mirar, no para jugar.
+  const q = new URLSearchParams(location.search);
+  if(q.get('demo') === 'preview' || q.get('sll') === 'preview'){
+    console.log(`[passport] vista previa: no se registra (${station} ${earned})`);
+    return null;
+  }
   if(!RK_THEMES_CON_PUNTAJE.includes(RK_ACTIVE_THEME)){
     console.log(`[passport] tema "${RK_ACTIVE_THEME}": sin puntaje, no se registra (${station} ${earned})`);
     return null;   // null = el llamador no muestra línea de pago, y el juego sigue igual
