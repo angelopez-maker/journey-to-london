@@ -294,7 +294,7 @@
      Portada 2 (el "London poster wall") se REEMPLAZA por la versión temática, no se agrega
      como pantalla nueva — así se siente orgánico dentro de la misma secuencia. -->
 <script>
-  const RK_ACTIVE_THEME = 'fiestas_patrias';
+  const RK_ACTIVE_THEME = 'halloween';
   const RK_PORTADA2_IMAGES = {
     neutral: 'rubberneckin-assets/covers/portada2.jpg',
     fiestas_patrias: 'rubberneckin-assets/covers/Portada_RN_Rodri.jpg',
@@ -6958,6 +6958,61 @@ const RK_HUNT_WORDS = {
     'Royal, huge, fancy...',
   ], clue4:'I am far grander than a house, I have hundreds of rooms, and a king lives in me. What am I?',
      options:['Palace', 'Castle', 'Mansion'], answer:0, accept:['palace']},
+  // ── Demo de Halloween: Misión 05 (Gemini, 14 oct), revisada por Claudiño ──
+  witch: {label:"Witch", clues:[
+    "I am a person in stories.",
+    "I can fly on a broom and do magic tricks.",
+    "Magic, broom, hat...",
+  ], clue4:"I wear a tall black hat and fly on a broom on Halloween. What am I?",
+     options:["Witch", "Ghost", "Vampire"], answer:0, accept:["witch", "a witch"]},
+  lion: {label:"Lion", clues:[
+    "I am a wild animal.",
+    "I am a large cat with a loud roar, often called the king of the jungle.",
+    "Roar, mane, cat...",
+  ], clue4:"I am a big, golden cat with a thick mane of hair around my neck. What am I?",
+     options:["Lion", "Tiger", "Leopard"], answer:0, accept:["lion", "a lion"]},
+  spy: {label:"Spy", clues:[
+    "I am a person with a secret job.",
+    "I hide in the shadows to watch bad people and find their plans.",
+    "Secret, danger, hide...",
+  ], clue4:"I work for the government on secret missions to stop criminals. What am I?",
+     options:["Spy", "Detective", "Doctor"], answer:0, accept:["spy", "a spy"]},
+  poker: {label:"Poker", clues:[
+    "I am a type of game.",
+    "People play me at a table using a deck of cards and plastic chips.",
+    "Cards, chips, table...",
+  ], clue4:"I am a popular card game where players try to get the best hand to win. What am I?",
+     options:["Poker", "Chess", "Bingo"], answer:0, accept:["poker"]},
+  devils: {label:"Devils", clues:[
+    "We are creatures from stories and myths.",
+    "We are usually bad characters who have horns on our heads and carry a pitchfork.",
+    "Horns, bad, fire...",
+  ], clue4:"We are scary creatures from myths, often shown with horns, a pointed tail and a pitchfork. What are we?",
+     options:["Devils", "Ghosts", "Zombies"], answer:0, accept:["devils", "the devils", "devil", "a devil"]},
+  guitar: {label:"Guitar", clues:[
+    "I am an object.",
+    "You use your fingers to play my six strings and make music.",
+    "Music, strings, play...",
+  ], clue4:"I am a wooden musical instrument with a long neck and six strings. What am I?",
+     options:["Guitar", "Piano", "Drum"], answer:0, accept:["guitar", "a guitar"]},
+  beatles: {label:"Beatles", clues:[
+    "We are a group of people.",
+    "We are a very famous British pop band from the 1960s with four members from Liverpool.",
+    "Band, Liverpool, singers...",
+  ], clue4:"We are the famous British music group who sang 'Hey Jude' and 'Yellow Submarine'. Who are we?",
+     options:["Beatles", "Queen", "Oasis"], answer:0, accept:["beatles", "the beatles"]},
+  scar: {label:"Scar", clues:[
+    "I am a mark on the skin.",
+    "You get me after a bad cut heals, and I stay on your body forever.",
+    "Cut, skin, mark...",
+  ], clue4:"I am the line left on your skin after an injury has finished healing. What am I?",
+     options:["Scar", "Spot", "Bruise"], answer:0, accept:["scar", "a scar"]},
+  glasses: {label:"Glasses", clues:[
+    "I am an object you wear.",
+    "People put me on their face in front of their eyes to help them see better.",
+    "Eyes, see, wear...",
+  ], clue4:"I have two clear lenses and a frame that sits on your nose to improve your vision. What am I?",
+     options:["Glasses", "Headphones", "Earrings"], answer:0, accept:["glasses", "some glasses"]},
 };
 const RK_HUNT_PUZZLES = [
   {id:'hunt_paddington_01', wordA:'bear', wordB:'marmalade', answer:'Paddington', accept:['paddington','paddington bear'], oliverLine:'Bear + Marmalade... Paddington! The bear who loves marmalade sandwiches.'},
@@ -6965,6 +7020,12 @@ const RK_HUNT_PUZZLES = [
   {id:'hunt_beatles_01', wordA:'abbey', wordB:'road', answer:'The Beatles', accept:['the beatles','beatles'], oliverLine:'Abbey + Road... The Beatles! Abbey Road is their famous album, named after a street in London.'},
   {id:'hunt_doubledeckerbus_01', wordA:'red', wordB:'bus', answer:'Double-decker', accept:['double-decker','double decker','doubledecker','double-decker bus','double decker bus'], oliverLine:"Red + Bus... the double-decker! Two floors, and the best seats are upstairs at the front."},
   {id:'hunt_buckinghampalace_01', wordA:'crown', wordB:'palace', answer:'Buckingham Palace', accept:['buckingham palace','buckingham'], oliverLine:"Crown + Palace... Buckingham Palace! Home of the King."},
+  // ── Demo de Halloween (Angel + Chatty, 3 oct) — pistas de la Misión 05 ──
+  {id:"hunt_narnia_01", wordA:"witch", wordB:"lion", answer:"Narnia", accept:["narnia", "the chronicles of narnia", "chronicles of narnia"], oliverLine:"Witch + Lion... Narnia! The White Witch and Aslan the lion are two of the most famous characters in this magical land."},
+  {id:"hunt_jamesbond_01", wordA:"spy", wordB:"poker", answer:"James Bond", accept:["james bond", "bond", "007", "agent 007"], oliverLine:"Spy + Poker... James Bond! The world's most famous British secret agent loves playing high-stakes card games in his films."},
+  {id:"hunt_manchesterunited_01", wordA:"red", wordB:"devils", answer:"Manchester United", accept:["manchester united", "man united", "man utd", "man u", "manchester utd"], oliverLine:"Red + Devils... Manchester United! They wear red shirts, and their famous nickname is the Red Devils."},
+  {id:"hunt_georgeharrison_01", wordA:"guitar", wordB:"beatles", answer:"George Harrison", accept:["george harrison", "harrison", "george"], oliverLine:"Guitar + Beatles... George Harrison! He was the incredible lead guitarist for the biggest band from Liverpool."},
+  {id:"hunt_harrypotter_01", wordA:"scar", wordB:"glasses", answer:"Harry Potter", accept:["harry potter", "potter", "harry"], oliverLine:"Scar + Glasses... Harry Potter! A lightning-bolt scar and round glasses are all you need to recognise the famous wizard."},
 ];
 let _rkHuntState = null;
 function rkRenderHunt(){
@@ -6979,8 +7040,20 @@ function rkRenderHunt(){
       <button class="rk-sk-primary-btn" onclick="rkHuntStart()">📞 Call Rodrigo</button>
     </div>`;
 }
+// Demo de Halloween (3 de octubre, Angel + Chatty): los 5 pares, en este orden. Las pistas las
+// produce la Misión 05; mientras un par no esté cargado, simplemente no aparece. Con el tema
+// 'halloween' o con ?demo=preview el Hunt juega sólo éstos, uno detrás de otro.
+const RK_HUNT_DEMO_IDS = ['hunt_narnia_01', 'hunt_jamesbond_01', 'hunt_manchesterunited_01', 'hunt_georgeharrison_01', 'hunt_harrypotter_01'];
+let _rkHuntDemoIdx = 0;
+function _rkHuntNext(){
+  if(_rkDemoActivo()){
+    const lista = RK_HUNT_DEMO_IDS.map(id => RK_HUNT_PUZZLES.find(p => p.id === id)).filter(Boolean);
+    if(lista.length){ const p = lista[_rkHuntDemoIdx % lista.length]; _rkHuntDemoIdx++; return p; }
+  }
+  return rkShuffle(RK_HUNT_PUZZLES)[0]; // aleatoriedad controlada (Fisher-Yates)
+}
 function rkHuntStart(){
-  const p = rkShuffle(RK_HUNT_PUZZLES)[0]; // aleatoriedad controlada (Fisher-Yates)
+  const p = _rkHuntNext();
   _rkHuntState = {puzzle:p, who:'Rodrigo', wordKey:p.wordA, clueIdx:0, mcShown:false, mcAnswered:false, oliverUsed:false,
     wordAResult:null, wordBResult:null, phase2OliverUsed:false};
   rkRenderHuntPhase1();
@@ -8802,8 +8875,11 @@ const RK_SK_ADMIN_ABUSE = {
 // PROPIAS de Fiestas Patrias/Halloween, no de Full — Full crece con más contenido del pool
 // general (RK_SK_SCENARIOS), sin tocar las especiales de temporada. Por eso 'full' no tiene
 // entrada acá y cae directo al fallback de abajo, igual que 'neutral'.
+// Demo de Halloween (decisión de Angel, 14 de octubre): Survival Kit va con las misiones de Admin
+// Abuse de Halloween — el demo es el cumpleaños de Fernando. Con ?demo=preview se ven igual.
+function _rkTemaSk(){ return _rkDemoActivo() ? 'halloween' : RK_ACTIVE_THEME; }
 function rkCurrentSkScenarios(){
-  return RK_SK_ADMIN_ABUSE[RK_ACTIVE_THEME] || RK_SK_SCENARIOS;
+  return RK_SK_ADMIN_ABUSE[_rkTemaSk()] || RK_SK_SCENARIOS;
 }
 
 let _rkSkOrder = [];
@@ -8856,7 +8932,7 @@ function rkSkShowIntro(){
     fiestas_patrias: "Something's gone wrong at the birthday party — I might have taken over a few things. Help me fix it, one situation at a time!",
     halloween: "Something's gone wrong at the Halloween party — I might have taken over a few things. Help me fix it, one situation at a time!",
   };
-  const msg = introMsgs[RK_ACTIVE_THEME] || `Ready for ${count} quick missions around London? Let's see what you've got!`;
+  const msg = introMsgs[_rkTemaSk()] || `Ready for ${count} quick missions around London? Let's see what you've got!`;
   wrap.innerHTML = `
     <div class="rk-sk-oliver">
       <img src="Avatar/oliver-blackwood.png" alt="Oliver Blackwood">
