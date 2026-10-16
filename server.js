@@ -799,14 +799,34 @@ function passportView(pass) {
   };
 }
 
+// Normaliza lo que manda el cliente a una lista de ids: sin vacíos, sin duplicados, acotada.
+function passportItemIds(itemId, itemIds) {
+  const raw = Array.isArray(itemIds) ? itemIds : (itemId ? [itemId] : []);
+  return [...new Set(raw.map(x => String(x).slice(0, 120)).filter(Boolean))].slice(0, 20);
+}
+
+// Repetida = más de la mitad de las piezas ya estaban en `seen`. Sin ids, nunca es repetida.
+function passportIsRepeat(seenList, ids) {
+  if (!ids.length) return false;
+  const vistos = ids.filter(id => seenList.includes(id)).length;
+  return vistos * 2 > ids.length;
+}
+
 app.get('/api/passport', (req, res) => {
   res.json(passportView(readPassport()));
 });
 
-// { station, earned, itemId } → el servidor decide cuánto se paga de verdad y si
+// { station, earned, itemId | itemIds } → el servidor decide cuánto se paga de verdad y si
 // corresponde un sello. `earned` es lo que sacó en la ronda, en bruto.
+//
+// `itemId`: una sola actividad (Mystery Box, Hunt, Mind the Gap).
+// `itemIds`: lo que salió en una ronda de varias piezas (Match Day, SLL, Survival Kit).
+// 16 oct 2026 (Angel, opción B): antes esas tres mandaban un id fijo por categoría, y desde la
+// segunda ronda todo pagaba la mitad aunque las preguntas fueran nuevas. Ahora la ronda cuenta
+// como repetida solo si MÁS DE LA MITAD de lo que salió ya se había jugado. Con un solo id el
+// resultado es el mismo de siempre (1 de 1 visto = repetida).
 app.post('/api/passport/earn', rateLimit(120), (req, res) => {
-  const { station, earned, itemId } = req.body || {};
+  const { station, earned, itemId, itemIds } = req.body || {};
   const isCircuit = RK_CIRCUIT.includes(station);
   if (!isCircuit && !RK_CULTURAL.includes(station))
     return res.status(400).json({ error: 'Unknown station' });
@@ -817,13 +837,14 @@ app.post('/api/passport/earn', rateLimit(120), (req, res) => {
 
   const pass = readPassport();
 
-  // Regla de repetición: si esta actividad ya se jugó, medio pago con tope.
-  const id = itemId ? String(itemId).slice(0, 120) : null;
-  const alreadySeen = !!id && pass.seen[station].includes(id);
+  // Regla de repetición: si esta actividad (o la mayor parte de la ronda) ya se jugó,
+  // medio pago con tope.
+  const ids = passportItemIds(itemId, itemIds);
+  const alreadySeen = passportIsRepeat(pass.seen[station], ids);
   const paid = alreadySeen
     ? Math.min(Math.ceil(raw / 2), RK_REPEAT_CAP[station] || 2)
     : raw;
-  if (id && !alreadySeen) pass.seen[station].push(id);
+  ids.forEach(id => { if (!pass.seen[station].includes(id)) pass.seen[station].push(id); });
 
   pass.shillings += paid;
   if (isCircuit) pass.stations[station] = (pass.stations[station] || 0) + paid;
