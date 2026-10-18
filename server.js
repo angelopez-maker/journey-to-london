@@ -17,7 +17,9 @@ app.use(express.static(path.join(__dirname)));
 
 // ── Scores storage ─────────────────────────────────────────────────────────────
 // DATA_DIR can be set to a Railway Volume mount path for persistence across deploys
-const DATA_DIR = process.env.DATA_DIR || __dirname;
+// 16 oct 2026: si algún día se borra DATA_DIR, se usa la ruta que Railway inyecta sola al
+// adjuntar un volumen (RAILWAY_VOLUME_MOUNT_PATH). Con DATA_DIR definida no cambia nada.
+const DATA_DIR = process.env.DATA_DIR || process.env.RAILWAY_VOLUME_MOUNT_PATH || __dirname;
 const SCORES_FILE = path.join(DATA_DIR, 'scores.json');
 
 function readScores() {
@@ -719,7 +721,7 @@ const RK_DESTINATIONS = [
 function emptyPassport() {
   const zeros = {}, seen = {};
   RK_CIRCUIT.concat(RK_CULTURAL).forEach(id => { zeros[id] = 0; seen[id] = []; });
-  return { shillings: 0, stations: zeros, stamps: [], seen };
+  return { shillings: 0, stations: zeros, stamps: [], seen, unknown: {} };
 }
 
 function readPassport() {
@@ -733,6 +735,7 @@ function readPassport() {
         stations: Object.assign(base.stations, p.stations || {}),
         stamps: Array.isArray(p.stamps) ? p.stamps : [],
         seen: Object.assign(base.seen, p.seen || {}),
+        unknown: (p.unknown && typeof p.unknown === 'object') ? p.unknown : {},
       };
     }
   } catch (e) { console.error('[passport] read failed', e); }
@@ -812,8 +815,13 @@ function passportIsRepeat(seenList, ids) {
   return vistos * 2 > ids.length;
 }
 
+// ?full=1 devuelve además `seen` (qué actividades ya se jugaron). Es para respaldar a mano:
+// guardar esa página es un respaldo completo del pasaporte. El juego pide la versión corta.
 app.get('/api/passport', (req, res) => {
-  res.json(passportView(readPassport()));
+  const pass = readPassport();
+  const view = passportView(pass);
+  if (req.query && req.query.full === '1') { view.seen = pass.seen; view.unknown = pass.unknown; }
+  res.json(view);
 });
 
 // { station, earned, itemId | itemIds } → el servidor decide cuánto se paga de verdad y si
@@ -826,7 +834,7 @@ app.get('/api/passport', (req, res) => {
 // como repetida solo si MÁS DE LA MITAD de lo que salió ya se había jugado. Con un solo id el
 // resultado es el mismo de siempre (1 de 1 visto = repetida).
 app.post('/api/passport/earn', rateLimit(120), (req, res) => {
-  const { station, earned, itemId, itemIds } = req.body || {};
+  const { station, earned, itemId, itemIds, unknown } = req.body || {};
   const isCircuit = RK_CIRCUIT.includes(station);
   if (!isCircuit && !RK_CULTURAL.includes(station))
     return res.status(400).json({ error: 'Unknown station' });
@@ -845,6 +853,13 @@ app.post('/api/passport/earn', rateLimit(120), (req, res) => {
     ? Math.min(Math.ceil(raw / 2), RK_REPEAT_CAP[station] || 2)
     : raw;
   ids.forEach(id => { if (!pass.seen[station].includes(id)) pass.seen[station].push(id); });
+
+  // Botón "I don't know it" (16 oct): queda registrado aparte, como "no lo conocía", para saber
+  // qué sujetos no prenden. No cambia el pago: lo decide `earned`, que el cliente manda en 0.
+  if (unknown === true && ids.length) {
+    const lista = pass.unknown[station] = pass.unknown[station] || [];
+    ids.forEach(id => { if (!lista.includes(id)) lista.push(id); });
+  }
 
   pass.shillings += paid;
   if (isCircuit) pass.stations[station] = (pass.stations[station] || 0) + paid;
