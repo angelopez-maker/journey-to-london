@@ -6717,6 +6717,11 @@ const RK_MATCHDAY_CATEGORIES = [
     {id:'md_crossborder_leedsunited_01', q:"In the late 1990s and early 2000s, the Australian star Harry Kewell played for which English club before joining Liverpool?", options:["Leeds United","Aston Villa","Middlesbrough"], answer:0, level:'hard'},
     {id:'md_crossborder_mariobalotelli_01', q:"Which Italian striker, famous for his 'Why Always Me?' shirt, helped Manchester City win the Premier League in 2012?", options:["Mario Balotelli","Antonio Cassano","Ciro Immobile"], answer:0, level:'hard'},
     {id:'md_crossborder_clintdempsey_01', q:"Which American player scored a famous chip goal against Juventus in 2010 while playing for Fulham?", options:["Clint Dempsey","Landon Donovan","Brian McBride"], answer:0, level:'hard'},
+    // 20 oct (Angel): Fer López (Fernando López González), para que Fer descubra a un jugador que se llama como él.
+    // Datos: Wikipedia "Fer López"; Express & Star (31 jul y 7 oct 2026).
+    {id:'md_crossborder_ferlopez_01', q:"In June 2025, the Spanish midfielder Fernando López, known as Fer, joined which English club?", options:["Wolverhampton Wanderers","West Ham United","Everton"], answer:0, level:'easy'},
+    {id:'md_crossborder_celtavigo_01', q:"Before joining Wolves in 2025, Fer López played for which Spanish club, in the city where he grew up as a player?", options:["Celta Vigo","Real Madrid","Sevilla"], answer:0, level:'medium'},
+    {id:'md_crossborder_westbrom_01', q:"In the 2026-27 season, Fer López scored the winning goal for Wolves in the Black Country Derby. Which team did they beat?", options:["West Bromwich Albion","Aston Villa","Birmingham City"], answer:0, level:'medium'},
   ]},
   {id:'england', label:'🦁 England', questions:[
     {id:'md_england_threelions_01', level:'easy', q:"What is the nickname of the England national football team?", options:['The Three Lions','The Red Devils','The Eagles'], answer:0},
@@ -8733,6 +8738,18 @@ const RK_MYSTERY_BANKS = {
       'In 2025, I joined a team of unlikely heroes called the Thunderbolts.',
       'My big sister is Natasha Romanoff, the first Black Widow.',
       'In 2026, I made a surprise appearance in Spider-Man: Brand New Day.']},
+    // 20 oct (Angel): Fer López, un futbolista que se llama como Fer y juega en Inglaterra. Datos: Wikipedia
+    // "Fer López"; Express & Star (31 jul y 7 oct 2026: gol del triunfo en el Black Country Derby, temporada 2026-27).
+    {id:'myst_fer_lopez', answer:'Fer López', accept:['fer lopez', 'fernando lopez', 'fernando lopez gonzalez', 'lopez'], bridge:'medium', level:'medium',
+     category:'A footballer',
+     hook:'Besides playing football, he has studied law and business at the University of Vigo.', clues:[
+      'I am a left-footed footballer who loves to create chances for my teammates.',
+      'I was born in Madrid in 2004, but I learned to play football at a club in the Spanish city of Vigo.',
+      'When I was 14, I lived in England for three months and went to school in Suffolk.',
+      'In Vigo, many fans compare me to Iago Aspas, the biggest hero of Celta.',
+      'In June 2025, Wolverhampton Wanderers paid about 19 million pounds to bring me to England.',
+      'In the 2026-27 season, I scored the winning goal for Wolves in the Black Country Derby.',
+      'My real name is Fernando, but everyone calls me Fer. Maybe just like you!']},
     // Las 4 que ya venían en el banco neutral. Se repiten acá porque el motor de temas
     // resuelve con banks[tema] || banks.neutral: si full existe, neutral no se usa.
     {id:'myst_big_ben', level:'medium', answer:'Big Ben', accept:['big ben'], bridge:'medium',
