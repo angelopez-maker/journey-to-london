@@ -9909,6 +9909,9 @@ const RK_SLL_DEMO_IDS = [
   // Las 5 del demo, en orden — elegidas por Angel el 2 de octubre después de escuchar las 8.
   'sll_games_clashroyale', 'sll_games_legogames', 'sll_music_moonwalk',
   'sll_sports_yellowredcards', 'sll_movies_tomcruise',
+  // 20 oct (Angel): una pieza 🔑 al final, para que en la prueba vean la mecánica de la llave (la ficha de
+  // Paddington en Electric Cinema se abre encima de la ronda).
+  'sll_movies_paddington_key',
 ];
 // Vista previa para el equipo: rubberneckin.html?sll=preview muestra la ronda del demo sin cambiar
 // el tema que ven los niños. Sirve para escuchar las entradas con la voz del juego antes de elegir.
@@ -9971,7 +9974,7 @@ function rkRenderSLLQuiz(){
       <div class="rk-tv-qbody">
         <div class="rk-tv-dots">${s.pool.map((_,i) => `<span class="rk-tv-dot${i < s.qIdx ? ' done' : i === s.qIdx ? ' now' : ''}"></span>`).join('')}<span class="rk-tv-score">Score ${s.score}</span></div>
         <div class="rk-tv-listen"><button class="rk-sk-primary-btn" id="rk-sll-play-btn" onclick="rkSLLPlayFragment()">▶ Listen</button></div>
-        <div class="rk-tv-question">${rkEscapeHtml(item.key && !item.q ? 'Listen to the question. The answer is in the card!' : meta.q)}</div>
+        <div class="rk-tv-question">${rkEscapeHtml(item.key && !item.q ? 'Listen to the question!' : meta.q)}</div>
         ${rkKeyButton(item.key)}
         <div id="rk-sll-oliver-note"></div>
       </div>
@@ -12263,14 +12266,14 @@ function rkKeyButton(key){
   const k = rkKeyParse(key);
   if(!k) return '';
   const donde = k.kind === 'song' ? 'Abbey Road' : 'Electric Cinema';
-  return `<button class="rk-key-btn" onclick="rkOpenKeyCard('${key}')">🔑 The answer is in ${donde} — open the card</button>`;
+  return `<button class="rk-key-btn" onclick="rkOpenKeyCard('${key}')">🔑 Need help? Look in the ${donde} card</button>`;
 }
 function rkKeyEnsureOverlay(){
   if(document.getElementById('rk-key-overlay')) return;
   const el = document.createElement('div');
   el.id = 'rk-key-overlay';
   el.onclick = e => { if(e.target === el) rkCloseKeyCard(); };
-  el.innerHTML = `<div class="rk-key-card"><div class="rk-key-kicker">🔑 FIND THE ANSWER IN THIS CARD</div>
+  el.innerHTML = `<div class="rk-key-card"><div class="rk-key-kicker">🔑 THE CLUE IS IN THIS CARD</div>
     <div id="rk-key-body" style="display:flex;flex-direction:column;gap:10px"></div></div>`;
   document.body.appendChild(el);
 }
